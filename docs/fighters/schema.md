@@ -1,6 +1,6 @@
 # Fighter and deck manifest schema
 
-**Schema maturity:** Phase 4A candidate. It may be extended by corpus evidence, but existing semantic distinctions must not be collapsed.
+**Schema maturity:** Phase 4A verified. Phase 4B may add corpus-proven fields, but existing semantic distinctions must not be collapsed.
 
 ## 1. Fighter manifest
 
@@ -22,7 +22,7 @@ topology:
       role: hero | sidekick | selectable_hero
       count: 1
       attack_type: melee | ranged
-      starting_health: 10 | null
+      starting_health: 10 | source_defined_by_role | null
       starts_on_board: true
       summonable: false
 
@@ -43,7 +43,7 @@ resources:
 
 persistent_state:
   - key: ...
-    type: boolean | integer | enum | fighter_ref | space_ref | card_ref
+    type: boolean | integer | enum | fighter_ref | fighter_ref_set | space_ref | card_ref | card_ref_set
     reset: never | turn_start | turn_end | action_start | action_end | combat_start | combat_end
 
 deck:
@@ -56,15 +56,15 @@ sources: []
 
 ### Required invariants
 
-`FIGHTER-SCHEMA-001` — every independently damageable fighter has its own stable piece ID and health semantics. A visual token group is not sufficient.
+`FIGHTER-SCHEMA-001` — every independently damageable fighter has its own stable piece/instance identity and health semantics. A visual token group is not sufficient.
 
-`FIGHTER-SCHEMA-002` — `hero`, `sidekick`, and `multiple_heroes` are gameplay roles, not UI labels. The loss rule is explicit rather than inferred from the number of health dials.
+`FIGHTER-SCHEMA-002` — `hero`, `sidekick`, `multiple_heroes`, and setup-selected roles are gameplay semantics, not UI labels. The loss rule is explicit rather than inferred from the number of health dials.
 
-`FIGHTER-SCHEMA-003` — summonable pieces remain canonical fighter definitions even when they start off-board. Their reserve availability is represented separately from battlefield presence.
+`FIGHTER-SCHEMA-003` — summonable pieces remain canonical fighter definitions even when they start off-board. Reserve availability is represented separately from battlefield presence.
 
 `FIGHTER-SCHEMA-004` — setup choices use the Phase 2 pending-choice model. A client may not silently choose gear, hero identity, sidekick, or other configuration locally.
 
-`FIGHTER-SCHEMA-005` — historical state needed by effects (for example action ordinal or the space occupied at turn start) is persisted explicitly; it must not be reconstructed from current board state.
+`FIGHTER-SCHEMA-005` — historical state needed by effects (for example action ordinal, the turn-start space, whether an attack happened this turn, or source-defined parent context) is persisted explicitly; it must not be reconstructed from current board state.
 
 ## 2. Deck manifest
 
@@ -91,6 +91,7 @@ cards:
   - id: stable-card-definition-id
     name: display name
     quantity: 2
+    inclusion: base | choose_group | fixed
     usable_by: [fighter-piece-ids] | any
     type: attack | defense | versatile | scheme
     printed_value: 3 | null
@@ -118,7 +119,7 @@ sources: []
 
 ### Card identity and instances
 
-`CARD-SCHEMA-001` — a card **definition** (e.g. `feint`) is distinct from a physical/game **card instance**. Quantity creates multiple instances sharing a definition.
+`CARD-SCHEMA-001` — a card **definition** is distinct from a physical/game **card instance**. Quantity creates multiple instances sharing a definition.
 
 `CARD-SCHEMA-002` — a card instance must retain at least:
 
@@ -131,30 +132,42 @@ zone_controller: ...
 visibility: ...
 ```
 
-Ownership is immutable unless an authoritative rule explicitly changes ownership. Location/control is mutable.
+Ownership is immutable unless an authoritative rule explicitly changes ownership. Location/control/use authority is mutable.
 
 This distinction is required by Black Panther: an opponent-owned card can be face-up in Black Panther's Vibranium Suit, usable by Black Panther only for BOOST, and later return to the **owner's** discard pile.
 
-`CARD-SCHEMA-003` — a custom card zone is a first-class zone, not an arbitrary list attached to a fighter. It declares visibility, who may move/use cards from it, and disposition after use.
+`CARD-SCHEMA-003` — a custom card zone is a first-class zone, not an arbitrary list attached to a fighter. It declares visibility, who may move/use cards from it, replacement/disposition rules, and source lifetime.
 
-`CARD-SCHEMA-004` — deck size is data. Do not hard-code `30`. Geralt has a 36-card available pool but constructs a 30-card game deck; other published fighters have different fixed deck sizes.
+`CARD-SCHEMA-004` — deck size is data. Do not hard-code `30`. Geralt has a 36-card available pool but constructs a 30-card game deck; published fixed decks also vary elsewhere in the product line.
 
 `CARD-SCHEMA-005` — `external_definitions` are gameplay definitions referenced by cards/abilities but not ordinary action-card instances in the game deck. Phase 4A examples include bonus-attack definitions and Wayward Sisters spells.
 
+`CARD-SCHEMA-006` — the engine must distinguish immutable definition facts from runtime value layers:
+
+```text
+printed_value_base
+effective_printed_value
+current_combat_value
+boost_base
+effective_boost_value
+```
+
+A source can modify one layer without rewriting the others.
+
 ## 3. Normalized effect records
 
-Phase 4 card effects target the Phase 2 model in `docs/mechanics/effect-model.md`.
+Phase 4 card effects target `docs/mechanics/effect-model.md`.
 
-Effects should prefer existing primitives:
+Current generic operations include:
 
-- card operations: `DRAW`, `DISCARD`, `REVEAL`, `LOOK_AT`, `MOVE_CARD`, `SHUFFLE`;
-- health: `DEAL_EFFECT_DAMAGE`, `APPLY_COMBAT_DAMAGE`, `RECOVER`, `DEFEAT`, `RETURN_FIGHTER`;
+- card/zone: `DRAW`, `DISCARD`, `REVEAL`, `LOOK_AT`, `MOVE_CARD`, `SHUFFLE`, `REORDER`;
+- health/damage: `DEAL_EFFECT_DAMAGE`, `APPLY_COMBAT_DAMAGE`, `PREVENT_DAMAGE`, `REDIRECT_DAMAGE`, `RECOVER`, `DEFEAT`, `RETURN_FIGHTER`;
 - position: `MOVE`, `PLACE`, `SWAP`, `SUMMON`;
-- actions/resources/state: `GAIN_ACTION`, `GAIN_RESOURCE`, `SPEND_RESOURCE`, `SET_STATE`, `CHANGE_STATE`;
-- combat: `ADD_VALUE`, `SET_VALUE`, `IGNORE_VALUE`, `BOOST`, `CANCEL_EFFECTS`;
-- control flow: `REQUEST_CHOICE`, `TRIGGER_COMPOSITE`, `END_TURN`.
+- actions/resources/state: `GAIN_ACTION`, `GAIN_RESOURCE`, `SPEND_RESOURCE`, `SET_STATE`, `CHANGE_STATE`, `PREVENT_OPERATION`;
+- combat/value: `ADD_VALUE`, `SET_VALUE`, `SET_PRINTED_VALUE`, `IGNORE_VALUE`, `ADD_BOOST_VALUE`, `BOOST`, `CANCEL_EFFECTS`;
+- control/composites: `REQUEST_CHOICE`, `TRIGGER_COMPOSITE`, `REPLACE_COMBAT_CARD`, `END_TURN`.
 
-A manifest may introduce a named custom operation only when the representative corpus proves that the existing primitives cannot preserve the rule. Such a record must still specify trigger, choices, state transitions, cancellation behavior and provenance.
+A manifest may introduce a new operation only when corpus evidence proves the existing vocabulary cannot preserve the rule. The new semantic must then be promoted/documented generically, not left as an unexplained character-named branch.
 
 ## 4. Source representation vs normalized representation
 
@@ -173,7 +186,7 @@ A fighter/deck pair passes Phase 4 validation only when:
 - all card quantities reconcile with construction rules;
 - every `usable_by` target exists in fighter topology;
 - every referenced resource/zone/state exists;
-- every effect maps to a Phase 2 primitive/composite or an explicitly documented custom mechanic;
+- every effect maps to a documented generic primitive/composite or an explicitly justified custom mechanic;
 - source-sensitive interpretations link provenance;
 - known official rulings are attached or explicitly deferred;
 - no fan-patch data is mixed with published data.
