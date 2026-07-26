@@ -25,7 +25,7 @@ sources:
   - https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
   - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 normalization_notes:
-  - Fully funded discharge tiers and the printed 30-card corpus are verified.
-  - The official ruling establishes that declaring the two-coil tier remains legal with one or zero charged coils and that this may intentionally fizzle the dependent tier effect; do not auto-downgrade that declaration to the one-coil tier.
-  - Canonical proposed underfunded resource behavior is discharge-available: with exactly one charged coil and declared tier 2, the available coil is discharged (1 -> 0), selected tier remains 2, and the dependent two-coil effect may fizzle. Confidence is high from composed official semantics; no separate exact-case one-line publisher ruling was found.
+  - Fully funded discharge tiers and the published 30-card corpus are verified.
+  - "C-EXT-004 governs underfunded tiered discharge: tier 2 may be declared with 0/1 charged coils, remains tier 2, and may fizzle without tier-1 fallback."
+  - "Recommended integration behavior (high confidence): discharge available charged coils up to the declared amount; therefore 1 charged + declare 2 -> 0 charged. No exact-case publisher ruling for this transition was found."
   - tiered_resource_discharge remains a proposed generic composite, not Tesla-only code.
