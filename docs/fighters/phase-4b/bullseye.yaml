@@ -30,14 +30,6 @@ ability:
     trigger: static
     continuous: true
     normalization_blocker: Bullseye may attack by graph distance up to 5 while ignoring zones. Phase 4A has no reusable graph-distance attack-legality modifier; the previous structured object stored in enum-typed state had no shared contract.
-  - id: record-final-combat-win
-    trigger: combat_end_after_after_combat_effects
-    condition:
-      final_combat_winner: bullseye
-    operations:
-    - op: SET_STATE
-      key: won_combat_earlier_this_turn
-      value: true
 resources: []
 persistent_state:
 - key: turn_start_space
@@ -47,7 +39,7 @@ persistent_state:
 - key: won_combat_earlier_this_turn
   type: boolean
   reset: turn_start
-  note: Historical state used by published effects that ask whether Bullseye already won a combat earlier in the current turn. It is updated only after the combat's final winner is known, so the current combat does not satisfy its own predicate and Arrogant But Effective can make that combat count for later effects.
+  note: Historical combat-engine snapshot. It becomes true only after a combat has fully resolved and Bullseye is its final winner, including a winner changed by Arrogant But Effective; therefore the current combat cannot satisfy its own "already won" predicate.
 deck:
   manifest: ../../cards/phase-4b/bullseye.yaml
   construction: fixed
@@ -60,7 +52,7 @@ sources:
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/bullseye
 normalization_notes:
-- Attack legality is based on space distance up to 5, ignoring zones.
+- Bullseye's published special ability is only the extended attack range; prior-combat history is engine state required by his deck, not an additional hero ability.
 - Audit correction: turn-start position and prior-win history are explicit persistent state instead of being reconstructed from current board/combat state.
 blockers:
 - id: semantic-extension-spatial-attack-range
