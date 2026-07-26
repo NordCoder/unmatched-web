@@ -1,31 +1,161 @@
 schema_version: 1
 fighter_id: john-henry
-status: blocked
-reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
-- https://www.youtube.com/watch?v=KADK9FlkJqc
-- https://unmatched.cards/umdb/decks/john-henry
+status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-cards: []
+cards:
+- id: eighteen-pound-hammer
+  name: Eighteen-Pound Hammer
+  quantity: 2
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: attack
+  printed_value: 6
+  boost: 2
+  tags: [hammer]
+  effects:
+  - trigger: immediately
+    condition: {state: john_henry_distinct_paths_used_this_turn, gte: 4}
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+- {id: larger-than-life, name: Larger Than Life, quantity: 2, inclusion: fixed, usable_by: [john-henry], type: attack, printed_value: 6, boost: 4, tags: [], effects: []}
+- id: twelve-pound-hammer
+  name: Twelve-Pound Hammer
+  quantity: 2
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: [hammer]
+  effects:
+  - trigger: after_combat
+    condition: {state: john_henry_distinct_paths_used_this_turn, gte: 4}
+    choices: [{owner: controller, choose: combat_fighter, capture: target}, {owner: controller, choose: space_with_track_token, capture: destination}]
+    operations: [{op: PLACE, target: captured.target, destination_rule: captured.destination}]
+- id: nine-pound-hammer
+  name: Nine-Pound Hammer
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: [hammer]
+  effects:
+  - trigger: after_combat
+    condition: {state: john_henry_distinct_paths_used_this_turn, gte: 4}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_john_henry_zone, amount: 2}]
+- id: hear-that-cold-steel-ring
+  name: Hear That Cold Steel Ring
+  quantity: 2
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - {op: DRAW, count: 1}
+    - {op: MOVE, target: john-henry, max_distance: 1}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
+- id: knock-them-silly
+  name: Knock Them Silly
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: versatile
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_cancel_opposing_after_combat_effects_if_this_combat_won}]
+- id: momentous-shift
+  name: Momentous Shift
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {own_combat_fighter_started_turn_in_different_space: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+- id: power-through
+  name: Power Through
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    choices: [{owner: controller, choose: combat_fighter, capture: target}]
+    operations: [{op: MOVE, target: captured.target, max_distance: 2, overrides: [spaces_with_track_tokens_do_not_count]}]
+- id: bring-down-the-mountain
+  name: Bring Down the Mountain
+  quantity: 2
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_hammer_cards_in_discard}]
+- id: deeds-of-valor
+  name: Deeds of Valor
+  quantity: 2
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: defense
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_cap_combat_damage_to_fighter, target: john-henry, maximum: 2}]
+- id: cool-drink-of-water
+  name: Cool Drink of Water
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: defense
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: RECOVER, target: john-henry, amount: 3}, {op: DRAW, count: 1}]
+- id: striking-fire
+  name: Striking Fire
+  quantity: 3
+  inclusion: fixed
+  usable_by: [john-henry]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations: [{op: MOVE, target: john-henry, max_distance: 4}, {op: GAIN_ACTION, count: 1}]
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: null
-  result: BLOCKED
-  reason: Official rulebook proves 30 action cards and public physical card material exists, but the full card corpus has not yet been frame-transcribed and independently reconciled for quantity/type/value/BOOST/effects.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, result: PASS}
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 John Henry action cards.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party explanation of track-network gameplay.}
-- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/john-henry, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- Physical/visual card evidence exists; the remaining blocker is trustworthy card-by-card transcription rather than corpus absence.
-- No fan-deck reconstruction is promoted into cards[].
+- All 12 definitions reconcile to 30 physical cards.
+- Hammer cards are explicitly tagged for Bring Down the Mountain.
+- Distinct-path history and free-attack actions remain source-defined composites pending shared path/action-credit semantics.
