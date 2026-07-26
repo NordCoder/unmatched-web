@@ -1,0 +1,237 @@
+schema_version: 1
+fighter_id: wayward-sisters
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: all-seeing-familiar
+    name: All-Seeing Familiar
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: [ingredient:lizard]
+    effects:
+      - trigger: immediately
+        choices: [{owner: controller, choose: card_in_own_discard}]
+        operations: [{op: MOVE_CARD, from_zone: discard, to_zone: cauldron, selector: chosen_card}]
+      - trigger: after_combat
+        condition: {combat_result: won}
+        operations: [{op: REVEAL, source: deck_top, selector: 1, capture: revealed_card}]
+        choices: [{owner: controller, choose: destination, options: [hand, cauldron]}]
+        followup: [{op: MOVE_CARD, from_zone: deck_top, to_zone: chosen_destination, selector: captured.revealed_card}]
+
+  - id: double-double
+    name: Double, Double
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: [ingredient:lizard]
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_distinct_ingredient_tags_in_cauldron}]
+
+  - id: hurly-burly
+    name: Hurly-Burly
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: [ingredient:snake]
+    effects:
+      - trigger: during_combat
+        operations: [{op: REVEAL, source: deck_top, selector: 1, capture: revealed_card}]
+        choices:
+          - owner: opponent
+            choose: disposition
+            options: [to_hand, to_cauldron_and_add_boost]
+        branches:
+          - condition: {chosen_disposition: to_hand}
+            operations: [{op: MOVE_CARD, from_zone: deck_top, to_zone: hand, selector: captured.revealed_card}]
+          - condition: {chosen_disposition: to_cauldron_and_add_boost}
+            operations:
+              - {op: MOVE_CARD, from_zone: deck_top, to_zone: cauldron, selector: captured.revealed_card}
+              - {op: ADD_VALUE, target: this_card, amount: captured.revealed_card.boost_or_0}
+
+  - id: fire-burn-and-cauldron-bubble
+    name: Fire Burn And Cauldron Bubble
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [ingredient:bat]
+    effects:
+      - trigger: immediately
+        choices: [{owner: controller, choose: card_in_own_discard}]
+        operations: [{op: MOVE_CARD, from_zone: discard, to_zone: cauldron, selector: chosen_card}]
+
+  - id: the-stars-align
+    name: The Stars Align
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 0
+    boost: 1
+    tags: [ingredient:lizard]
+    effects:
+      - trigger: during_combat
+        operations: [{op: SET_VALUE, target: this_card, value_rule: count_distinct_zones_occupied_by_all_friendly_fighters}]
+
+  - id: curious-familiar
+    name: Curious Familiar
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: [ingredient:bat]
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: card_in_cauldron}]
+        operations: [{op: MOVE_CARD, from_zone: cauldron, to_zone: hand, selector: chosen_card}]
+
+  - id: ward
+    name: Ward
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [ingredient:bat]
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: space_in_own_combat_fighter_zone}]
+        operations: [{op: PLACE, target: opposing_combat_fighter, destination: chosen_space}]
+
+  - id: toil-and-trouble
+    name: Toil And Trouble
+    quantity: 3
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 3
+    tags: [ingredient:snake]
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_distinct_ingredient_tags_in_cauldron}]
+
+  - id: pricking-of-my-thumbs
+    name: Pricking Of My Thumbs
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: [ingredient:snake]
+    effects:
+      - trigger: after_combat
+        operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_from: combat_damage_taken_by_own_fighter_this_combat}]
+
+  - id: unnatural-remedy
+    name: Unnatural Remedy
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 1
+    boost: 2
+    tags: [ingredient:snake]
+    effects:
+      - trigger: immediately
+        choices:
+          - {owner: controller, choose: cards_in_cauldron, min: 0, max: 3}
+        operations:
+          - op: MOVE_CARD
+            from_zone: cauldron
+            to_zone: discard
+            selector: chosen_cards
+            overrides: [explicit_cauldron_discard_bypasses_bubbling_brew_replacement]
+        repeated_choice_per_moved_card:
+          owner: controller
+          choose: undefeated_fighter
+          operations: [{op: RECOVER, target: chosen_fighter, amount: 1}]
+
+  - id: something-wicked-this-way-comes
+    name: Something Wicked This Way Comes
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: [ingredient:bat]
+    effects:
+      - trigger: scheme
+        choices:
+          - {owner: controller, choose: spell_from_wayward_spells, ignore_ingredient_requirement: true, capture: first_spell}
+          - {owner: controller, choose: different_spell_from_wayward_spells, ignore_ingredient_requirement: true, capture: second_spell}
+        operations:
+          - {op: TRIGGER_COMPOSITE, kind: external_spell, definition: captured.first_spell, consume_cauldron: false}
+          - {op: TRIGGER_COMPOSITE, kind: external_spell, definition: captured.second_spell, consume_cauldron: false}
+
+  - id: prophecy
+    name: Prophecy
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [ingredient:lizard]
+    effects:
+      - trigger: scheme
+        operations: [{op: LOOK_AT, source: deck_top, selector: up_to_4, viewer: controller, capture: viewed_cards}]
+        choices:
+          - {owner: controller, choose: up_to_2_viewed_cards_for_hand, exact_when_available: 2, capture: hand_cards}
+          - {owner: controller, order: remaining_viewed_cards_for_deck_top}
+        followup:
+          - {op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: captured.hand_cards}
+          - {op: REORDER, zone: deck_top, selector: remaining_viewed_cards, order: chosen_order}
+
+external_definitions:
+  - id: spell-snake-bat
+    kind: spell
+    requirements: [ingredient:snake, ingredient:bat]
+    operations:
+      - {op: DRAW, count: 1}
+      - choice: {owner: controller, choose: friendly_undefeated_fighter}
+        then: [{op: RECOVER, target: chosen_fighter, amount: 1}]
+
+  - id: spell-snake-lizard
+    kind: spell
+    requirements: [ingredient:snake, ingredient:lizard]
+    operations:
+      - choice: {owner: controller, choose: any_fighter}
+        then: [{op: MOVE, target: chosen_fighter, max_distance: 3}]
+
+  - id: spell-bat-lizard
+    kind: spell
+    requirements: [ingredient:bat, ingredient:lizard]
+    operations:
+      - choice: {owner: controller, choose: fighter_sharing_a_zone_with_any_friendly_fighter}
+        then: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]
+
+  - id: spell-snake-bat-lizard
+    kind: spell
+    requirements: [ingredient:snake, ingredient:bat, ingredient:lizard]
+    operations: [{op: GAIN_ACTION, count: 1}]
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 12
+  external_definition_count: 4
+
+sources:
+  - https://unmatched.cards/umdb/decks/the-wayward-sisters
+  - https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+  - https://www.the-unmatched.club/rules/the-wayward-sisters
+
+normalization_notes:
+  - Ingredient symbols are card-definition tags, not separate token instances.
+  - The cauldron is a real card zone governed by the fighter-level discard replacement.
+  - Spells are external definitions, not cards and not deck instances.
+  - Prophecy uses LOOK_AT, not DRAW; inspecting an undersized/empty deck therefore does not invoke exhaustion.
