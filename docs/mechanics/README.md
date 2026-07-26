@@ -1,7 +1,7 @@
 # Timing, choices and effect semantics
 
 **Phase:** 2 — Timing, choices, effects and global rulings  
-**Status:** verified baseline; see `phase-2-validation.md`  
+**Status:** verified — Phase 2 gate passed 2026-07-26  
 **Last verified:** 2026-07-26
 
 This directory refines the Phase 1 core rules into a deterministic resolution contract suitable for an online rules engine. It describes **gameplay semantics**, not a programming-language architecture.
@@ -13,7 +13,7 @@ This directory refines the Phase 1 core rules into a deterministic resolution co
 - `ARCHIVE` — [Unmatched Rulings Archive](https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/), the publisher/designer ruling compilation identified by REF10 as considered official by Restoration Games.
 - `RULES-HUB` — [The Unmatched Club Rules Hub](https://www.the-unmatched.club/rules), a current secondary index. Its dispute entries distinguish rulings backed by the Rulings Archive; it is used for discovery/freshness, not to silently override higher-authority material.
 
-The authority hierarchy remains the one in `docs/sources/source-policy.md`.
+The authority hierarchy remains the one in `docs/sources/source-policy.md`. Where a secondary summary uses looser wording than `CORE`/official errata, the higher-authority exact rule wins; for example, the canonical game-end predicate remains the official `start or end of any action` wording.
 
 ## Stable rule-ID prefixes
 
