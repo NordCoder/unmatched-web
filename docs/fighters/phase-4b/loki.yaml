@@ -3,13 +3,7 @@ id: loki
 display_name: Loki
 set_ids:
 - battle-of-legends-vol-3
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- https://unmatched.cards/umdb/decks/loki
-- https://www.the-unmatched.club/rules/loki
-- https://www.the-unmatched.club/heroes/loki
+status: verified
 movement: 2
 topology:
   type: single_hero
@@ -27,36 +21,19 @@ setup:
   hooks: []
   state_initialization: []
 ability:
-  id: god-of-tricks
+  id: mischief-monger
   controller: owner
   effects:
   - id: trick-cleanup-replacement
     trigger: cleanup_replacement
-    condition:
-      played_card_tag: trick
-      card_owner: loki
-    operations:
-    - op: MOVE_CARD
-      from_zone: resolution
-      to_zone: opponent_hand
-      selector: played_card
+    condition: {played_card_tag: trick, card_owner: loki}
+    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: opponent_hand, selector: played_card}]
   - id: trick-opponent-discard-recovery
     trigger: owned_card_discarded_from_opponent_hand
     optional: true
-    condition:
-      card_owner: loki
-      card_tag: trick
-    choices:
-    - owner: controller
-      choose: destination
-      options:
-      - hand
-      - deck_top
-    operations:
-    - op: MOVE_CARD
-      from_zone: opponent_hand_discard_transition
-      to_zone: chosen_destination
-      selector: affected_card
+    condition: {card_owner: loki, card_tag: trick}
+    choices: [{owner: controller, choose: destination, options: [hand, deck_top]}]
+    operations: [{op: MOVE_CARD, from_zone: opponent_hand_discard_transition, to_zone: chosen_destination, selector: affected_card}]
   - id: trick-move-bonus
     trigger: static
     continuous: true
@@ -64,24 +41,33 @@ ability:
     - op: TRIGGER_COMPOSITE
       kind: source_defined_move_value_modifier
       amount_rule: count_loki_trick_cards_in_opponents_hands
-    note: Generic movement-value modifier is proposed in the worker report.
 resources: []
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/loki.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: loki-tricks-retain-owner
+  summary: TRICK cards placed in opponents' hands remain Loki-owned card instances; zone/controller changes do not change ownership.
+  source: https://www.the-unmatched.club/rules/loki
+- id: loki-trick-boost
+  summary: TRICK cards have no BOOST value and cannot provide a positive BOOST unless a source explicitly overrides that fact.
+  source: https://www.the-unmatched.club/rules/loki
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/loki
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/rules/loki
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-26'
+  note: Physical 2025 deck review used for component cross-checking.
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/loki
+  url: https://www.unmatchedarena.com/heroes/loki
+  checked_at: '2026-07-26'
+  note: Complete current deck transcription.
+- authority: reference
+  url: https://www.the-unmatched.club/tools/tracker?h=loki
+  checked_at: '2026-07-26'
+  note: Independent names/quantities cross-check.
+- {authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-26'}
 normalization_notes:
-- TRICK cards retained by opponents remain Loki-owned card instances; ownership must not be rewritten when the zone/controller
-  changes.
-- TRICK BOOST is source-defined as unavailable/zero for rules that query it; exact card tags and effects require complete
-  deck verification.
+- Opponent-held TRICK cards preserve owner_player=Loki while current_zone and zone controller change.
+- The movement-value bonus is a proposed generic extension; corpus verification does not require modifying the shared model on this worker branch.
