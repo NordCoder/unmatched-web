@@ -4,7 +4,7 @@ status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: claws-that-catch, name: Claws That Catch, quantity: 2, usable_by: [jabberwock], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: during_combat, condition: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - {id: claws-that-catch, name: Claws That Catch, quantity: 2, usable_by: [jabberwock], type: attack, printed_value: 3, boost: 2, effects: [{trigger: during_combat, condition: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
   - {id: momentous-shift, name: Momentous Shift, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
   - {id: skirmish, name: Skirmish, quantity: 2, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
   - {id: mad-as-a-hatter, name: Mad as a Hatter, quantity: 2, usable_by: [alice], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 2}, {op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}
@@ -22,11 +22,13 @@ cards:
 
 external_definitions:
   - {id: looking-glass-two-different, kind: choice_bundle, choose: 2, distinct: true, options: [draw_2, recover_alice_3, place_alice_any_other_space]}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 15}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 15, attack_count: 7, versatile_count: 17, defense_count: 2, scheme_count: 4}
 sources:
   - https://unmatched.cards/umdb/decks/alice
+  - https://unmatched.cards/umdb/decks/stats
   - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
   - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 normalization_notes:
   - Alice size state is defined in the fighter manifest; card effects only mutate or read that state.
   - Manxome Foe discards the top deck card and adds that discarded card's BOOST value to the combat value; it is not normalized as a reveal or as a BOOST-value modifier.
+  - Current UmDb deck statistics reconcile exactly after classifying Claws That Catch as Attack: 7 Attack / 17 Versatile / 2 Defense / 4 Scheme cards.
