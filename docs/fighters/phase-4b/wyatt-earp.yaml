@@ -1,89 +1,45 @@
 schema_version: 1
 id: wyatt-earp
 display_name: Wyatt Earp
-set_ids:
-- stars-and-stripes
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- https://unmatched.cards/umdb/decks/wyatt-earp
-- https://www.the-unmatched.club/heroes/wyatt-earp
+set_ids: [stars-and-stripes]
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: wyatt-earp
-    display_name: Wyatt Earp
-    role: hero
-    count: 1
-    attack_type: ranged
-    starting_health: 15
-    starts_on_board: true
-    summonable: false
-  - id: doc-holliday
-    display_name: Doc Holliday
-    role: sidekick
-    count: 1
-    attack_type: ranged
-    starting_health: 8
-    starts_on_board: true
-    summonable: false
+  - {id: wyatt-earp, display_name: Wyatt Earp, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: doc-holliday, display_name: Doc Holliday, role: sidekick, count: 1, attack_type: ranged, starting_health: 8, starts_on_board: true, summonable: false}
 setup:
   hooks: []
   state_initialization:
-  - key: showdown_draw_used
-    value: false
-  - key: showdown_attack_action_used
-    value: false
-  - key: showdown_move_used
-    value: false
+  - {key: showdown_draw_used, value: false}
+  - {key: showdown_attack_action_used, value: false}
+  - {key: showdown_move_used, value: false}
 ability:
   id: showdown
   controller: owner
   effects:
   - id: showdown-choice
     trigger: after_attack
-    condition:
-      combat_result: won
-    choices:
-    - owner: controller
-      choose: unused_showdown_effect
-      options:
-      - draw
-      - attack_action
-      - move
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_showdown_choice
-    note: Draw and move branches map to existing operations; the attack-only free action needs a restricted-action extension
-      proposed in the report.
+    condition: {combat_result: won}
+    choices: [{owner: controller, choose: unused_showdown_effect, options: [draw, attack_action, move]}]
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_showdown_choice}]
 resources: []
 persistent_state:
-- key: showdown_draw_used
-  type: boolean
-  reset: turn_start
-- key: showdown_attack_action_used
-  type: boolean
-  reset: turn_start
-- key: showdown_move_used
-  type: boolean
-  reset: turn_start
+- {key: showdown_draw_used, type: boolean, reset: turn_start}
+- {key: showdown_attack_action_used, type: boolean, reset: turn_start}
+- {key: showdown_move_used, type: boolean, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/wyatt-earp.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: free-attack-action
+  summary: A free action to attack must be used immediately as the next action or it is lost.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/wyatt-earp
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/wyatt-earp
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
+normalization_notes:
+- Showdown's attack branch and card-granted free attacks use a restricted immediate action-credit composite pending shared semantics.
