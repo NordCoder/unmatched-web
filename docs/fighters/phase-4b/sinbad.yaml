@@ -1,0 +1,34 @@
+schema_version: 1
+id: sinbad
+display_name: Sinbad
+set_ids: [battle-of-legends-vol-1]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: sinbad, display_name: Sinbad, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: porter, display_name: Porter, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: voyages
+  controller: owner
+  effects:
+    - id: voyage-maneuver-movement
+      trigger: maneuver_movement_value
+      continuous: true
+      operations: [{op: ADD_VALUE, target: maneuver_move_distance, amount: count_voyage_cards_in_discard}]
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/sinbad.yaml, construction: fixed}
+rulings:
+  - id: sinbad-voyage-count
+    summary: Only Voyage cards currently in Sinbad's discard pile increase maneuver movement and Voyage combat values that count other Voyages.
+    source: https://www.the-unmatched.club/heroes/sinbad
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/sinbad}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/sinbad}
