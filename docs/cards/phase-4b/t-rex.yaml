@@ -1,6 +1,6 @@
 schema_version: 1
 fighter_id: t-rex
-status: verified
+status: blocked
 construction:
   kind: fixed
   available_pool_count: 30
@@ -123,11 +123,12 @@ cards:
   effects:
   - trigger: during_combat
     condition:
-      own_fighter_started_turn_in_different_space: true
+      t_rex_resulting_footprint_contains_space_not_occupied_at_turn_start: true
     operations:
     - op: SET_VALUE
       target: this_card
       value: 5
+    normalization_blocker: Determining this historical condition requires B-EXT-001 turn-start two-space footprint state.
 - id: thrash
   name: Thrash
   quantity: 3
@@ -194,11 +195,12 @@ cards:
     operations:
     - op: MOVE
       target: t-rex
-      distance: 1
+      max_distance: 1
     - op: DRAW
       count: 1
     - op: GAIN_ACTION
       count: 1
+    normalization_blocker: Resolving T. Rex movement requires B-EXT-001 footprint/orientation path semantics.
 - id: 65-million-years-of-gut-instinct
   name: 65 Million Years of Gut Instinct
   quantity: 2
@@ -211,12 +213,14 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: card_in_own_discard_excluding_this_definition
     operations:
     - op: MOVE_CARD
       from_zone: discard
       to_zone: hand
-      selector:
-        exclude_definition: 65-million-years-of-gut-instinct
+      selector: chosen_card
 - id: ripples-in-the-water
   name: Ripples in the Water
   quantity: 3
@@ -232,12 +236,13 @@ cards:
     operations:
     - op: PLACE
       target: t-rex
-      destination_rule: any_space_in_t-rex-zone
+      destination_rule: any_legal_footprint_with_at_least_one_space_in_t-rex-zone
     - op: DISCARD
       controller: each_opponent_with_fighter_adjacent_to_t-rex
       from_zone: hand
       selector: random
       count: 1
+    normalization_blocker: Legal placement and resulting adjacency for the two-space base require B-EXT-001.
 external_definitions: []
 validation:
   available_pool_count: 30
@@ -251,4 +256,8 @@ sources:
 - https://www.unmatchedarena.com/heroes/t-rex
 - https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
 normalization_notes:
-- Deck metadata is verified independently of the unresolved large-fighter runtime geometry.
+- Deck metadata and quantities are verified independently, but the manifest is blocked because several card effects themselves require unresolved large-fighter runtime geometry.
+- Audit correction: Momentous Shift uses the published footprint-specific historical condition; 65 Million Years explicitly binds its discard-pile choice; movement/placement cards point to B-EXT-001 rather than pretending single-space MOVE/PLACE is sufficient.
+blockers:
+- id: semantic-extension-large-fighter-footprint
+  reason: Momentous Shift, Closer Than She Appears and Ripples in the Water require two-space footprint history, movement, placement and resulting adjacency semantics covered by B-EXT-001.
