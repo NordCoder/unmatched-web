@@ -1,41 +1,212 @@
 schema_version: 1
 fighter_id: loki
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- https://unmatched.cards/umdb/decks/loki
-- https://www.the-unmatched.club/rules/loki
-- https://www.the-unmatched.club/heroes/loki
+status: verified
 construction:
   kind: fixed
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   rules: []
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
-cards: []
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
+cards:
+- id: trick-baldrs-downfall
+  name: "Trick: Baldr's Downfall"
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: null
+  tags: [trick]
+  effects:
+  - trigger: after_combat
+    branches:
+    - condition: {combat_card_controller: loki}
+      operations: [{op: DRAW, count: 1}]
+    - condition: {combat_card_controller_not: loki}
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: combat_card_controller_hero, amount: 2}]
+- id: looking-for-trouble
+  name: Looking for Trouble
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: REPLACE_COMBAT_CARD, side: defender, card: controller_chosen_legal_card_from_opponent_hand, rule: source_defined_loki_replacement}]
+- id: shapeshifter
+  name: Shapeshifter
+  quantity: 4
+  inclusion: fixed
+  usable_by: [loki]
+  type: attack
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    choices: [{owner: controller, choose: mode, options: [add_opponent_hand_size_to_value, gain_action]}]
+    branches:
+    - condition: {chosen_mode: add_opponent_hand_size_to_value}
+      operations: [{op: ADD_VALUE, target: this_card, amount_rule: opponent_hand_size}]
+    - condition: {chosen_mode: gain_action}
+      operations: [{op: GAIN_ACTION, count: 1}]
+- id: ragnarok
+  name: Ragnarök
+  quantity: 2
+  inclusion: fixed
+  usable_by: [loki]
+  type: attack
+  printed_value: 0
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    cancellation: protected
+    operations: [{op: ADD_VALUE, target: this_card, amount_rule: three_per_loki_trick_in_opponents_hands}]
+- id: malicious-flyting
+  name: Malicious Flyting
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    branches:
+    - condition: {opponent_combat_card_tag: trick}
+      operations: [{op: DRAW, count: 2}]
+    - condition: {opponent_combat_card_tag_not: trick}
+      operations: [{op: DRAW, count: 1}]
+- id: underhanded
+  name: Underhanded
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {opponent_hand_size_gt_controller_hand_size: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 6}]
+- id: trick-freyjas-rescue
+  name: "Trick: Freyja's Rescue"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: null
+  tags: [trick]
+  effects:
+  - trigger: during_combat
+    condition: {combat_card_controller: loki}
+    operations: [{op: SWAP, a: current_combat_value_own, b: current_combat_value_opponent, rule: source_defined_value_swap}]
+  - trigger: after_combat
+    condition: {combat_card_controller_not: loki}
+    operations: [{op: RECOVER, target: loki, amount: 3}]
+- id: god-of-mischief
+  name: God of Mischief
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    branches:
+    - condition: {opponent_combat_card_tag: trick}
+      operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+    - condition: {opponent_combat_card_tag_not: trick}
+      operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+- id: laevateinn
+  name: Laevateinn
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    choices: [{owner: controller, choose: card_in_opponent_hand, capture: revealed_card}]
+    operations:
+    - {op: REVEAL, source: opponent_hand, selector: captured.revealed_card}
+    - {op: ADD_VALUE, target: this_card, amount_from: captured.revealed_card.boost_or_0}
+    - {op: MOVE_CARD, from_zone: opponent_hand, to_zone: hand, selector: captured.revealed_card, condition: {captured_card_tag: trick}}
+- id: trick-sindris-bet
+  name: "Trick: Sindri's Bet"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: defense
+  printed_value: 3
+  boost: null
+  tags: [trick]
+  effects:
+  - trigger: immediately
+    condition: {combat_card_controller: loki}
+    choices: [{owner: opponent, choose: discard_card_to_prevent_value_penalty, optional: true}]
+    branches:
+    - condition: {opponent_declined_or_could_not_discard: true}
+      operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: -3}]
+  - trigger: after_combat
+    condition: {combat_card_controller_not: loki}
+    choices: [{owner: loki_owner, choose: top_card_in_loki_discard_if_any}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: chosen_card, controller: loki_owner}]
+- id: trick-svadilfaris-lure
+  name: "Trick: Svadilfari's Lure"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: scheme
+  printed_value: null
+  boost: null
+  tags: [trick]
+  effects:
+  - trigger: scheme
+    branches:
+    - condition: {card_controller: loki}
+      choices: [{owner: controller, choose: opposing_fighter}]
+      operations: [{op: PLACE, target: chosen_opposing_fighter, destination_rule: space_adjacent_to_loki}]
+    - condition: {card_controller_not: loki}
+      operations: [{op: REVEAL, source: controller_hand, selector: random, count: 1, capture: revealed_card}, {op: DISCARD, from: controller_hand, selector: captured.revealed_card}]
 external_definitions: []
 validation:
-  available_pool_count: null
-  game_deck_count: null
-  quantity_sum: null
-  result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 11
+  result: PASS
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/loki
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/rules/loki
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-26'
+  note: Physical deck review used as component cross-check.
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/loki
+  url: https://www.unmatchedarena.com/heroes/loki
+  checked_at: '2026-07-26'
+  note: Complete current card transcription.
+- authority: reference
+  url: https://www.the-unmatched.club/tools/tracker?h=loki
+  checked_at: '2026-07-26'
+  note: Independent card-name and quantity cross-check.
+- {authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-26'}
 normalization_notes:
-- Current indexes expose the 30-card identity/quantity shape and TRICK global rules, but not a complete eligible per-card
-  type/value/effect transcript. No community card transcription is imported.
+- TRICK cards use boost: null because the source defines no BOOST value for them.
+- Card title spellings use current physical/current-index forms: Baldr's Downfall, Malicious Flyting, Freyja's Rescue, Svadilfari's Lure, Shapeshifter.
+- Ownership is never transferred when a Loki-owned TRICK occupies an opponent hand.
+- No unmatched.cards/decks fan namespace is used.
