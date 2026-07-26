@@ -47,6 +47,10 @@ persistent_state:
   - key: spider_man_attack_bonus_this_turn
     type: integer
     reset: turn_end
+  - key: turn_start_space
+    type: space_ref
+    reset: turn_start
+    note: Required by Momentous Shift; current position alone cannot prove whether Spider-Man started the turn elsewhere.
 
 deck:
   manifest: ../../cards/phase-4b/spider-man.yaml
@@ -70,6 +74,7 @@ sources:
 normalization_notes:
   - The official rulebook explicitly places Spidey-Sense after the attacker commits an attack card and before Spider-Man chooses a defense card.
   - With Great Power is a separate floating turn-scoped modifier and is representable with existing state/value primitives.
+  - Audit correction: Momentous Shift's turn-start comparison is backed by explicit historical state.
 
 blockers:
   - id: semantic-extension-pre-defense-scalar-disclosure
