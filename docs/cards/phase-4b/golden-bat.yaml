@@ -1,0 +1,26 @@
+schema_version: 1
+fighter_id: golden-bat
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: vaporizing-eyebeams, name: Vaporizing Eyebeams, quantity: 3, usable_by: [golden-bat], type: attack, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}
+  - {id: a-punch-to-shake-the-earth, name: A Punch to Shake the Earth, quantity: 3, usable_by: [golden-bat], type: attack, printed_value: 1, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_golden_bat_zone, amount_rule: 2_if_won_else_1}]}]}
+  - {id: like-a-flash-of-golden-light, name: Like a Flash of Golden Light, quantity: 3, usable_by: [golden-bat], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: during_combat, condition: {current_space_shares_no_zone_with_turn_start_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 4}]}, {trigger: after_combat, operations: [{op: MOVE, target: golden-bat, max_distance: 5}]}]}
+  - {id: alpine-fortress, name: Alpine Fortress, quantity: 3, usable_by: [golden-bat], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: card_in_own_discard}], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: chosen_card}, {op: SHUFFLE, zone: deck}, {op: DRAW, count: 2}, {op: MOVE, target: golden-bat, max_distance: 4}]}]}
+  - {id: super-strength, name: Super Strength, quantity: 2, usable_by: [golden-bat], type: attack, printed_value: 5, boost: 1, tags: [], effects: []}
+  - {id: arrive-just-in-time, name: Arrive Just in Time, quantity: 2, usable_by: [golden-bat], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: PLACE, target: golden-bat, destination: any_space}]}]}
+  - {id: he-laughs-at-your-feebleness, name: He Laughs at Your Feebleness, quantity: 2, usable_by: [golden-bat], type: defense, printed_value: 5, boost: 3, tags: [], effects: []}
+  - {id: imposing-presence, name: Imposing Presence, quantity: 2, usable_by: [golden-bat], type: defense, printed_value: 3, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: sight-beyond-sight, name: Sight Beyond Sight, quantity: 3, usable_by: [golden-bat], type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: opponent.deck_top, selector: up_to_3, viewer: controller, capture: viewed}], choices: [{owner: controller, order: captured.viewed}], followup: [{op: REORDER, zone: opponent.deck_top, selector: captured.viewed, order: chosen_order}]}]}
+  - {id: terrifying-roar, name: Terrifying Roar, quantity: 3, usable_by: [golden-bat], type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, operations: [{op: SET_STATE, target: all_fighters, key: cannot_leave_current_space, value: true, expires: turn_end}]}]}
+  - {id: skirmish, name: Skirmish, quantity: 2, usable_by: [golden-bat], type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{owner: controller, choose: combat_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
+  - {id: insight-of-the-ancients, name: Insight of the Ancients, quantity: 2, usable_by: [golden-bat], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: random_card}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+sources:
+  - https://unmatched.cards/umdb/decks/golden-bat
+  - https://www.the-unmatched.club/heroes/golden-bat
+normalization_notes:
+  - Like a Flash of Golden Light compares zone membership of two spaces and therefore reads the persisted turn-start space snapshot.
