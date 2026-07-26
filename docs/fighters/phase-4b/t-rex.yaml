@@ -1,64 +1,90 @@
 schema_version: 1
 id: t-rex
 display_name: T. Rex
-set_ids:
-- jurassic-park-sattler-vs-trex
+set_ids: [jurassic-park-sattler-vs-trex]
 status: blocked
 movement: 1
+
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: t-rex
-    display_name: T. Rex
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 27
-    starts_on_board: true
-    summonable: false
-    footprint: large_two_space_base
+    - id: t-rex
+      display_name: T. Rex
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 27
+      starts_on_board: true
+      summonable: false
+      footprint: large_two_space_base
+
 setup:
   hooks: []
   state_initialization: []
+
 ability:
   id: large-predator
   controller: owner
   effects:
-  - id: extended-melee-reach
-    trigger: static
-    continuous: true
-    operations:
-    - op: SET_STATE
-      key: attack_range_rule
-      value:
-        max_space_distance: 2
-        ignore_intervening_fighters: true
-  - id: end-turn-draw
-    trigger: turn_end
-    operations:
-    - op: DRAW
-      count: 1
+    - id: extended-melee-reach
+      trigger: static
+      continuous: true
+      operations:
+        - op: SET_STATE
+          key: attack_range_rule
+          value:
+            max_space_distance: 2
+            ignore_intervening_fighters: true
+    - id: end-turn-draw
+      trigger: turn_end
+      operations: [{op: DRAW, count: 1}]
+
 resources: []
+
 persistent_state:
-- key: attack_range_rule
-  type: enum
-  reset: never
+  - key: attack_range_rule
+    type: enum
+    reset: never
+
 deck:
   manifest: ../../cards/phase-4b/t-rex.yaml
   construction: fixed
-rulings: []
+
+rulings:
+  - id: t-rex-large-fighter-footprint
+    summary: T. Rex's extended base may occupy two spaces; movement may begin from either occupied space and rotates the base so the opposite end follows into the previous space.
+    source: https://unmatched.cards/umdb/decks/t-rex
+  - id: t-rex-one-way-and-secret-passage
+    summary: T. Rex ignores one-way path direction while moving and cannot use secret passages.
+    source: https://unmatched.cards/umdb/decks/t-rex
+  - id: t-rex-extended-melee-range
+    summary: T. Rex may attack a fighter up to two spaces away, including across a fighter in an intervening space.
+    source: https://unmatched.cards/umdb/decks/t-rex
+  - id: t-rex-momentous-shift-footprint
+    summary: For Momentous Shift, T. Rex need only move so that its resulting footprint contains at least one space it did not occupy at turn start; both occupied spaces need not change.
+    source: https://gridbeast.gg/unmatched-rules-faq/
+  - id: t-rex-still-one-fighter
+    summary: Although the base occupies two spaces, T. Rex remains one fighter and space/zone-triggered effects do not trigger twice merely because both spaces qualify.
+    source: https://gridbeast.gg/unmatched-rules-faq/
+  - id: t-rex-end-turn-hand-limit
+    summary: T. Rex's mandatory end-turn draw occurs before the ordinary final discard-down-to-seven step.
+    source: https://gridbeast.gg/unmatched-rules-faq/
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/t-rex
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/t-rex
+  - type: official_product
+    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+  - type: published_database
+    url: https://unmatched.cards/umdb/decks/t-rex
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/heroes/t-rex
+  - type: current_secondary_faq
+    url: https://gridbeast.gg/unmatched-rules-faq/
+
 normalization_notes:
-- Large fighter occupies up to two spaces simultaneously; movement and pathing are defined from the two-space base.
-- T. Rex ignores one-way path direction and cannot use secret passages.
+  - The factual large-fighter rules are no longer an evidence gap: current sources agree on the two-space footprint, rotation/path semantics, one-way override, secret-passage prohibition, two-space melee reach, and one-fighter trigger identity.
+  - T. Rex remains blocked only because Phase 4A fighter occupancy and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
+
 blockers:
-- id: semantic-extension-large-fighter-footprint
-  reason: Current fighter topology and MOVE/PLACE vocabulary do not define multi-space occupancy, base orientation/head-tail
-    movement, or path origin from either occupied space.
+  - id: semantic-extension-large-fighter-footprint
+    reason: A reusable footprint/orientation model is required for multi-space occupancy, source/destination footprint validation, rotation, path origin from either occupied space, shared-space predicates, and movement-rule overrides.
