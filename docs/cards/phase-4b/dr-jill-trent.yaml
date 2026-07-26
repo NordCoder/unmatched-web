@@ -1,0 +1,27 @@
+schema_version: 1
+fighter_id: dr-jill-trent
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: battle-of-wits, name: Battle of Wits, quantity: 3, usable_by: [dr-jill-trent], type: attack, printed_value: 2, boost: 4, tags: [], effects: [{trigger: after_combat, operations: [{op: REVEAL, source: own_deck_top, selector: 1, capture: own_revealed}, {op: REVEAL, source: opponent.deck_top, selector: 1, capture: opponent_revealed}, {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 3, condition: {own_revealed_boost_higher: true}}]}]}
+  - {id: utility-belt, name: Utility Belt, quantity: 3, usable_by: [dr-jill-trent], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{trigger: after_combat, choices: [{owner: controller, choose: branch, options: [recover_jill, move_jill, draw]}], branches: [{condition: {chosen_branch: recover_jill}, operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]}, {condition: {chosen_branch: move_jill}, operations: [{op: MOVE, target: dr-jill-trent, max_distance: 1}]}, {condition: {chosen_branch: draw}, operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: hypnotist, name: Hypnotist, quantity: 2, usable_by: [dr-jill-trent], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, condition: {active_gadget: hypnoray-blaster}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: ace-fighter, name: Ace Fighter, quantity: 2, usable_by: [daisy], type: versatile, printed_value: 5, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
+  - {id: sisters-in-arms, name: Sisters in Arms, quantity: 2, usable_by: [daisy], type: versatile, printed_value: 3, boost: 1, tags: [], cancellation: protected, effects: [{trigger: during_combat, condition: {attacker: daisy, daisy_adjacent_to_jill: true, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}, operations: [{op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed}, {op: ADD_VALUE, target: this_card, amount: captured.revealed.boost_or_0}]}, {trigger: after_combat, condition: {attacker: daisy, daisy_adjacent_to_jill: true, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}, operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]}]}
+  - {id: helpful-assistant, name: Helpful Assistant, quantity: 2, usable_by: [daisy], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: up_to_3_jill_cards_in_discard}], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: chosen_cards}, {op: SHUFFLE, zone: deck}, {op: DRAW, count: 1}]}]}
+  - {id: energizing-spray, name: Energizing Spray, quantity: 2, usable_by: any, type: attack, printed_value: 5, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: GAIN_ACTION, count: 1}]}]}
+  - {id: gyroscopic-jetpack, name: Gyroscopic Jetpack, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2, may_move_through_opposing: true}]}]}
+  - {id: laser-pen, name: Laser Pen, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
+  - {id: stasis-diffuser, name: Stasis Diffuser, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value_from: opposing_combat_card.printed_value, lock: true, scope: current_combat}]}]}
+  - {id: insightful-deduction, name: Insightful Deduction, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: REVEAL, source: opponent.deck_top, selector: up_to_3, capture: revealed}], choices: [{owner: controller, choose: one_revealed_for_bottom}, {owner: controller, order: remaining_revealed_for_top}], followup: [{op: MOVE_CARD, from_zone: deck_top, to_zone: deck_bottom, selector: chosen_bottom}, {op: REORDER, zone: deck_top, selector: remaining_revealed, order: chosen_order}]}]}
+  - {id: caught-red-handed, name: Caught Red-Handed, quantity: 2, usable_by: any, type: versatile, printed_value: 1, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count_rule: 2_if_controller_won_else_1, partial_resolution: true}]}]}
+  - {id: indestructible-cloth, name: Indestructible Cloth, quantity: 2, usable_by: any, type: defense, printed_value: 5, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: PREVENT_DAMAGE, target: own_combat_fighter, scope: effect_damage_for_current_combat}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
+sources:
+  - https://unmatched.cards/umdb/decks/dr-jill-trent
+  - https://www.the-unmatched.club/rules/dr-jill-trent
+normalization_notes:
+  - Sisters in Arms expands the currently selected gadget into ordinary generic operations rather than introducing a Daisy-specific gadget handler.
