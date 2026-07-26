@@ -34,7 +34,7 @@ ability:
 
 resources: []
 persistent_state:
-  - {key: turn_start_space_by_fighter, type: space_ref, reset: turn_start, note: Required by Momentous Shift for independently moving Honor Guards and Oda.}
+  - {key: turn_start_space_by_fighter, type: fighter_instance_space_map, reset: turn_start, note: Required by Momentous Shift so Oda and each Honor Guard retain independent start-of-turn snapshots.}
 
 deck:
   manifest: ../../cards/phase-4b/oda-nobunaga.yaml
@@ -52,3 +52,4 @@ sources:
 
 normalization_notes:
   - The two Honor Guards are not a one-hit token group; their health is tracked independently.
+  - Momentous Shift history is keyed by runtime fighter instance; a single shared space_ref would conflate Oda and the two Honor Guards. This uses C-EXT-010.
