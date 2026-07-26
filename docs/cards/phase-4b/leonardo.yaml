@@ -1,38 +1,182 @@
 schema_version: 1
 fighter_id: leonardo
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/leonardo
-- https://www.the-unmatched.club/heroes/leonardo
+status: verified
 construction:
   kind: fixed
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   rules: []
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
-cards: []
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
+cards:
+- {id: katana, name: Katana, quantity: 2, inclusion: fixed, usable_by: [leonardo], type: attack, printed_value: 6, boost: 2, tags: [], effects: []}
+- id: for-sensei
+  name: For Sensei
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: MOVE, target: own_combat_fighter, max_distance: 1}, {op: MOVE, target: opposing_combat_fighter, max_distance: 1}]
+  - trigger: after_combat
+    optional: true
+    costs: [{op: DISCARD, from: hand, selector: controller_chosen, count: 1}]
+    operations: [{op: GAIN_ACTION, count: 1}]
+    dependency: gain_action_only_if_discard_cost_paid
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [leonardo]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    choices: [{owner: controller, choose: card_in_hand_for_boost}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
+- id: fearless-leader
+  name: Fearless Leader
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations: [{op: ADD_VALUE, target: this_card, amount_rule: two_per_other_friendly_fighter_adjacent_to_opposing_combat_fighter}]
+- id: quick-strike
+  name: Quick Strike
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: DRAW, count: 1}]
+- id: spatial-awareness
+  name: Spatial Awareness
+  quantity: 3
+  inclusion: fixed
+  usable_by: [splinter]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {opposing_combat_fighter_zone_count_lt_splinter_zone_count: true}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: DRAW, count: 1}]
+- id: eat-sleep-and-breathe-ninjutsu
+  name: Eat, Sleep, and Breathe Ninjutsu
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_sequential_adjacent_fighter_reposition
+      anchor: own_combat_fighter
+      destination_rule: another_space_in_each_targets_zone
+- id: wise-beyond-his-years
+  name: Wise Beyond His Years
+  quantity: 3
+  inclusion: fixed
+  usable_by: [leonardo]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {opposing_combat_fighter_zone_count_lt_leonardo_zone_count: true}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]
+- id: i-have-a-plan
+  name: I Have a Plan
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    optional: true
+    costs: [{op: DISCARD, from: hand, selector: controller_chosen, count: 1}]
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]
+    dependency: cancel_and_ignore_only_if_discard_cost_paid
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [leonardo], type: defense, printed_value: 5, boost: 3, tags: [], effects: []}
+- id: protective-father
+  name: Protective Father
+  quantity: 2
+  inclusion: fixed
+  usable_by: [splinter]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    optional: true
+    choices: [{owner: controller, choose: friendly_fighter_to_swap_with_splinter}]
+    operations: [{op: SWAP, a: splinter, b: chosen_friendly_fighter}, {op: RECOVER, target: splinter, amount: 2}, {op: RECOVER, target: chosen_friendly_fighter, amount: 2}]
+    dependency: recovery_only_if_swap_occurs
+  - trigger: scheme
+    operations: [{op: GAIN_ACTION, count: 1}]
+- id: leonardo-leads
+  name: Leonardo Leads
+  quantity: 2
+  inclusion: fixed
+  usable_by: [leonardo]
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags: []
+  effects:
+  - trigger: scheme
+    operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3}, {op: DRAW, count: 1}]
 external_definitions: []
 validation:
-  available_pool_count: null
-  game_deck_count: null
-  quantity_sum: null
-  result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 12
+  result: PASS
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/leonardo
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-26'
+  note: Official 30-card allocation, fighter rules, and printed For Sensei cross-check.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/leonardo
+  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
+  checked_at: '2026-07-26'
+  note: Physical component cross-check.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/leonardo
+  checked_at: '2026-07-26'
+  note: Complete current action-card transcription cross-checked against official material.
 normalization_notes:
-- Official product confirms 120 hero action cards across four Turtle heroes but the checked eligible sources do not expose
-  Leonardo's complete per-card allocation and metadata.
+- Official IELLO rules establish exactly 30 Leonardo action cards; quantities reconcile 30/30.
+- Adventures enemy/scenario behavior is excluded.
+- Eat, Sleep, and Breathe Ninjutsu remains an explicit source-defined positioning composite; the orchestrator can decide whether it merits a generic sequential-placement primitive.
+- No unmatched.cards/decks fan namespace is used.
