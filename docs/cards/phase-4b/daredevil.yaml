@@ -21,7 +21,7 @@ cards:
     operations:
     - op: MOVE
       target: daredevil
-      distance: 4
+      max_distance: 4
       overrides:
       - may_move_through_opposing_fighters
     - op: DEAL_EFFECT_DAMAGE
@@ -60,9 +60,12 @@ cards:
   - trigger: after_combat
     condition:
       combat_result: lost
+    choices:
+    - owner: controller
+      choose: fighter_adjacent_to_daredevil
     operations:
     - op: DEAL_EFFECT_DAMAGE
-      target: fighter_adjacent_to_daredevil
+      target: chosen_fighter
       amount: 2
 - id: feint
   name: Feint
@@ -112,9 +115,9 @@ cards:
   effects:
   - trigger: after_combat
     operations:
-    - op: MOVE
+    - op: PLACE
       target: daredevil
-      distance: 2
+      destination_rule: any_space_in_daredevil_zone
 - id: breather
   name: Breather
   quantity: 3
@@ -127,15 +130,14 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: attack_defense_or_versatile_card_in_own_discard
     operations:
     - op: MOVE_CARD
       from_zone: discard
       to_zone: hand
-      selector:
-        type_in:
-        - attack
-        - defense
-        - versatile
+      selector: chosen_card
 - id: devil-of-hells-kitchen
   name: Devil of Hell's Kitchen
   quantity: 2
@@ -157,7 +159,7 @@ cards:
   - trigger: after_combat
     operations:
     - op: MOVE_CARD
-      from_zone: discard
+      from_zone: combat_cleanup_source
       to_zone: deck
       selector: this_card
     - op: MOVE_CARD
@@ -180,3 +182,4 @@ sources:
 - https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
 normalization_notes:
 - Published fixed deck size is 22, not 30.
+- Audit correction: Grappling Hook is PLACE within Daredevil's zone, not MOVE 2; Breather and Son of a Boxer explicitly bind their choices; Devil of Hell's Kitchen recycles the still-resolving combat card from combat cleanup context plus the top four discard cards.
