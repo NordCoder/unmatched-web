@@ -30,22 +30,14 @@ ability:
     - id: extended-melee-reach
       trigger: static
       continuous: true
-      operations:
-        - op: SET_STATE
-          key: attack_range_rule
-          value:
-            max_space_distance: 2
-            ignore_intervening_fighters: true
+      normalization_blocker: T. Rex attacks a fighter up to two spaces away, including across an intervening fighter. The legality calculation depends on its two-space footprint and needs the same reusable footprint/attack-origin model as B-EXT-001 rather than an undocumented structured object stored in enum state.
     - id: end-turn-draw
       trigger: turn_end
       operations: [{op: DRAW, count: 1}]
 
 resources: []
 
-persistent_state:
-  - key: attack_range_rule
-    type: enum
-    reset: never
+persistent_state: []
 
 deck:
   manifest: ../../cards/phase-4b/t-rex.yaml
@@ -73,7 +65,7 @@ rulings:
 
 sources:
   - type: official_product
-    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
   - type: published_database
     url: https://unmatched.cards/umdb/decks/t-rex
   - type: current_rulings_index
@@ -83,8 +75,9 @@ sources:
 
 normalization_notes:
   - The factual large-fighter rules are no longer an evidence gap: current sources agree on the two-space footprint, rotation/path semantics, one-way override, secret-passage prohibition, two-space melee reach, and one-fighter trigger identity.
-  - T. Rex remains blocked only because Phase 4A fighter occupancy and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
+  - T. Rex remains blocked only because Phase 4A fighter occupancy, attack-origin, historical-footprint and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
+  - Audit correction: the previous attack_range_rule object was removed because it was stored in an enum-typed state without any shared semantic contract.
 
 blockers:
   - id: semantic-extension-large-fighter-footprint
-    reason: A reusable footprint/orientation model is required for multi-space occupancy, source/destination footprint validation, rotation, path origin from either occupied space, shared-space predicates, and movement-rule overrides.
+    reason: A reusable footprint/orientation model is required for multi-space occupancy, source/destination footprint validation, rotation, path origin from either occupied space, attack origin/range, turn-start footprint history, shared-space predicates and movement-rule overrides.
