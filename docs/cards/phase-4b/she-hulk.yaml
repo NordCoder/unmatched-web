@@ -21,13 +21,16 @@ cards:
     optional: true
     condition:
       actions_remaining_gte: 1
-    operations:
+    costs:
     - op: CHANGE_STATE
       key: actions_remaining
       delta: -1
+      cost_semantics: true
+    operations:
     - op: SET_VALUE
       target: this_card
       value: 9
+    dependency: value_changes_only_if_additional_action_cost_was_paid
 - id: green-energy
   name: Green Energy
   quantity: 3
@@ -103,10 +106,26 @@ cards:
     operations:
     - op: REQUEST_CHOICE
       definition:
-        choice_owner_rule: opponent_if_controller_won_else_controller
-        options:
-        - both_draw_1
-        - both_discard_1
+        owner_rule: opponent_if_controller_won_else_controller
+        choose_one:
+        - id: both-draw-one
+          operations:
+          - op: DRAW
+            count: 1
+          - op: DRAW
+            controller: combat_opponent
+            count: 1
+        - id: both-discard-one
+          operations:
+          - op: DISCARD
+            from_zone: hand
+            selector: chosen_by_controller
+            count: 1
+          - op: DISCARD
+            controller: combat_opponent
+            from_zone: hand
+            selector: chosen_by_combat_opponent
+            count: 1
 - id: nerve-cluster-strike
   name: Nerve Cluster Strike
   quantity: 3
@@ -244,7 +263,7 @@ cards:
     operations:
     - op: MOVE
       target: she-hulk
-      distance: 4
+      max_distance: 4
       overrides:
       - may_move_through_opposing_fighters
     - op: GAIN_ACTION
@@ -262,3 +281,6 @@ sources:
 - https://unmatched.cards/umdb/decks/she_hulk
 - https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
 - https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
+normalization_notes:
+- Audit correction: The Savage She-Hulk treats the additional action as a real cost that gates the value-9 consequence.
+- Audit correction: Legalese now contains executable draw/discard branches and preserves who chooses based on the combat result.
