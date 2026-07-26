@@ -281,6 +281,9 @@ cards:
   - trigger: scheme
     condition:
       black_widow_in_own_starting_space: true
+    choices:
+    - owner: controller
+      choose: opponent
     operations:
     - op: DISCARD
       controller: chosen_opponent
@@ -387,5 +390,5 @@ sources:
 - https://restorationgames.com/shop/marvel-king-and-country-unmatched/
 normalization_notes:
 - Published pool count is 31; setup removes Moscow Protocol into the starting hand before shuffling the other 30.
-- Mission acquisition preserves card ownership and uses only deck/revealed/hand zones; it is not a special ownership transfer
-  zone.
+- Mission acquisition preserves card ownership and uses only deck/revealed/hand zones; it is not a special ownership transfer zone.
+- Audit correction: The Kinshasa Directive now binds chosen_opponent explicitly before that opponent chooses the two cards to discard.
