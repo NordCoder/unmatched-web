@@ -40,15 +40,16 @@ ability:
     - id: start-turn-squirrel-placement
       trigger: turn_start
       optional: true
-      condition: {empty_space_adjacent_to_squirrel-girl_exists: true}
+      condition: {legal_small_fighter_space_adjacent_to_squirrel-girl_exists: true}
       branches:
         - condition: {reserve_count: {squirrel: greater_than_0}}
           operations:
-            - {op: SUMMON, pool: squirrel, destination_rule: empty_space_adjacent_to_squirrel-girl}
+            - {op: SUMMON, pool: squirrel, destination_rule: legal_small_fighter_space_adjacent_to_squirrel-girl}
         - condition: {reserve_count: {squirrel: 0}}
           choices: [{owner: controller, choose: squirrel_on_battlefield}]
           operations:
-            - {op: PLACE, target: chosen_squirrel, destination_rule: empty_space_adjacent_to_squirrel-girl}
+            - {op: PLACE, target: chosen_squirrel, destination_rule: legal_small_fighter_space_adjacent_to_squirrel-girl}
+      normalization_blocker: Current occupancy rules cannot define the legal shared-space destination domain for small fighters.
 
 resources:
   - id: squirrel-reserve
@@ -73,8 +74,14 @@ rulings:
     summary: At the start of each turn the controller may use the Squirrel placement ability; it is not mandatory.
     source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
   - id: squirrel-girl-reposition-when-reserve-empty
-    summary: If all eight Squirrels are already on the battlefield, the start-turn ability may move one existing Squirrel to an empty space adjacent to Squirrel Girl instead of summoning from reserve.
+    summary: If all eight Squirrels are already on the battlefield, the start-turn ability may reposition one existing Squirrel adjacent to Squirrel Girl instead of taking a token from reserve.
     source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
+  - id: squirrel-girl-empty-space-erratum
+    summary: The printed rulebook's requirement to use an empty space is erroneous. Current ruling permits a Squirrel in a space with an opposing fighter or with three or fewer Squirrels, subject to small-fighter occupancy limits.
+    source: https://gridbeast.gg/unmatched-rules-faq/
+  - id: squirrel-girl-shared-damage-attribution
+    summary: When shared-space small-fighter damage defeats multiple Squirrels, the damage is attributed to one Squirrel rather than independently multiplying damage-dealt triggers for every affected Squirrel.
+    source: https://gridbeast.gg/unmatched-rules-faq/
 
 sources:
   - type: official_product
@@ -85,13 +92,15 @@ sources:
     url: https://unmatched.cards/umdb/decks/squirrel-girl
   - type: current_rulings_index
     url: https://www.the-unmatched.club/heroes/squirrel-girl
+  - type: current_secondary_faq
+    url: https://gridbeast.gg/unmatched-rules-faq/
 
 normalization_notes:
   - Official Teen Spirit rules define Squirrels as small fighters: opposing and small fighters may move through each other, a small fighter may share a space with another fighter, and up to four small fighters may occupy one space in addition to an ordinary fighter.
   - A small fighter sharing a space with another fighter is adjacent to that fighter.
   - When a small fighter takes damage, each other small fighter of the same type in that space takes the same amount of damage.
-  - The corrected start-turn ability is optional and has a reposition branch after the reserve is exhausted.
+  - Current ruling supersedes the printed word "empty" for Squirrel Girl's start-turn placement. The legal destination may already contain an opposing fighter or up to three Squirrels.
 
 blockers:
   - id: semantic-extension-small-fighter-occupancy
-    reason: The published small-fighter rules require shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, and same-type co-located damage propagation. Current generic battlefield occupancy/damage semantics do not encode these rules.
+    reason: The published rules plus current ruling require shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, same-type co-located damage propagation and attribution, and a summon/place legality domain that can target an occupied space. Current generic battlefield occupancy/damage semantics do not encode these rules.
