@@ -37,6 +37,7 @@ cards:
     printed_value: 2
     boost: 2
     tags: [boosted-with]
+    cancellation: protected
     effects:
       - trigger: after_combat
         condition: {own_combat_fighter_would_be_defeated: true}
@@ -74,6 +75,13 @@ cards:
     boost: 1
     tags: [boosted-with]
     effects:
+      - trigger: card_discarded_from_hand
+        condition:
+          all:
+            - {source_card: this_card}
+            - {discard_cause: opponent_effect}
+        operations: [{op: DRAW, count: 1}]
+        normalization_blocker: Requires a generic discard event carrying cause/source attribution so an effect can distinguish an opponent-caused discard from costs, cleanup, random self-discard, or other causes.
       - trigger: card_used_as_boost_source
         condition:
           all:
@@ -92,6 +100,9 @@ cards:
     boost: 2
     tags: [boosted-with]
     effects:
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
       - trigger: card_used_as_boost_source
         condition: {source_card: this_card}
         operations: [{op: DRAW, count: 1}]
@@ -264,10 +275,13 @@ sources:
   - https://www.the-unmatched.club/heroes/houdini
 
 normalization_notes:
-  - All 13 published definitions, exact card types, values, BOOST values, and quantities now reconcile to the 30-card deck.
+  - All 13 published definitions, exact card types, values, BOOST values, and quantities reconcile to the 30-card deck.
   - BOOSTED WITH text is represented explicitly but remains blocked on a reusable event for effects printed on the card consumed as the BOOST source.
   - The Big Reveal requires both boost cards to be chosen together; a draw caused by the first selected BOOST source does not create a new decision before the second.
+  - Audit correction: All Part of the Show carries explicit cancellation protection; And the Beautiful Bess! includes its opponent-caused-discard draw; Flourish includes its ordinary DURING COMBAT BOOST option.
 
 blockers:
   - id: semantic-extension-boost-source-trigger
     reason: Current Phase 4A effect vocabulary can execute BOOST but does not expose the consumed source card as an event source for its own BOOSTED WITH effect or preserve source-card identity for later selectors such as The Big Reveal.
+  - id: semantic-extension-discard-cause-event
+    reason: And the Beautiful Bess! depends on whether this specific hand card was discarded as the result of an opponent's effect. The current shared model has DISCARD as an operation but no reusable discard event carrying cause/source attribution for downstream triggers.
