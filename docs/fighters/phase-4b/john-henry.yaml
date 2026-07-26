@@ -23,6 +23,7 @@ ability:
   - id: track-movement-cost
     trigger: static
     continuous: true
+    condition: {movement_controller: owner}
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_movement_space_cost_override, target: john-henry, marked_spaces: track_tokens}]
   - id: record-distinct-paths
     trigger: john_henry_moves
@@ -41,7 +42,9 @@ rulings:
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
 - {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/john-henry, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms track-token movement semantics.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/john-henry, checked_at: '2026-07-27', note: Visual card corpus and current ruling index.}
 normalization_notes:
+- The track movement-cost override is controller-sensitive; forced movement controlled by an opponent does not receive the discount.
 - Positioned track tokens and distinct-path history remain source-defined composites pending shared path-resource semantics.
 - All competitive fighter behavior needed by the 30-card corpus is represented.
