@@ -39,17 +39,19 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
-    operations:
+    costs:
     - op: DEAL_EFFECT_DAMAGE
       target: own_attacking_fighter
       amount: 1
       cost_semantics: true
+    operations:
     - op: MOVE_CARD
       from_zone: combat_cleanup_source
       to_zone: hand
       selector: this_card
     - op: GAIN_ACTION
       count: 1
+    dependency: return_and_action_only_if_damage_cost_was_performed
 - id: hands-of-red
   name: Hands of Red
   quantity: 2
@@ -220,3 +222,4 @@ sources:
 - https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
 normalization_notes:
 - Published fixed deck size is 20. RESURRECTED clauses are gated by fighter persistent state.
+- Audit correction: The Fist's self-damage is an explicit cost for its return-to-hand and gain-action consequence, preserving the printed "if you do" dependency.
