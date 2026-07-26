@@ -30,13 +30,18 @@ persistent_state: []
 deck: {manifest: ../../cards/phase-4b/invisible-man.yaml, construction: fixed}
 rulings:
   - id: fog-movement-only
-    summary: Fog-to-Fog adjacency is a movement permission for Invisible Man and does not make the spaces adjacent for attacks or generic adjacency tests.
-    source: https://www.the-unmatched.club/heroes/invisible-man
+    summary: Fog-to-Fog adjacency is a movement permission for Invisible Man and does not make the spaces adjacent for attacks or generic adjacency tests. Fog tokens may move through fighters/tokens and may share spaces with fighters or other token types, but two Fog tokens cannot share one space.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - id: vanish-dormant-player
+    summary: Vanish can leave Invisible Man undefeated but off-board. Current Dormant Player rules govern a player with no fighters on the board until the source-defined return placement occurs.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
+  - {type: official_edition_note, url: https://restorationgames.com/the-unmatched-vault-cobble-fog/}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/invisible-man}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
   reason: positioned_special_tokens_and_temporary_off_board_undefeated_state_not_in_shared_effect_model
   report: ../../phase-4b/worker-a-report.md
