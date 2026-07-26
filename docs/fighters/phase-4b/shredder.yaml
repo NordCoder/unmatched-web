@@ -30,7 +30,15 @@ ability:
     optional: true
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_remove_traversed_path_tokens, mover_role: opponent_hero}]
 resources:
-- {id: foot-soldiers, kind: token_pool, visibility: public, initial: 24}
+- id: foot-soldiers
+  kind: token_pool
+  visibility: public
+  initial: 24
+  runtime_state:
+    per_token_states: [supply, deployed]
+    deployed_anchor: path_ref
+    occupancy_rule: at_most_one_foot_soldier_per_path
+    removal_destination: supply
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/shredder.yaml
@@ -40,7 +48,7 @@ rulings:
   summary: Back to Work can recover Bebop and Rocksteady even if they were defeated, then places them as close as possible to Shredder.
   source: https://www.the-unmatched.club/heroes/shredder
 - id: shredder-path-token-rulings
-  summary: Foot Soldiers occupy paths and interact with boosted opposing movement according to the competitive hero rules/rulings.
+  summary: Foot Soldiers occupy paths. Only an opposing hero moving during a boosted maneuver may remove traversed Foot Soldiers; sidekicks and effect movement cannot. Removed tokens return to supply.
   source: https://www.the-unmatched.club/rules/shredder
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
@@ -48,5 +56,6 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27'}
 normalization_notes:
 - Bebop and Rocksteady are summonable runtime instances because Back to Work explicitly returns defeated sidekicks.
+- Every deployed Foot Soldier is a concrete token instance anchored to a path_ref; a scalar deployed count is derived state only.
 - Foot Soldier edge/path semantics remain source-defined composites pending shared path_ref integration.
 - Adventures villain deck, threat state, initiative logic and scenario AI are excluded.
