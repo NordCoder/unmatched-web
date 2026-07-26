@@ -34,9 +34,11 @@ deck: {manifest: ../../cards/phase-4b/jekyll-and-hyde.yaml, construction: fixed}
 rulings:
   - id: form-card-legality
     summary: Jekyll-only and Hyde-only cards are playable only while the corresponding form is current; ANY cards remain legal in either form.
-    source: https://www.the-unmatched.club/heroes/jekyll-hyde
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
+  - {type: official_edition_note, url: https://restorationgames.com/the-unmatched-vault-cobble-fog/}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/jekyll-hyde}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/jekyll-hyde}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
