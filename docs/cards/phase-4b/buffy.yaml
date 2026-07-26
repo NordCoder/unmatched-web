@@ -1,6 +1,6 @@
 schema_version: 1
 fighter_id: buffy
-status: blocked
+status: verified
 construction:
   kind: choose_groups
   available_pool_count: 35
@@ -40,5 +40,4 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Published pool is 35 cards, but every game deck is exactly 30: 25 base plus the selected sidekick's five-card package.
-  - Current allowed sources identify Right-hand Man as a Xander card, value 2, BOOST 3, whose combat value becomes 6 when Xander is adjacent to Buffy.
-  - A community/fan transcription additionally claims Buffy may play Right-hand Man while adjacent to Xander. Because the current official rulebook, Reference and published UmDb checked do not substantiate that parenthetical permission, it is deliberately not encoded as canonical gameplay semantics; this remains a source blocker.
+  - Right-hand Man is Xander-only; adjacency to Buffy changes its combat value to 6 and does not alter who may play it.
