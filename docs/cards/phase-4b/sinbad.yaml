@@ -19,7 +19,7 @@ cards:
   - {id: leap-away, name: Leap Away, quantity: 2, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]}]}
   - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
 
 external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 16}
@@ -28,3 +28,4 @@ sources:
   - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
 normalization_notes:
   - Voyage is a card-definition tag; current discard-zone membership determines both Sinbad's movement bonus and Voyage value scaling.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
