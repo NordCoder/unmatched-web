@@ -15,6 +15,7 @@ setup:
   state_initialization:
   - {key: anger_issues_used_this_turn, value: false}
   - {key: lost_combat_this_turn, value: false}
+  - {key: break_something_canceled_this_combat, value: false}
 ability:
   id: anger-issues
   controller: owner
@@ -31,6 +32,7 @@ resources: []
 persistent_state:
 - {key: anger_issues_used_this_turn, type: boolean, reset: turn_start}
 - {key: lost_combat_this_turn, type: boolean, reset: turn_start}
+- {key: break_something_canceled_this_combat, type: boolean, reset: combat_start}
 deck:
   manifest: ../../cards/phase-4b/raphael.yaml
   construction: fixed
@@ -41,4 +43,5 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', note: Visual card corpus transcribed from current Club card images supplied during reconciliation.}
 normalization_notes:
 - lost_combat_this_turn is explicit historical state for Payback Time.
+- break_something_canceled_this_combat persists the IMMEDIATELY cancellation result until the same card's AFTER COMBAT fallback resolves.
 - Only competitive Raphael/Casey behavior is modeled.
