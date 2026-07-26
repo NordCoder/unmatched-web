@@ -89,7 +89,10 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: deck, selector: this_card, position: shuffled}, {op: DRAW, count: 1}]
+    operations:
+    - {op: MOVE_CARD, from_zone: resolution, to_zone: deck, selector: this_card}
+    - {op: SHUFFLE, zone: deck}
+    - {op: DRAW, count: 1}
 - id: break-something
   name: Break Something
   quantity: 3
@@ -101,9 +104,11 @@ cards:
   tags: []
   effects:
   - trigger: immediately
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_cancel_opposing_during_and_after_effects, capture: canceled_any}]
+    operations:
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_cancel_opposing_during_and_after_effects, capture: canceled_any}
+    - {op: SET_STATE, key: break_something_canceled_this_combat, value_from: captured.canceled_any}
   - trigger: after_combat
-    condition: {captured.canceled_any: false}
+    condition: {state: break_something_canceled_this_combat, equals: false}
     choices: [{owner: controller, choose: adjacent_opposing_fighter, capture: target}]
     operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 2}]
 - id: payback-time
@@ -155,5 +160,6 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
 - All 12 definitions reconcile to 30 physical cards.
-- Break Something records whether its selective cancellation actually canceled an effect so its AFTER COMBAT fallback is historical-state safe.
+- Break Something stores whether its selective cancellation actually canceled an effect in combat-scoped historical state for the later AFTER COMBAT fallback.
+- Relentless uses explicit SHUFFLE after moving itself into the deck.
 - Adventures enemy/scenario behavior is excluded.
