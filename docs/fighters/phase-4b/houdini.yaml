@@ -3,7 +3,7 @@ id: houdini
 display_name: Harry Houdini
 set_ids:
 - houdini-vs-genie
-status: verified
+status: blocked
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -57,3 +57,9 @@ sources:
   url: https://www.the-unmatched.club/heroes/houdini
 normalization_notes:
 - When Bess is the fighter moved by a maneuver, the special placement ability does not apply.
+- Audit correction: fighter integration status is blocked because Houdini's deck requires first-class BOOST-source identity/history and opponent-caused discard provenance even though the printed hero ability itself is representable.
+blockers:
+- id: semantic-extension-boost-source-trigger
+  reason: Multiple BOOSTED WITH effects and The Big Reveal require the source-card event/history described by B-EXT-004.
+- id: semantic-extension-discard-cause-event
+  reason: And the Beautiful Bess! requires discard cause/source attribution described by B-EXT-007.
