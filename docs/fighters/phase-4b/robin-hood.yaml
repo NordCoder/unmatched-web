@@ -24,4 +24,4 @@ rulings: []
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/robin-hood}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/robin-hood}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
