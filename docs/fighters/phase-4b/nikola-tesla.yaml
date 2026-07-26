@@ -11,12 +11,7 @@ topology:
   fighters:
     - {id: nikola-tesla, display_name: Nikola Tesla, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
 
-setup:
-  hooks:
-    - stage: character_configuration
-      operations: [{op: SET_STATE, key: charged_coils, value: 1}]
-  state_initialization:
-    - {key: charged_coils, value: 1}
+setup: {hooks: [], state_initialization: []}
 
 ability:
   id: electrical-overflow
@@ -24,13 +19,15 @@ ability:
   effects:
     - id: overflow-start-turn
       trigger: turn_start
-      condition: {charged_coils: 2}
+      condition: {resource: charged-coils, equals: 2}
       operations:
         - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_tesla, amount: 1}
-        - {op: MOVE, target: each_opposing_fighter_adjacent_to_tesla_after_damage, max_distance: 1}
+        - {op: MOVE, target: each_surviving_opposing_fighter_adjacent_to_tesla_after_damage, max_distance: 1, optional_per_target: true}
     - id: recharge-end-turn
       trigger: turn_end
-      operations: [{op: GAIN_RESOURCE, resource: charged_coils, amount: 1, cap: 2}]
+      optional: true
+      condition: {resource: charged-coils, lt: 2}
+      operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount: 1, cap: 2}]
 
 resources:
   - id: charged-coils
@@ -40,8 +37,7 @@ resources:
     minimum: 0
     maximum: 2
 
-persistent_state:
-  - {key: charged_coils, type: integer, reset: never}
+persistent_state: []
 
 deck:
   manifest: ../../cards/phase-4b/nikola-tesla.yaml
@@ -65,5 +61,7 @@ sources:
 
 normalization_notes:
   - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
-  - "Recommended integration behavior (high confidence): with 1 charged coil and declared tier 2, discharge the available coil (1 -> 0), keep selected tier 2, do not resolve tier 1 as fallback, and allow the tier-2 dependent effect to fizzle."
+  - charged-coils is the single authoritative runtime resource; no duplicate persistent state mirrors it.
+  - End-turn charging is optional, and each legal fighter movement from Electrical Overflow is independently optional.
+  - "Recommended integration behavior (high confidence): with 1 charged coil and declared discharge 2, discharge the available coil (1 -> 0), preserve the declared two-coil branch/tier, and allow its dependent effect to fizzle when full discharge was required."
   - "Evidence qualifier: no exact-case publisher ruling for the 1 -> 0 transition was found; the recommendation composes the official charged -> discharged coil rule with the official underfunded-declaration/fizzle ruling."
