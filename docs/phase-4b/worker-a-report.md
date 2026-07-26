@@ -8,45 +8,111 @@ Base verification: branch was identical to Authorized Base before Worker A write
 
 ## Source discipline
 
-Research used the repository source hierarchy:
+Canonical evidence order used by this worker:
 
-1. official Restoration Games / IELLO product, rulebook and set-rule material where publicly available;
-2. official/current rulings material and the current Rulings Archive/index where applicable;
-3. published UmDb `/umdb/...` records for normalized card/deck facts;
-4. secondary indexes only for cross-checking or retired-product discovery.
+1. official Restoration Games / IELLO / Mondo product, rulebook, set-rule, release and errata material;
+2. current Unmatched Reference plus the publisher-backed Unmatched Rulings Archive;
+3. published UmDb `/umdb/...` records for official deck/card metadata and effect transcription;
+4. secondary indexes only for discovery/cross-checking, never as canonical evidence when a stronger source is available.
 
-Community/fan `/decks/...` pages were explicitly excluded from canonical provenance. Search results for balance patches that reused published card names but changed values, quantities or effects were rejected rather than reconciled into the official corpus.
+Current reference:
 
-## Fighter results
+- https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+
+Official rulings archive:
+
+- https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
+
+Published UmDb states that `/umdb/...` covers officially published Unmatched decks. Community/fan `/decks/...`, patch collections, reskins and rebalances were explicitly excluded from canonical provenance.
+
+## Source-hardening pass — 2026-07-27
+
+A second source pass was performed after the initial Worker A handoff.
+
+### Provenance hardening
+
+Weak secondary canonical links were removed/replaced where present, including:
+
+- Geektopia fighter/deck pages;
+- Gridbeast fighter pages;
+- UnmatchedArena fighter pages;
+- generic The Unmatched Club hero-index pages used as evidence rather than discovery.
+
+They were replaced by the strongest available combination of:
+
+- official Restoration Games product/rulebook material;
+- official Mondo release material for Deadpool;
+- current Unmatched Reference;
+- official Rulings Archive;
+- current published UmDb deck/card records.
+
+The Unmatched Club remains useful as a discovery interface to individual sourced rulings, but is not required as canonical fighter/card provenance in the hardened manifests.
+
+### Current UmDb reconciliation
+
+All **17/17** assigned deck manifests were rechecked against the current published UmDb namespace.
+
+Checks included:
+
+- published pool and game-deck quantity;
+- unique-card count;
+- card quantities;
+- character/`usable_by` ownership where UmDb exposes it;
+- card type;
+- printed combat value;
+- BOOST;
+- aggregate Attack / Versatile / Defense / Scheme distribution;
+- source-sensitive card effects;
+- rejection of similarly named fan patches and `UnPatched` records.
+
+Result: **PASS — 17/17 decks reconcile by quantity and current UmDb type distribution.**
+
+### Confirmed corrections made by the hardening pass
+
+1. **Alice — `Manxome Foe`:** normalized as discarding the top deck card and applying that discarded card's BOOST value, rather than as a separate reveal operation.
+2. **Alice — `Claws That Catch`:** corrected from Versatile to **Attack**; Alice now reconciles to current UmDb totals (7 Attack / 17 Versatile / 2 Defense / 4 Scheme).
+3. **Bigfoot — `Loner by Nature`:** end-of-turn draw corrected to **optional** (`may draw`).
+4. **Buffy — setup order:** sidekick selection and 25+5 deck construction moved to the current pre-shuffle/draw setup stage rather than after hero placement.
+5. **Spike — Shadow lifecycle:** current Reference semantics record that, once all three Shadows are on the board, the start-turn ability may move an existing Shadow instead of requiring an unused token.
+6. **Yennenga — `VOLLEY`:** current ruling recorded that the bonus attack does not occur if **either the attacker or defender** of the parent attack was defeated.
+7. **Angel — `Wisdom of Ages`:** corrected from Versatile to **Attack**; Angel now reconciles to 12 Attack / 13 Versatile / 2 Defense / 3 Scheme.
+8. **Medusa — `Snipe`:** corrected from Attack to **Versatile**; Medusa now reconciles to 6 Attack / 17 Versatile / 3 Defense / 4 Scheme.
+
+No correction was imported from a fan deck or balance patch.
+
+## Fighter results after hardening
 
 | Fighter | Result | Primary note |
 | --- | --- | --- |
-| `alice` | verified | Public Big/Small state and size-dependent static modifiers fit the existing model. |
-| `king-arthur` | blocked | `The Holy Grail` assigns an exact health value; current shared model has recovery but no absolute health assignment. |
-| `medusa` | verified | Multi-Harpy topology, gaze trigger and deck normalize without a new primitive. |
-| `sinbad` | verified | Voyage tag + discard-zone counting fits existing card metadata/state queries. |
+| `alice` | verified | Public Big/Small state and all 30 cards reconcile with current UmDb. |
+| `king-arthur` | blocked | `The Holy Grail` assigns an exact health value; current shared model has recovery but no absolute health assignment. Evidence is sufficient. |
+| `medusa` | verified | Multi-Harpy topology and deck normalize; `Snipe` type corrected during hardening. |
+| `sinbad` | verified | Voyage tag + discard-zone counting fit existing metadata/state queries. |
 | `robin-hood` | verified | Outlaw topology and post-attack movement fit the existing model. |
-| `bigfoot` | verified | End-turn zone condition and Jackalope effects fit the existing model. |
-| `robert-muldoon` | blocked | Positioned traps require token placement/return plus movement-entry interruption. |
-| `invisible-man` | blocked | Positioned Fog semantics and `Vanish` temporary undefeated off-board lifetime need generic support. |
+| `bigfoot` | verified | End-turn zone condition fits existing model; optional draw corrected during hardening. |
+| `robert-muldoon` | blocked | Positioned traps require token placement/return plus movement-entry interruption. Evidence is sufficient. |
+| `invisible-man` | blocked | Positioned Fog semantics and `Vanish` undefeated off-board/dormant lifetime need generic support. Evidence is sufficient. |
 | `jekyll-and-hyde` | verified | Public form state and form-tagged cards fit the existing model. |
-| `buffy` | blocked | 35-card published pool / 30-card constructed deck is representable, but `Right-hand Man` has conditional alternate Buffy play permission not expressible by static `usable_by`. |
-| `willow` | blocked | Dark Willow state fits; `Resurrect` requires exact health assignment after returning a defeated fighter. |
-| `spike` | blocked | Positioned Shadow tokens and conditional blind-BOOST multiplication need generic support. |
-| `angel` | verified | Angel/Faith topology and losing-attack ability fit the existing model. |
-| `little-red-riding-hood` | blocked | Basket/discard-symbol state is representable, but `What Big Ears You Have` conditionally changes legal card mode/play permission. |
+| `buffy` | blocked | 35→30 construction is verified. The claimed alternate Buffy permission on `Right-hand Man` could not be substantiated by current official rulebook/Reference/UmDb evidence and is therefore not encoded. |
+| `willow` | blocked | Dark Willow state fits; `Resurrect` requires exact health assignment after returning a defeated fighter. Evidence is sufficient. |
+| `spike` | blocked | Positioned Shadow tokens and conditional blind-BOOST multiplication need generic support. Evidence is sufficient. |
+| `angel` | verified | Angel/Faith topology and losing-attack ability fit; card-type distribution reconciled after correcting `Wisdom of Ages`. |
+| `little-red-riding-hood` | blocked | Basket/discard-symbol state is representable, but `What Big Ears You Have` conditionally changes legal card mode/play permission. Evidence is sufficient. |
 | `beowulf` | verified | Rage counter and per-damage-effect gain semantics fit existing resources/events. |
-| `deadpool` | blocked | Published deck intentionally uses external-world/physical predicates and a per-card ranged/melee override that the shared digital model does not define. |
-| `yennenga` | blocked | VOLLEY fits the bonus-attack composite; `Stallion Charge` needs the path of one specific movement to be queryable after that move. |
+| `deadpool` | blocked | Published deck intentionally uses external-world/physical predicates and a per-card melee/ranged override outside the deterministic shared model. Official Mondo release provenance + complete published UmDb corpus are recorded. |
+| `yennenga` | blocked | Damage redirection and VOLLEY are sourced; `Stallion Charge` still needs movement-path capture. |
 
-Verified: **8** (`alice`, `medusa`, `sinbad`, `robin-hood`, `bigfoot`, `jekyll-and-hyde`, `angel`, `beowulf`).  
-Blocked: **9** (`king-arthur`, `robert-muldoon`, `invisible-man`, `buffy`, `willow`, `spike`, `little-red-riding-hood`, `deadpool`, `yennenga`).
+Verified: **8** — `alice`, `medusa`, `sinbad`, `robin-hood`, `bigfoot`, `jekyll-and-hyde`, `angel`, `beowulf`.  
+Blocked: **9** — `king-arthur`, `robert-muldoon`, `invisible-man`, `buffy`, `willow`, `spike`, `little-red-riding-hood`, `deadpool`, `yennenga`.
 
-No fighter was marked verified merely to complete the batch; `blocked` means card/topology facts were researched but at least one published semantic cannot be represented faithfully by the current shared schema/effect vocabulary.
+Of the nine blocked fighters:
 
-## Quantity validation
+- **8 are blocked by shared model / digital-policy gaps**, not missing deck evidence;
+- **1 (`buffy`) has a remaining component-level source gap** for the claimed alternate-user clause on `Right-hand Man`.
 
-| Fighter | Published pool | Game deck | Reconciliation |
+## Quantity and structure validation
+
+| Fighter | Published pool | Game deck | Current UmDb reconciliation |
 | --- | ---: | ---: | --- |
 | Alice | 30 | 30 | PASS |
 | King Arthur | 30 | 30 | PASS |
@@ -54,123 +120,112 @@ No fighter was marked verified merely to complete the batch; `blocked` means car
 | Sinbad | 30 | 30 | PASS |
 | Robin Hood | 30 | 30 | PASS |
 | Bigfoot | 30 | 30 | PASS |
-| Robert Muldoon | 30 | 30 | PASS |
+| Robert Muldoon / InGen | 30 | 30 | PASS |
 | Invisible Man | 30 | 30 | PASS |
 | Jekyll & Hyde | 30 | 30 | PASS |
-| Buffy | 35 | 30 | PASS: 25 base + selected 5-card Giles/Xander group |
+| Buffy | 35 | 30 | PASS: 25 base + selected Giles/Xander five-card group |
 | Willow | 30 | 30 | PASS |
 | Spike | 30 | 30 | PASS |
 | Angel | 30 | 30 | PASS |
-| Little Red Riding Hood | 30 | 30 | PASS; Basket is a non-action setup/reference component |
+| Little Red Riding Hood | 30 | 30 | PASS; Basket is non-action setup/reference component |
 | Beowulf | 30 | 30 | PASS |
 | Deadpool | 30 | 30 | PASS: 30 distinct one-copy cards |
 | Yennenga | 30 | 30 | PASS |
 
-**Quantity validation: PASS for all 17 assigned fighters.**
+**Quantity validation: PASS (17/17).**  
+**Current UmDb type-distribution validation: PASS (17/17).**
 
-`usable_by` was checked against each fighter topology. Conditional alternate permissions are not silently widened: Buffy's `Right-hand Man` remains Xander-owned with the conditional Buffy permission recorded separately as a blocker. Resources/zones/state references are defined in fighter/deck manifests or explicitly identified below as generic-model blockers.
+`usable_by` was checked against fighter topology. Conditional or uncertain permissions are not silently widened. In particular, `Right-hand Man` remains canonically Xander-owned until primary component evidence establishes any alternate Buffy play permission.
 
 ## Generic schema/effect extension proposals
 
 ### 1. Exact health assignment
 
 Affected: King Arthur — `The Holy Grail`; Willow — `Resurrect`.  
-Source: published official deck semantics / published UmDb cross-check.  
-Problem: `RECOVER` adds health subject to normal recovery semantics; these effects require assigning current health to an exact source value.  
-Proposed generic model: `SET_HEALTH(target, value)` (or equivalent exact-health operation), explicitly distinct from recovery/damage.  
-Blocker: **yes** for King Arthur and Willow.
+Evidence: published UmDb plus official/current reference material.  
+Need: `SET_HEALTH(target, value)` or equivalent exact-health operation distinct from recovery/damage.  
+Blocker: **yes**.
 
 ### 2. Positioned special components/tokens
 
 Affected: Robert Muldoon traps, Invisible Man Fog, Spike Shadows.  
-Source: official Jurassic Park, Cobble & Fog, and Buffy set rules plus published deck records.  
-Problem: resources can count tokens but the shared effect model lacks generic board-position lifecycle semantics.  
-Proposed generic model: position-sensitive component instances with generic `PLACE_TOKEN`, `MOVE_TOKEN`, `RETURN_TOKEN_TO_SUPPLY`, token-space selectors/predicates and token ownership.  
-Blocker: **yes** for Muldoon, Invisible Man and Spike.
+Evidence: official set rules/current Reference + published UmDb.  
+Need: reusable position-sensitive component instances with `PLACE_TOKEN`, `MOVE_TOKEN`, `RETURN_TOKEN_TO_SUPPLY`, token-space selectors/predicates and ownership.  
+Blocker: **yes**.
 
 ### 3. Movement-entry interruption
 
 Affected: Robert Muldoon traps.  
-Source: official InGen vs Raptors rules.  
-Problem: an opposing fighter entering a trap space must stop the currently resolving movement before damage/return/draw resolution.  
-Proposed generic model: movement-step event with a protected `STOP_CURRENT_MOVEMENT` control operation usable by position-triggered effects.  
-Blocker: **yes** for Muldoon.
+Evidence: official InGen vs. Raptors rules/current Reference.  
+Need: movement-step event plus protected `STOP_CURRENT_MOVEMENT`.  
+Blocker: **yes**.
 
-### 4. Temporary undefeated off-board fighter state
+### 4. Temporary undefeated off-board / dormant fighter state
 
 Affected: Invisible Man — `Vanish`.  
-Source: published deck/rulings.  
-Problem: the hero is temporarily absent from the board without being defeated, then is placed at a later turn boundary.  
-Proposed generic model: `off_board` undefeated fighter location/state with source-owned return timing and legal placement domain.  
-Blocker: **yes** for Invisible Man.
+Evidence: published deck plus current Reference Dormant Player rules.  
+Need: undefeated `off_board` location/state with source-owned return timing and legal placement domain.  
+Blocker: **yes**.
 
 ### 5. Conditional card user/type/attack-mode permission
 
-Affected: Buffy — `Right-hand Man`; Little Red Riding Hood — `What Big Ears You Have`; Deadpool — `Xavier Institute Faculty`.  
-Source: published card semantics.  
-Problem: static `usable_by` and static card type/attack mode cannot represent conditional alternate user permission, conditional Attack/Defense legality, or a card-specific ranged/melee override.  
-Proposed generic model: declarative play-permission clauses evaluated at commit time, able to vary eligible fighter and legal combat mode/type without mutating immutable printed metadata.  
-Blocker: **yes** for Buffy, Little Red and Deadpool.
+Affected: Little Red Riding Hood — `What Big Ears You Have`; Deadpool — `Xavier Institute Faculty`. Buffy would also use this model if primary evidence later establishes the claimed `Right-hand Man` alternate-user clause.  
+Need: declarative play-permission clauses evaluated at commit time, able to vary legal combat mode/type or eligible fighter without mutating printed metadata.  
+Blocker: **yes** for Little Red and Deadpool; Buffy currently remains source-blocked first.
 
 ### 6. Blind BOOST result transformation
 
 Affected: Spike — `Always Surprising`.  
-Source: published deck plus retired-set cross-check.  
-Problem: a blind top-deck BOOST result is conditionally multiplied before being applied. Existing `BOOST`/`ADD_BOOST_VALUE` does not expose a reusable transform layer for that resolved BOOST amount.  
-Proposed generic model: transform hook over a resolved BOOST-value event, e.g. multiply/set the pending BOOST amount before application.  
-Blocker: **yes** for Spike.
+Need: transform hook over a resolved blind-BOOST amount before application.  
+Blocker: **yes**.
 
 ### 7. Movement-path capture/query
 
 Affected: Yennenga — `Stallion Charge`.  
-Source: Battle of Legends Vol. 2 published deck.  
-Problem: the post-move effect targets opposing fighters whose spaces Yennenga moved through during that specific movement. Destination/current adjacency is insufficient.  
-Proposed generic model: movement resolution records an ordered traversed-space path and exposes selectors over fighters/spaces crossed by that move.  
-Blocker: **yes** for Yennenga.
+Need: movement resolution records the ordered traversed-space path and exposes selectors over fighters/spaces crossed by that move.  
+Blocker: **yes**.
 
 ### 8. External-world / physical-component predicates
 
 Affected: Deadpool — multiple cards and fighter ability.  
-Source: published Deadpool deck.  
-Problem: official semantics intentionally depend on player real names, physical sleeves/card writing, clothing, food/drink, noises/actions, set ownership, a mirror, post-game wager, and subjective board colour. These are neither deterministic game-state predicates nor fan rules.  
-Proposed generic model: explicit `external_predicate` / `external_action` compatibility layer with online-platform policy (supported, user-confirmed, substituted, or disabled) chosen centrally; never silently rewrite these effects into ordinary board-state logic.  
-Blocker: **yes** for Deadpool.
+Evidence: official Mondo release provenance plus complete current published UmDb deck.  
+Need: central online-platform policy / compatibility layer for real-name, food, spoken/noise, ownership, mirror, sleeve/card-writing, clothing, wager and subjective-colour predicates.  
+Blocker: **yes**.
 
-## Rulings / ambiguity / source gaps
+## Remaining source gaps / limitations
 
-- King Arthur: a secondary transcription conflicts with published UmDb on Feint/Regroup BOOST. Published UmDb and deck-structure cross-check support BOOST 1; the manifests use BOOST 1.
-- Buffy licensed set: official set rules establish fighter/setup mechanics, while individual retired card facts are primarily recoverable from published UmDb and current archival indexes. Those records were cross-checked; community rebalances were rejected.
-- Spike: retired-set card text was cross-checked against current archival/secondary transcriptions. Shadow mechanics remain blocked on generic position semantics rather than encoded as custom Spike logic.
-- Deadpool: external/physical joke mechanics are genuine published semantics, not fan-patch data. They remain explicit blockers for a deterministic web engine.
-- Little Red: the Basket is not counted as an action-deck card; it is retained as a setup/reference component tied to top-discard symbol semantics.
-- No unresolved source gap prevents quantity reconciliation for any assigned fighter.
+### Blocking source gap
 
-## Files created
+- **Buffy — `Right-hand Man`:** current official Buffy rulebook, current Reference and current published UmDb establish a Xander card, value 2, BOOST 3, and the adjacency-based value-6 effect. They do **not** substantiate the community-transcribed parenthetical that Buffy may also play the card while adjacent to Xander. The parenthetical has been removed from canonical semantics pending a primary component scan/photo or publisher ruling.
 
-Fighter manifests (17):
+### Non-blocking provenance limitation
 
-`docs/fighters/phase-4b/alice.yaml`, `king-arthur.yaml`, `medusa.yaml`, `sinbad.yaml`, `robin-hood.yaml`, `bigfoot.yaml`, `robert-muldoon.yaml`, `invisible-man.yaml`, `jekyll-and-hyde.yaml`, `buffy.yaml`, `willow.yaml`, `spike.yaml`, `angel.yaml`, `little-red-riding-hood.yaml`, `beowulf.yaml`, `deadpool.yaml`, `yennenga.yaml`.
+- **Deadpool:** official Mondo material establishes first-party release provenance and current published UmDb supplies the complete 30-card corpus. A first-party online full card-text/rulebook dump was not located. This is weaker primary card-level provenance than the normal Restoration rulebook sets, but it does not prevent deck/card reconciliation; Deadpool is blocked by digital semantics, not missing card identity/quantity data.
 
-Deck manifests (17):
+No other unresolved source gap blocks assigned fighter/deck reconstruction.
 
-`docs/cards/phase-4b/alice.yaml`, `king-arthur.yaml`, `medusa.yaml`, `sinbad.yaml`, `robin-hood.yaml`, `bigfoot.yaml`, `robert-muldoon.yaml`, `invisible-man.yaml`, `jekyll-and-hyde.yaml`, `buffy.yaml`, `willow.yaml`, `spike.yaml`, `angel.yaml`, `little-red-riding-hood.yaml`, `beowulf.yaml`, `deadpool.yaml`, `yennenga.yaml`.
+## Files and scope
 
+Fighter manifests: **17** under `docs/fighters/phase-4b/`.  
+Deck manifests: **17** under `docs/cards/phase-4b/`.  
 Report: `docs/phase-4b/worker-a-report.md`.
 
-Pre-report Base→Head scope audit found exactly the 34 assigned fighter/deck paths, all added; no shared schema, mechanics, rules, set registry, ambiguity register, research plan or README file was changed.
+Pre-report hardening Base→Head audit still contains exactly the 35 Worker A-owned files. No shared schema, mechanics, rules, set registry, ambiguity register, research plan or README file was changed.
 
 ## Worker 4B-A Handoff
 
 Branch: `phase-4b-worker-a-classics`  
 Authorized Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Head immediately before this report commit: `bcb18cd962e58c100e7b9038057c1682f56248f3`  
-Exact final Head: the commit containing this report cannot cryptographically embed its own Git SHA; the immutable exact final branch Head must be read after this final write and is reported in the Worker A delivery response. No further repository writes are permitted after that read.  
+Head immediately before this hardened report update: `804a976b92c719095836a7bbed8d41eef235464b`  
+Exact final Head: read after this final report write and supplied in the delivery response.  
 Assigned fighters: **17**  
 Verified: **8** — `alice`, `medusa`, `sinbad`, `robin-hood`, `bigfoot`, `jekyll-and-hyde`, `angel`, `beowulf`  
 Blocked: **9** — `king-arthur`, `robert-muldoon`, `invisible-man`, `buffy`, `willow`, `spike`, `little-red-riding-hood`, `deadpool`, `yennenga`  
 Quantity validation: **PASS (17/17)**  
-Schema-extension proposals: **8 generic extension families**, listed above; no shared schema file modified  
-New ambiguity/blockers: exact health assignment; positioned special tokens; movement interruption; temporary undefeated off-board state; conditional play permissions/card modes; blind BOOST transform; movement-path capture; external-world semantics  
-Source gaps: **none blocking deck quantity/card-identity reconciliation**; retired licensed material required published archival/secondary cross-checks as documented above  
-Files created: **35** (17 fighter manifests + 17 deck manifests + this report)  
+Current UmDb structure/type validation: **PASS (17/17)**  
+Hardening corrections: **8 confirmed content corrections**  
+Schema-extension proposals: **8 generic extension families**; no shared schema file modified  
+Blocking source gaps: **1** — Buffy `Right-hand Man` alternate-user clause  
+Model/policy-blocked fighters: **8**  
+Files in Worker A scope: **35**  
 Merge to main: **not performed**
