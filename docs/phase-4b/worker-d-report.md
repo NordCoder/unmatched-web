@@ -20,7 +20,7 @@ Merge to `main`: **not performed**.
 
 ### Verification matrix
 
-| Fighter | Fighter | Deck | Reconciliation | Remaining note |
+| Fighter | Fighter status | Deck status | Reconciliation | Remaining note |
 | --- | --- | --- | --- | --- |
 | Bruce Lee | verified | verified | 17 / 30 | Single canonical 2019→2025 lineage. |
 | Muhammad Ali | verified | verified | 13 / 30 | — |
