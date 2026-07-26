@@ -1,31 +1,199 @@
 schema_version: 1
 fighter_id: george-washington
-status: blocked
-reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
-- https://www.youtube.com/watch?v=KADK9FlkJqc
-- https://unmatched.cards/umdb/decks/george-washington
+status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-cards: []
+cards:
+- id: lead-astray
+  name: Lead Astray
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: attack
+  printed_value: 5
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    choices: [{owner: controller, choose: combat_fighter, capture: target}]
+    operations: [{op: MOVE, target: captured.target, max_distance: 2}]
+- id: agent-711
+  name: Agent 711
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: [ruse_effect]
+  effects:
+  - trigger: after_combat
+    condition: {ruse_attached_to_this_attack: true, combat_result: won}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 7}]
+- id: circumvent
+  name: Circumvent
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: [ruse_effect]
+  effects:
+  - trigger: during_combat
+    condition: {ruse_attached_to_this_attack: true}
+    operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+- id: sabotage
+  name: Sabotage
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: [ruse_effect]
+  effects:
+  - trigger: after_combat
+    condition: {ruse_attached_to_this_attack: true, combat_result: won}
+    operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 2, controller: opponent}]
+- id: allies-everywhere
+  name: Allies Everywhere
+  quantity: 3
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: attack
+  printed_value: 1
+  boost: 3
+  tags: [ruse_effect]
+  effects:
+  - trigger: after_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}]
+  - trigger: after_combat
+    condition: {ruse_attached_to_this_attack: true}
+    operations: [{op: RECOVER, target: george-washington, amount: 3}]
+- id: misinformation
+  name: Misinformation
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {combat_result: won}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_regain_ruse_token, count: 1}]
+- id: make-a-stand
+  name: Make a Stand
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {own_combat_fighter_started_turn_in_current_space: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+- id: recruit-to-the-ring
+  name: Recruit to the Ring
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    choices: [{owner: controller, choose: defeated_culper_spy, capture: spy}]
+    branches:
+    - condition: {combat_result: won}
+      choices: [{owner: controller, choose: any_open_space, capture: destination}]
+      operations: [{op: SUMMON, pool: culper-spy, selector: captured.spy, destination_rule: captured.destination}]
+    - condition: {combat_result_not: won}
+      operations: [{op: SUMMON, pool: culper-spy, selector: captured.spy, destination_rule: space_adjacent_to_george_washington}]
+- id: network-of-spies
+  name: Network of Spies
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_in_george_washington_zone}]
+- id: undercover-agent
+  name: Undercover Agent
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: defense
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    choices: [{owner: controller, choose: adjacent_culper_spy, capture: spy}]
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_swap_defender_with_adjacent_friendly_fighter, original_defender: george-washington, new_defender: captured.spy}]
+- id: sympathetic-stain
+  name: Sympathetic Stain
+  quantity: 2
+  inclusion: fixed
+  usable_by: [culper-spy]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    choices: [{owner: controller, choose: opponent, capture: target_player}]
+    operations: [{op: LOOK_AT, source: captured.target_player.hand, selector: all, viewer: controller}]
+  - trigger: scheme
+    condition: {culper_spy_adjacent_to_target_opponent_fighter: true}
+    choices: [{owner: controller, choose: card_in_target_opponent_hand, capture: chosen_card}]
+    operations:
+    - {op: DISCARD, from: captured.target_player.hand, selector: captured.chosen_card}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_regain_ruse_token, count: 1}
+- id: gather-information
+  name: Gather Information
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations: [{op: DRAW, count: 3}, {op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: null
-  result: BLOCKED
-  reason: Official rulebook proves 30 action cards and public physical card material exists, but the complete card transcript has not yet been independently reconciled for quantity/type/value/BOOST/effects.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13, result: PASS}
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 George Washington action cards.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party explanation of Culper Spy Ring/ruse gameplay.}
-- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- Public physical/visual evidence exists; blocker is card-by-card transcription/reconciliation, not absence of a published deck.
-- No fan-deck reconstruction is promoted into cards[].
+- All 13 definitions reconcile to 30 physical cards.
+- Triangle-marked printed clauses are normalized as ruse_attached_to_this_attack conditions.
+- Recruit to the Ring and Undercover Agent require runtime fighter-instance identity for Culper Spies.
