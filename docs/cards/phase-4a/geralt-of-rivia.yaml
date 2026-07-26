@@ -1,0 +1,294 @@
+schema_version: 1
+fighter_id: geralt-of-rivia
+status: verified
+
+construction:
+  kind: choose_groups
+  available_pool_count: 36
+  base_cards_always_included: 24
+  game_deck_count: 30
+  choose_groups:
+    - {tag: gear:potion, choose_definitions: 1, copies_per_definition: 2}
+    - {tag: gear:armor, choose_definitions: 1, copies_per_definition: 2}
+    - {tag: gear:sword, choose_definitions: 1, copies_per_definition: 2}
+
+card_zones:
+  - id: ongoing-schemes
+    visibility: public
+    controller: owner
+    disposition_rule: Remain face-up until their own discard condition/effect removes them.
+
+cards:
+  - id: igni
+    name: Igni
+    quantity: 2
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: attack
+    printed_value: 0
+    boost: 3
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+          - {op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_geralt_except_opposing_combat_fighter, amount: 1}
+
+  - id: riposte
+    name: Riposte
+    quantity: 2
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: branch, options: [damage_adjacent, swap_adjacent]}]
+        branches:
+          - condition: {chosen_branch: damage_adjacent}
+            choices: [{owner: controller, choose: fighter_adjacent_to_geralt}]
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]
+          - condition: {chosen_branch: swap_adjacent}
+            choices: [{owner: controller, choose: fighter_adjacent_to_geralt}]
+            operations: [{op: SWAP, a: geralt-of-rivia, b: chosen_fighter}]
+
+  - id: yrden
+    name: Yrden
+    quantity: 3
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: immediately
+        operations:
+          - {op: SET_STATE, target: opposing_combat_fighter, key: cannot_leave_current_space, value: true, expires: turn_end}
+      - trigger: after_combat
+        operations: [{op: MOVE, target: geralt-of-rivia, max_distance: 2}]
+
+  - id: rend
+    name: Rend
+    quantity: 3
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
+
+  - id: disciplined-duelist
+    name: Disciplined Duelist
+    quantity: 3
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: versatile
+    printed_value: 4
+    boost: 2
+    effects:
+      - trigger: after_combat
+        branches:
+          - condition: {opposing_card.printed_value: 2}
+            optional: true
+            operations: [{op: DRAW, count: 1}]
+          - condition: {opposing_card.printed_value: 3}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]
+          - condition: {opposing_card.printed_value: 4}
+            operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1}]
+
+  - id: damn-youre-ugly
+    name: Damn, You're Ugly
+    quantity: 3
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: versatile
+    printed_value: 5
+    boost: 4
+    effects: []
+
+  - id: annoying-tune
+    name: Annoying Tune
+    quantity: 3
+    inclusion: base
+    usable_by: [dandelion]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: after_combat
+        operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 4}]
+
+  - id: plot-twist
+    name: Plot Twist
+    quantity: 3
+    inclusion: base
+    usable_by: [dandelion]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        operations: [{op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller}]
+        nested_choice:
+          owner: controller
+          choose: one_card_from_viewed_hand
+          then:
+            - {op: DISCARD, controller: opponent, from: hand, selector: chosen_card, count: 1}
+            - {op: DRAW, count: 1}
+
+  - id: witcher-senses
+    name: Witcher Senses
+    quantity: 2
+    inclusion: base
+    usable_by: [geralt-of-rivia]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        choices:
+          - owner: controller
+            choose: gear_card_in_own_deck_or_discard
+            reveal_selected_card: true
+        operations:
+          - {op: MOVE_CARD, from_zone: selected_source_zone, to_zone: hand, selector: chosen_gear}
+        conditional_self_disposition:
+          condition: {selected_source_zone: deck}
+          operations:
+            - {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: deck, selector: this_card}
+            - {op: SHUFFLE, zone: deck}
+
+  - id: gear-sword-of-steel
+    name: GEAR: Sword of Steel
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:sword]
+    usable_by: [geralt-of-rivia]
+    type: attack
+    printed_value: 4
+    boost: 3
+    effects:
+      - trigger: after_combat
+        branches:
+          - condition: {opposing_fighter_current_health: {gte: 8}}
+            operations: [{op: GAIN_ACTION, count: 2}]
+          - condition: {opposing_fighter_current_health: {lt: 8}}
+            operations: [{op: GAIN_ACTION, count: 1}]
+
+  - id: gear-sword-of-silver
+    name: GEAR: Sword of Silver
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:sword]
+    usable_by: [geralt-of-rivia]
+    type: attack
+    printed_value: 4
+    boost: 3
+    effects:
+      - trigger: immediately
+        condition: {opposing_card.printed_value: {gte: 4}}
+        operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+
+  - id: gear-wolf-medallion
+    name: GEAR: Wolf Medallion
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:armor]
+    usable_by: [geralt-of-rivia]
+    type: defense
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+      - trigger: during_combat
+        condition: {opposing_combat_fighter_adjacent_to_geralt: false}
+        operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+
+  - id: gear-armor-of-the-forgotten-wolf
+    name: GEAR: Armor of the Forgotten Wolf
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:armor]
+    usable_by: [geralt-of-rivia]
+    type: defense
+    printed_value: 2
+    boost: 3
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_fighters_adjacent_to_geralt}]
+      - trigger: after_combat
+        operations: [{op: END_TURN}]
+
+  - id: gear-blizzard
+    name: GEAR: Blizzard
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:potion, ongoing_scheme]
+    usable_by: [geralt-of-rivia]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: DRAW, count: 1}
+          - {op: MOVE, target: geralt-of-rivia, max_distance: 3}
+          - {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}
+      - trigger: static
+        continuous: true
+        while_in_zone: ongoing-schemes
+        operations: [{op: SET_STATE, target: opponent, key: can_gain_actions, value: false}]
+      - trigger: turn_end
+        while_in_zone: ongoing-schemes
+        condition: {controller_attacked_this_turn: false}
+        operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]
+
+  - id: gear-tawny-owl
+    name: GEAR: Tawny Owl
+    quantity: 2
+    inclusion: choose_group
+    tags: [gear, gear:potion, ongoing_scheme]
+    usable_by: [geralt-of-rivia]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: DRAW, count: 2}
+          - {op: GAIN_ACTION, count: 1}
+          - {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}
+      - trigger: replacement
+        continuous: true
+        while_in_zone: ongoing-schemes
+        replacement_for: effect_would_cause_controller_to_discard_card_from_hand
+        optional: true
+        operations: [{op: PREVENT_OPERATION, target: triggering_discard_operation}]
+      - trigger: turn_end
+        while_in_zone: ongoing-schemes
+        condition: {controller_attacked_this_turn: false}
+        operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]
+
+external_definitions: []
+
+validation:
+  available_pool_count: 36
+  base_quantity_sum: 24
+  selectable_gear_quantity_sum: 12
+  selected_gear_cards_per_game: 6
+  game_deck_count: 30
+  unique_card_definitions: 15
+
+sources:
+  - https://unmatched.cards/umdb/decks/geralt-of-rivia
+  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+  - https://www.the-unmatched.club/rules/geralt-of-rivia
+
+normalization_notes:
+  - The manifest lists all 36 available physical action cards, then construction chooses 6 gear cards to produce the 30-card game deck.
+  - Ongoing schemes occupy a face-up zone and install continuous/replacement effects until source-defined discard.
+  - PREVENT_OPERATION is a Phase 4A primitive candidate for source-defined replacement effects such as Tawny Owl's optional discard prevention.
