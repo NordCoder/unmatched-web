@@ -1,0 +1,28 @@
+schema_version: 1
+fighter_id: hamlet
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: to-sleep-perchance-to-dream, name: "To Sleep, Perchance To Dream", quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, branches: [{condition: {combat_result: won}, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance_rule: combat_damage_dealt}]}, {condition: {combat_result: lost}, operations: [{op: RECOVER, target: hamlet, amount: 1}]}]}]}
+  - {id: cruel-to-be-kind, name: Cruel To Be Kind, quantity: 2, usable_by: [hamlet], type: attack, printed_value: 2, boost: 4, tags: [], effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}]}
+  - {id: uncertain-doom, name: Uncertain Doom, quantity: 3, usable_by: any, type: attack, printed_value: 2, boost: 3, tags: [], effects: [{trigger: during_combat, condition: {opposing_card_type: versatile}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+  - {id: the-plays-the-thing, name: "The Play's The Thing", quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DISCARD, controller: opponent, from: hand, selector: random, count: 1, capture: discarded_card}, {op: RECOVER, target: hamlet, amount: captured.discarded_card.boost_or_0, condition: {combat_result: won}}]}]}
+  - {id: the-readiness-is-all, name: The Readiness Is All, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, choices: [{owner: controller, choose: combat_fighter}, {owner: controller, choose: battlefield_space}], operations: [{op: PLACE, target: chosen_fighter, destination: chosen_space}, {op: SET_STATE, target: chosen_fighter, key: cannot_leave_current_space, value: true, expires: turn_end}]}]}
+  - {id: blood-will-have-blood, name: Blood Will Have Blood, quantity: 3, usable_by: [hamlet], type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {hamlet_took_damage_this_turn: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
+  - {id: outrageous-fortune, name: Outrageous Fortune, quantity: 2, usable_by: [hamlet], type: versatile, printed_value: 1, boost: 2, tags: [], effects: [{trigger: during_combat, operations: [{op: DISCARD, controller: controller, from: deck_top, selector: top, count: 1, capture: discarded_card}, {op: ADD_VALUE, target: this_card, amount: captured.discarded_card.boost_or_0}]}, {trigger: after_combat, condition: {combat_result: lost}, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: captured.discarded_card}]}]}
+  - {id: maddening-insight, name: Maddening Insight, quantity: 2, usable_by: any, type: versatile, printed_value: 0, boost: 1, tags: [], effects: [{trigger: during_combat, operations: [{op: SET_VALUE, target: this_card, value_rule: controller_hand_size}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]}]}
+  - {id: the-rest-is-silence, name: The Rest Is Silence, quantity: 2, usable_by: [hamlet], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: END_TURN}]}]}
+  - {id: nothing-either-good-or-bad, name: Nothing Either Good Or Bad, quantity: 3, usable_by: any, type: defense, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {opposing_card_type: versatile}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]}]}
+  - {id: method-in-the-madness, name: Method In The Madness, quantity: 3, usable_by: [hamlet], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: any_number_cards_from_hand, capture: bottomed}], operations: [{op: MOVE_CARD, from_zone: hand, to_zone: deck_bottom, selector: captured.bottomed}], choices_after: [{owner: controller, choose: draw_count, min: 0, max_rule: count_captured.bottomed}], followup: [{op: DRAW, count: chosen_draw_count}, {op: GAIN_ACTION, count: 1}]}]}
+  - {id: the-ghost, name: The Ghost, quantity: 2, usable_by: [hamlet], type: scheme, printed_value: null, boost: 1, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: branch, options: [recover, place_and_action]}], branches: [{condition: {chosen_branch: recover}, operations: [{op: RECOVER, target: hamlet, amount: 2}]}, {condition: {chosen_branch: place_and_action}, operations: [{op: PLACE, target: hamlet, destination: any_space_in_hamlet_zone}, {op: GAIN_ACTION, count: 1}]}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+sources:
+  - https://unmatched.cards/umdb/decks/hamlet
+  - https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+  - https://www.the-unmatched.club/heroes/hamlet
+normalization_notes:
+  - Blood Will Have Blood reads explicit damage history, not Hamlet's current health.
+  - Outrageous Fortune retains the exact discarded instance in combat parent context for its later return.
