@@ -10,7 +10,7 @@ cards:
   - {id: mad-as-a-hatter, name: Mad as a Hatter, quantity: 2, usable_by: [alice], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 2}, {op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}
   - {id: manxome-foe, name: Manxome Foe, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, effects: [{trigger: during_combat, operations: [{op: DISCARD, from: deck, selector: top_card, count: 1}, {op: ADD_VALUE, target: this_card, amount: discarded_card_boost}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
   - {id: looking-glass, name: Looking Glass, quantity: 2, usable_by: [alice], type: defense, printed_value: 2, boost: 4, effects: [{trigger: after_combat, choices: [{choose_different: 2, from: [draw_2, recover_3, place_any_other_space]}], operations: [{op: REQUEST_CHOICE, definition: looking_glass_two_different}]}]}
   - {id: snicker-snack, name: Snicker-Snack, quantity: 1, usable_by: [alice], type: attack, printed_value: 3, boost: 4, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: LOOK_AT, source: opponent_hand, viewer: owner}, {op: DISCARD, from: opponent_hand, selector: chosen_card, count: 1}]}]}
   - {id: o-frabjous-day, name: O Frabjous Day!, quantity: 1, usable_by: [alice], type: attack, printed_value: 4, boost: 4, effects: [{trigger: after_combat, operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}
@@ -31,4 +31,5 @@ sources:
 normalization_notes:
   - Alice size state is defined in the fighter manifest; card effects only mutate or read that state.
   - Manxome Foe discards the top deck card and adds that discarded card's BOOST value to the combat value; it is not normalized as a reveal or as a BOOST-value modifier.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Current UmDb deck statistics reconcile exactly after classifying Claws That Catch as Attack: 7 Attack / 17 Versatile / 2 Defense / 4 Scheme cards.
