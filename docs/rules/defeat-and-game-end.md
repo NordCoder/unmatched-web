@@ -24,8 +24,8 @@ Source: CORE pp. 11, 14; modern winner check below.
 `GAMEEND-001` — At the **start or end of any action**, evaluate the generic two-player win condition.  
 Source: CORE p. 14; REF10 official erratum “Winning the Game”.
 
-`GAMEEND-002` — At such a check, if the opponent's hero is defeated and the active player's hero is not defeated, the active player wins.  
-Source: CORE p. 14.
+`GAMEEND-002` — If exactly one hero is defeated at the winner check, the player whose hero is still undefeated wins, regardless of whose turn is currently resolving.  
+Source: CORE p. 14; normalized symmetric reading of “if your opponent's hero is defeated, you win”.
 
 `GAMEEND-003` — If both heroes are defeated at the winner check, the player whose turn is currently resolving wins.  
 Source: CORE p. 14; REF10 official erratum “Winning the Game”.
@@ -36,9 +36,24 @@ Source: CORE pp. 11–14; normalization of GAMEEND-001.
 `GAMEEND-005` — Because defeated fighters are removed immediately, unresolved effects must observe the post-removal battlefield state. The delayed winner check does not leave a defeated hero on the board.  
 Source: CORE pp. 11, 14.
 
+`GAMEEND-006` — The normalized two-player winner predicate at a legal check boundary is therefore:
+
+```text
+if hero(P1).defeated && hero(P2).defeated:
+    winner = active_player
+else if hero(P1).defeated:
+    winner = P2
+else if hero(P2).defeated:
+    winner = P1
+else:
+    winner = none
+```
+
+Source: normalized executable form of CORE p. 14.
+
 ## Superseded generic wording
 
-`GAMEEND-010` — Statements in older rulebooks such as “the game ends immediately when the opponent's hero is defeated” are not the canonical generic rule for this project. Preserve those rulebooks as historical/set provenance, but normalize generic competitive winner checks to GAMEEND-001–005 unless later official authority supersedes them again.  
+`GAMEEND-010` — Statements in older rulebooks such as “the game ends immediately when the opponent's hero is defeated” are not the canonical generic rule for this project. Preserve those rulebooks as historical/set provenance, but normalize generic competitive winner checks to GAMEEND-001–006 unless later official authority supersedes them again.  
 Source: source-policy precedence; CORE p. 14; REF10 official erratum.
 
 The current community Rules Hub also tracks this as an official core-rule change. Because that site is a secondary index, future changes discovered there must be traced back to a publisher/designer ruling before replacing the canonical rules.
@@ -66,4 +81,4 @@ apply_damage
   -> check_winner
 ```
 
-This distinction is required for combats where both heroes can become defeated during the same action.
+This distinction is required both when one hero is defeated during their own action and when both heroes become defeated during the same action.
