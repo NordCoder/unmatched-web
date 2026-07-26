@@ -4,186 +4,173 @@
 
 Branch: `phase-4b-worker-d-latest`  
 Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Head ref: `refs/heads/phase-4b-worker-d-latest`  
-Head SHA: **reported in the external handoff immediately after this commit is created.** A Git commit cannot truthfully embed its own SHA in a file inside that same commit because changing the embedded SHA changes the commit object ID.  
-Assigned fighters: 16  
-Verified: `bruce-lee`  
-Blocked: `muhammad-ali`, `blackbeard`, `chupacabra`, `loki`, `pandora`, `leonardo`, `donatello`, `michelangelo`, `raphael`, `rosie-the-riveter`, `john-henry`, `wyatt-earp`, `george-washington`, `shredder`, `krang`  
-Quantity validation: **PARTIAL — PASS for Bruce Lee (30/30); BLOCKED for 15 fighters because a complete eligible per-card corpus is not publicly verified.**  
-Schema-extension proposals: see below.  
-New ambiguity/blockers: complete newest-release action-card corpus; source-defined range/movement/path/free-action/die semantics.  
-Source gaps: see per-family matrix below.  
-Files created: 33 (16 fighter manifests, 16 deck manifests, this report).
+Head: **reported in the external handoff after this report commit is created.** A commit cannot truthfully embed its own SHA in a file inside that same commit because changing the embedded SHA changes the commit object ID.  
+Assigned fighters: **16**  
+Verified: `bruce-lee`, `blackbeard`, `chupacabra`, `loki`, `pandora`, `leonardo`, `donatello`  
+Blocked: `muhammad-ali`, `michelangelo`, `raphael`, `rosie-the-riveter`, `john-henry`, `wyatt-earp`, `george-washington`, `shredder`, `krang`  
+Quantity validation: **PASS for all 7 verified decks; construction size known but corpus incomplete for 7 additional blocked decks; Shredder/Krang remain transcript-blocked.**  
+Files created on Worker D branch: **33** (16 fighter manifests, 16 deck manifests, this report).  
+Shared schema/mechanics/rules/rulings/set/roadmap files changed: **none**.
 
-### Branch/base verification
+### Branch/base and scope
 
-At worker start and immediately before staging the worker tree, `phase-4b-worker-d-latest` compared **identical** to Authorized Base `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9` (`ahead_by=0`, `behind_by=0`). The worker writes only the Phase 4B fighter/card paths assigned to Worker D plus this report. No shared schema, mechanics, rules, rulings, set-registry, roadmap, or README file is changed.
+The branch was originally created from Authorized Base `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`. Worker D writes only:
 
-### Verification result
+- `docs/fighters/phase-4b/<assigned-id>.yaml`;
+- `docs/cards/phase-4b/<assigned-id>.yaml`;
+- `docs/phase-4b/worker-d-report.md`.
 
-| Fighter | Fighter-level evidence | Deck result | Phase 4B status |
+No merge to `main` is performed by this worker.
+
+### Revised verification matrix
+
+| Fighter | Result | Quantity state | Evidence/result |
 | --- | --- | --- | --- |
-| Bruce Lee | Official 2019→2025 lineage + published current deck corpus | 17 unique definitions, quantities sum 30 | **verified** |
-| Muhammad Ali | Current stats/stance ability indexed | Complete published per-card corpus unavailable | **blocked** |
-| Blackbeard | Current stats/doubloon/ransom behavior indexed | Complete published per-card corpus unavailable | **blocked** |
-| Chupacabra | Current stats/ability indexed | Secondary index can list names/quantities, but eligible complete type/value/BOOST/effect corpus unavailable | **blocked** |
-| Loki | Current stats/TRICK global rules indexed | Complete eligible card metadata/effect corpus unavailable | **blocked** |
-| Pandora | Current stats + seven Misery external definitions indexed | Current public UmDb action-card data is visibly partial | **blocked** |
-| Leonardo | Competitive hero stats/ability indexed | Official set exposes aggregate 120 hero cards only; complete Leonardo corpus unavailable | **blocked** |
-| Donatello | Competitive hero stats/ability indexed | Invention/action-card corpus unavailable | **blocked** |
-| Michelangelo | Competitive hero stats/ability and hand-size rule indexed | Complete action-card corpus unavailable | **blocked** |
-| Raphael | Competitive hero stats/ability indexed | Complete action-card corpus unavailable | **blocked** |
-| Rosie the Riveter | Official physical inventory + current stats/upgrade rule indexed | Official 30-card allocation known; per-card transcript unavailable | **blocked** |
-| John Henry | Official physical inventory + current stats/track rule indexed | Official 30-card allocation known; per-card transcript unavailable | **blocked** |
-| Wyatt Earp | Official physical inventory + current stats/Showdown rule indexed | Official 30-card allocation known; per-card transcript unavailable | **blocked** |
-| George Washington | Official physical inventory + current stats/Espionage rule indexed | Official 30-card allocation known; current normalized database incomplete | **blocked** |
-| Shredder | Official product proves separate competitive Hero Deck; current competitive stats/Foot Soldier ability indexed | Complete Hero Deck transcript unavailable | **blocked** |
-| Krang | Official product proves separate competitive Hero Deck; current competitive stats/Doomsday ability indexed | Complete Hero Deck transcript unavailable | **blocked** |
+| Bruce Lee | **verified** | 30/30; 17 definitions | Published UmDb corpus + official Restoration 2019→2025 lineage; one canonical fighter identity. |
+| Blackbeard | **verified** | 30/30; 12 definitions | Official BOL3 membership + physical deck review + complete current transcription; ransom semantics explicit. |
+| Chupacabra | **verified** | 30/30; 11 definitions | Official BOL3 membership + physical/current transcript cross-check; `Tooth and Tail` spelling reconciled. |
+| Loki | **verified** | 30/30; 11 definitions | Official BOL3 membership + physical/current transcript cross-check; TRICK ownership/BOOST semantics retained. |
+| Pandora | **verified** | 30/30; 12 definitions + 7 external Miseries | Official BOL3 membership + physical/current cross-check; Miseries are external definitions, not action cards. |
+| Leonardo | **verified** | 30/30; 12 definitions | Official IELLO TMNT rules establish stats/ability/30-card allocation and print `For Sensei`; complete transcript cross-checked against physical components. |
+| Donatello | **verified** | 30/30; 14 definitions | Official IELLO TMNT rules establish 30-card allocation and authoritative Invention text; complete transcript independently cross-checked. |
+| Muhammad Ali | **blocked** | construction 30/30; quantity sum unknown | Official IELLO rules establish deck size, stance mechanics and selected cards, but full per-card transcript is not yet reconciled. |
+| Michelangelo | **blocked** | construction 30/30; quantity sum not promoted | Official IELLO rules establish 30 cards; current tracker reconciles names/quantities, but full type/value/BOOST/effect layer is incomplete. |
+| Raphael | **blocked** | construction 30/30; quantity sum unknown | Official IELLO rules establish 30 cards and Anger Issues; complete per-card transcript remains missing. |
+| Rosie the Riveter | **blocked** | construction 30/30 | Official rulebook proves 30 cards; first-party/physical card material exists, but full frame transcription and reconciliation remain pending. |
+| John Henry | **blocked** | construction 30/30 | Same physical-corpus blocker; track mechanics are known independently. |
+| Wyatt Earp | **blocked** | construction 30/30 | Same physical-corpus blocker; Showdown mechanics are known independently. |
+| George Washington | **blocked** | construction 30/30 | Same physical-corpus blocker; ruse/Espionage mechanics are known independently. |
+| Shredder | **blocked** | full deck transcript unavailable | Restoration explicitly confirms a separate competitive Hero Deck; Adventures villain deck is excluded. |
+| Krang | **blocked** | full deck transcript unavailable | Restoration explicitly confirms a separate competitive Hero Deck; Adventures villain deck is excluded. |
 
 ### Quantity validation
 
-- `bruce-lee`: fixed deck 30; 17 unique card definitions; quantity sum **30** — PASS.
-- Stars & Stripes: official rulebook/physical component inventory establishes **30 action cards for each fighter**, but per-card quantities/metadata cannot be reconciled; each deck remains BLOCKED.
-- TMNT base product: official product establishes **120 hero action cards across the four Turtle heroes**. The worker does not infer per-fighter allocation or per-card facts from the aggregate total.
-- Battle of Legends Volume Three, Muhammad Ali, Shredder, and Krang: no per-fighter deck count is promoted into the manifest where the checked eligible corpus did not independently expose it.
-- `quantity_sum: null` in a blocked deck means **unknown/not validated**, not zero cards.
+Verified deck reconciliation:
+
+| Fighter | Game deck | Unique action-card definitions | External definitions | Result |
+| --- | ---: | ---: | ---: | --- |
+| Bruce Lee | 30 | 17 | 0 | PASS |
+| Blackbeard | 30 | 12 | 0 | PASS |
+| Chupacabra | 30 | 11 | 0 | PASS |
+| Loki | 30 | 11 | 0 | PASS |
+| Pandora | 30 | 12 | 7 Miseries | PASS |
+| Leonardo | 30 | 12 | 0 | PASS |
+| Donatello | 30 | 14 | 0 | PASS |
+
+For blocked decks, `quantity_sum: null` means the card-definition corpus has **not** been fully validated; it does not mean zero cards.
+
+Official construction-size improvements from the second research pass:
+
+- Muhammad Ali: IELLO contents page explicitly lists **30 action cards**.
+- Michelangelo: IELLO TMNT contents page explicitly lists **30 action cards**.
+- Raphael: IELLO TMNT contents page explicitly lists **30 action cards**.
+- Rosie, John Henry, Wyatt Earp, George Washington: official Stars & Stripes contents page explicitly lists **30 action cards each**.
 
 ### Source-discipline decisions
 
-1. Official Restoration product/rulebook/addendum material is retained as highest available authority.
-2. Only `unmatched.cards/umdb/...` is eligible as a published normalized database.
-3. `unmatched.cards/decks/...` fan/community decks were deliberately excluded.
-4. Community/fan transcriptions discovered for recent decks were not used to populate official card records unless independently verified by an eligible higher-ranked source.
-5. The Unmatched Club is used as a current rules/roster/ruling discovery index, with explicit lower authority.
-6. Missing action-card metadata is represented as `blocked`, never reconstructed from previews, balance patches, or guesses.
+1. Official Restoration/IELLO product pages, rulebooks, set rules, addenda and printed components remain highest authority.
+2. A lower-ranked current transcript is used only where an official source proves the canonical product/fighter/deck but does not publish a machine-readable card transcript. Such use is explicitly identified and cross-checked against physical-component material or an independent current index.
+3. Conflicts are resolved toward official/physical component evidence. Examples include `Electro Grenade`, `Tooth and Tail`, `Baldr's Downfall`, `Malicious Flyting`, `Freyja's Rescue`, `Svadilfari's Lure`, `Hindsight`, and `Celestial Raiments`.
+4. `unmatched.cards/decks/...` fan/community decks are never used to populate the official corpus.
+5. No card is reconstructed from remembered wording, speculative previews or fan balance patches.
+6. A public physical reveal is evidence that a corpus exists, but does **not** by itself justify `verified` until the worker completes a reliable card-by-card transcription and reconciliation.
 
 ### Bruce Lee lineage
 
-There is exactly one `bruce-lee` fighter manifest. Its `set_ids` preserve both:
-- `bruce-lee-solo` (2019 standalone lineage);
-- `bruce-lee-vs-muhammad-ali` (2025 set membership).
-
-Official Restoration history says the returning Bruce Lee deck is the out-of-print deck from the 2019 solo pack. No duplicate fighter/deck identity is created.
+There is exactly one `bruce-lee` fighter manifest. Its `set_ids` preserve both `bruce-lee-solo` and `bruce-lee-vs-muhammad-ali`. Restoration's release history states that the returning deck is the original 2019 standalone deck; no duplicate fighter identity is created.
 
 ### TMNT scope boundary
 
-For Leonardo, Donatello, Michelangelo, Raphael, Shredder, and Krang, manifests contain only competitive hero behavior. The following are deliberately excluded:
+For Leonardo, Donatello, Michelangelo, Raphael, Shredder and Krang, only competitive hero behavior belongs in these manifests. Explicitly excluded:
+
 - Shredder/Krang Adventures villain decks;
-- villain/minion initiative behavior;
+- villain/minion initiative logic;
 - threat/scenario state;
 - scenario objectives and enemy AI;
-- any attempt to substitute Adventures enemy cards for the 2026 Shredder/Krang Hero Decks.
+- any substitution of Adventures enemy cards for the 2026 competitive Hero Decks.
 
-### Schema/effect extension proposals for orchestrator
+### Schema/effect-extension proposals for orchestrator
 
-These are **proposals only**. No shared semantic file is modified.
+These are proposals only; this worker does not modify shared semantics.
 
 1. **Attack targeting/range modifier**
-   - Affected: Muhammad Ali (Float stance), Shredder (Foot Soldier attack network).
-   - Gap: current effect vocabulary changes combat value but has no generic way to change who a melee/ranged fighter may legally target based on distance or a path token.
+   - Affected: Muhammad Ali, Shredder.
+   - Gap: combat value operations do not express a temporary expansion of legal attack targets/range.
    - Proposal: generic attack-eligibility/targeting modifier evaluated before combat-card commitment.
-   - Blocking: fighter-level behavior can be recorded with a source-defined composite; generic integration should occur before engine implementation.
 
 2. **Movement-value modifier**
    - Affected: Loki, Krang.
-   - Gap: `ADD_VALUE` is a combat-value operation; these abilities alter maneuver movement value.
-   - Proposal: generic movement-value modifier/layer with source lifetime and recomputation.
-   - Blocking: engine-level implementation needs integration.
+   - Gap: `ADD_VALUE` is combat-value semantics, while these mechanics modify maneuver movement.
+   - Proposal: generic maneuver movement-value layer/modifier.
+   - Loki corpus is verified; engine integration remains orchestrator-owned.
 
-3. **Controlled repeat/stop loop**
+3. **Controlled repeat/stop resolution loop**
    - Affected: Pandora's Box.
-   - Gap: reveal/resolve another Misery repeatedly, controller may stop between iterations, but a feather threshold forces termination and damage.
-   - Proposal: generic resumable repeated-resolution composite with optional stop predicate and forced-stop predicate.
-   - Blocking: Box can remain a source-defined composite until promoted.
+   - Gap: repeated external-definition reveal/resolve with optional stop and forced feather threshold.
+   - Proposal: resumable repeated-resolution composite with explicit continue/stop and forced-stop predicates.
+   - Pandora corpus is verified using a source-defined composite pending integration.
 
 4. **Starting/max hand-size rules**
    - Affected: Michelangelo.
-   - Gap: fighter schema has no explicit `starting_hand_size` / `maximum_hand_size`.
-   - Proposal: generic fighter-level hand-size rule fields, with setup draw and later hand-limit consumers reading the same authoritative values.
-   - Blocking: schema integration required for complete normalization.
+   - Proposal: fighter-level `starting_hand_size` / `maximum_hand_size` authority shared by setup and cleanup.
 
-5. **Positioned resource tokens / movement-space cost**
+5. **Positioned resource tokens / movement path cost**
    - Affected: John Henry.
-   - Gap: track tokens live on spaces and alter movement counting without being fighters.
-   - Proposal: generic positioned-resource instance + movement path-cost override.
-   - Blocking: engine integration required.
+   - Proposal: positioned-resource instances plus movement path-cost override.
 
 6. **Restricted free action**
    - Affected: Wyatt Earp.
-   - Gap: `GAIN_ACTION` grants a generic action; Showdown grants an action usable only to attack.
-   - Proposal: action credit with allowed action-kind constraint.
-   - Blocking: source-defined Showdown composite used in the fighter manifest.
+   - Gap: `GAIN_ACTION` is unrestricted while Showdown can grant an attack-only action.
+   - Proposal: action credit carrying an allowed action-kind constraint.
 
-7. **Pre-defense marker attachment/veto**
+7. **Pre-defense combat marker/veto**
    - Affected: George Washington.
-   - Gap: ruse is committed after attack declaration but before defender decides whether to defend, is attached to the unresolved attack, and can be removed by a random discard.
-   - Proposal: explicit pre-defense combat hook plus temporary marker/resource attachment to combat/card context.
-   - Blocking: source-defined Espionage composite used pending integration.
+   - Proposal: explicit pre-defense hook plus temporary marker attachment to combat/card context.
 
 8. **Path/edge-resident tokens**
    - Affected: Shredder.
-   - Gap: Foot Soldiers occupy paths (edges), while current persistent-state references provide spaces but no `path_ref`/edge anchor.
-   - Proposal: `path_ref` + positioned token instances on battlefield edges; removal when traversed can then be ordinary resource-state mutation.
-   - Blocking: Shredder engine implementation requires integration.
+   - Proposal: `path_ref`/edge anchors for Foot Soldier tokens and source-defined traversal/removal semantics.
 
-9. **Random die/table roll with reroll authority**
+9. **Random die/table resolution with reroll authority**
    - Affected: Krang.
-   - Gap: competitive ability references the physical Die of Ultimate Destruction and permits spending/deactivating a machine to reroll.
-   - Proposal: generic random-table/die resolution composite with captured result and reroll/replace authority.
-   - Blocking: do not import Adventures villain die-result logic as a substitute for competitive card semantics.
+   - Proposal: generic random-table/die composite with captured result and explicit reroll/replace authority.
+   - Do not substitute Adventures villain result logic unless the competitive source explicitly shares it.
 
 10. **Third-party ransom/payment window**
     - Affected: Blackbeard.
-    - Gap: any opponent may transfer source-defined Treasury doubloons to Blackbeard to ignore a marked card effect.
-    - Proposal: generic eligible-payer choice window + resource transfer + scoped effect prevention.
-    - Blocking: exact ransom annotations remain deck-corpus blocked.
+    - Proposal: eligible-payer choice + resource transfer + scoped effect prevention.
+    - Blackbeard corpus is verified using an explicit source-defined ransom composite pending integration.
 
-### Ambiguities and source gaps
+11. **Ordered multi-fighter reposition composite**
+    - Affected: Leonardo (`Eat, Sleep, and Breathe Ninjutsu`).
+    - Proposal: orchestrator may normalize as repeated `REQUEST_CHOICE` + `PLACE` operations or promote a reusable ordered multi-target reposition composite. No new primitive is required to verify the deck.
 
-- **Muhammad Ali:** current normalized public database is incomplete; current rules index exposes the stance ability but no hero cards.
-- **Battle of Legends Volume Three:** current public normalized/index sources expose substantial fighter mechanics, but not a complete eligible action-card transcript for all four fighters. Chupacabra/Loki card-name lists discovered in lower-tier indexes are insufficient to establish all printed values, BOOST values, types, and effects.
-- **Pandora:** seven Misery definitions are preserved as external definitions. The current public action-card corpus is partial, so action cards are not guessed.
-- **TMNT turtles:** official product confirms competitive compatibility and 120 aggregate hero action cards. Current public rules index reports no hero cards for each Turtle, so no community transcript is promoted.
-- **Stars & Stripes:** official sources establish release, physical components and 30-card fighter allocations. The public normalized database is incomplete and current rules index reports no hero cards. No preview/community deck is used to fill the gap.
-- **Shredder/Krang:** official product explicitly supplies competitive Hero Decks, but checked eligible sources do not expose their complete card corpus. Adventures villain behavior is not substituted.
+Donatello's Inventions do not require a new card-zone primitive: public `inventions` + ordinary card ownership + source-lifetime static effects fit the Phase 4A model. The multi-player optional discard recovery on `Donatello Does Machines` can use the existing pending-choice/fanout model or remain an explicit composite.
+
+### Remaining ambiguities / source gaps
+
+- **Muhammad Ali:** primary rules now prove 30-card construction and selected printed cards; missing evidence is specifically the complete per-card transcript.
+- **Michelangelo:** 30-card construction is official and names/quantities can be reconciled by a current tracker; full type/value/BOOST/effect metadata still needs independent verification.
+- **Raphael:** 30-card construction and fighter rules are official; complete action-card transcript remains missing.
+- **Stars & Stripes:** this is **not** an absent-corpus case. The official rulebook establishes 30 cards per fighter, Restoration publishes gameplay/card-layout material, and a public physical all-cards reveal exists. The blocker is manual frame/image transcription plus independent reconciliation before promotion into `cards:`.
+- **Shredder/Krang:** official Restoration product explicitly establishes separate competitive Hero Decks, but the complete competitive card transcripts remain unavailable in the checked authoritative/current corpus. Adventures villain logic is not substituted.
+
+### Key authoritative/current sources added in the second pass
+
+- BOL3 official product: `https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/`
+- BOL3 physical deck review: `https://www.youtube.com/watch?v=6fP2amMnphI`
+- TMNT official IELLO set rules: `https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf`
+- Bruce Lee vs Muhammad Ali official IELLO set rules: `https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf`
+- Stars & Stripes official rules: `https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf`
+- Stars & Stripes official gameplay article: `https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/`
+- Shredder/Krang competitive Hero Deck product: `https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/`
 
 ### Files created
 
-Fighter manifests:
-- `docs/fighters/phase-4b/bruce-lee.yaml`
-- `docs/fighters/phase-4b/muhammad-ali.yaml`
-- `docs/fighters/phase-4b/blackbeard.yaml`
-- `docs/fighters/phase-4b/chupacabra.yaml`
-- `docs/fighters/phase-4b/loki.yaml`
-- `docs/fighters/phase-4b/pandora.yaml`
-- `docs/fighters/phase-4b/leonardo.yaml`
-- `docs/fighters/phase-4b/donatello.yaml`
-- `docs/fighters/phase-4b/michelangelo.yaml`
-- `docs/fighters/phase-4b/raphael.yaml`
-- `docs/fighters/phase-4b/rosie-the-riveter.yaml`
-- `docs/fighters/phase-4b/john-henry.yaml`
-- `docs/fighters/phase-4b/wyatt-earp.yaml`
-- `docs/fighters/phase-4b/george-washington.yaml`
-- `docs/fighters/phase-4b/shredder.yaml`
-- `docs/fighters/phase-4b/krang.yaml`
+The Worker D branch still owns exactly 33 created paths:
 
-Deck manifests:
-- `docs/cards/phase-4b/bruce-lee.yaml`
-- `docs/cards/phase-4b/muhammad-ali.yaml`
-- `docs/cards/phase-4b/blackbeard.yaml`
-- `docs/cards/phase-4b/chupacabra.yaml`
-- `docs/cards/phase-4b/loki.yaml`
-- `docs/cards/phase-4b/pandora.yaml`
-- `docs/cards/phase-4b/leonardo.yaml`
-- `docs/cards/phase-4b/donatello.yaml`
-- `docs/cards/phase-4b/michelangelo.yaml`
-- `docs/cards/phase-4b/raphael.yaml`
-- `docs/cards/phase-4b/rosie-the-riveter.yaml`
-- `docs/cards/phase-4b/john-henry.yaml`
-- `docs/cards/phase-4b/wyatt-earp.yaml`
-- `docs/cards/phase-4b/george-washington.yaml`
-- `docs/cards/phase-4b/shredder.yaml`
-- `docs/cards/phase-4b/krang.yaml`
+- 16 `docs/fighters/phase-4b/<assigned-fighter-id>.yaml` manifests;
+- 16 `docs/cards/phase-4b/<assigned-fighter-id>.yaml` manifests;
+- `docs/phase-4b/worker-d-report.md`.
 
-Report:
-- `docs/phase-4b/worker-d-report.md`
+The second research pass updates existing Worker D paths only; it creates no shared semantic/control file and performs no merge.
