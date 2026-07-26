@@ -87,8 +87,8 @@ cards:
       kind: source_defined_ultimate_destruction_roll
       capture: hand_bottom_count
       on_number:
-      - {op: MOVE_CARD, from_zone: each_player_hand, to_zone: each_player_deck, selector: random, count: captured.hand_bottom_count, position: bottom}
-    - {op: DRAW, controller: each_player, count: 2}
+      - {op: MOVE_CARD, from_zone: each_combat_player_hand, to_zone: each_combat_player_deck, selector: random, count: captured.hand_bottom_count, position: bottom}
+    - {op: DRAW, controller: each_combat_player, count: 2}
 - id: molecular-amplification-unit
   name: Molecular Amplification Unit
   quantity: 4
@@ -179,8 +179,10 @@ validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, un
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
 - {authority: reference, url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf, checked_at: '2026-07-27', note: Set-rules mirror used for authoritative destruction-die procedure.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', note: Current competitive Hero Deck visual corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', note: Current competitive Hero Deck visual corpus transcribed from Club card images supplied during reconciliation.}
 normalization_notes:
 - All 10 competitive Hero Deck definitions reconcile to 30 physical cards.
-- Pan-Dimensional Portal and IQ of 968 have a destruction-die BOOST symbol rather than a numeric BOOST; boost_rule preserves this without inventing a number.
+- Pan-Dimensional Portal's both-players clause is scoped to the two players participating in the combat, not every player in a multiplayer game.
+- Pan-Dimensional Portal and IQ of 968 use a destruction-die BOOST symbol rather than a numeric BOOST; boost_rule is a provisional corpus-proven field requiring shared schema promotion.
+- Android Arms: Missiles has a face-up ranged-attack play mode; play_overrides is a provisional field pending a generic combat-commitment/visibility override.
 - Adventures villain AI/scenario behavior is excluded.
