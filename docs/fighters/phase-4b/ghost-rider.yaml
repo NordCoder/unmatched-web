@@ -54,13 +54,16 @@ persistent_state:
 - key: current_maneuver_move_value
   type: integer
   reset: action_end
+- key: turn_start_space
+  type: space_ref
+  reset: turn_start
+  note: Required by The Wicked Will Burn; whether Ghost Rider started the turn elsewhere is historical and cannot be reconstructed from current position.
 deck:
   manifest: ../../cards/phase-4b/ghost-rider.yaml
   construction: fixed
 rulings:
 - id: hellfire-move-cap
-  summary: After spending Hellfire for the maneuver ability, the movement value is 4 and cannot be increased by a movement
-    BOOST.
+  summary: After spending Hellfire for the maneuver ability, the movement value is 4 and cannot be increased by a movement BOOST.
   source: https://unmatched.cards/umdb/decks/ghost-rider
 sources:
 - type: official_product
@@ -69,3 +72,5 @@ sources:
   url: https://unmatched.cards/umdb/decks/ghost-rider
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/ghost-rider
+normalization_notes:
+- Audit correction: turn-start position is explicit persistent historical state for The Wicked Will Burn, following FIGHTER-SCHEMA-005.
