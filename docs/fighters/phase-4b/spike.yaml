@@ -1,0 +1,38 @@
+schema_version: 1
+id: spike
+display_name: Spike
+set_ids: [buffy-the-vampire-slayer]
+status: blocked
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: spike, display_name: Spike, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: drusilla, display_name: Drusilla, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: [{key: shadows_available, value: 3}]}
+ability:
+  id: seek-the-shadows
+  controller: owner
+  effects:
+    - id: start-turn-shadow
+      trigger: turn_start
+      optional: true
+      note: Place an available Shadow token in a space adjacent to Spike or Drusilla.
+resources:
+  - {id: shadows, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true}
+persistent_state:
+  - {key: shadows_available, type: integer, reset: never}
+deck: {manifest: ../../cards/phase-4b/spike.yaml, construction: fixed}
+rulings:
+  - id: seek-the-shadows-placement
+    summary: Seek the Shadows must place a Shadow in Spike's own space before adjacent placements; Shadow tokens may share spaces with fighters and other token types, subject to the three-token supply.
+    source: https://www.the-unmatched.club/heroes/spike
+sources:
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/spike}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/spike}
+blocker:
+  reason: positioned_special_tokens_not_in_shared_effect_model
+  report: ../../phase-4b/worker-a-report.md
