@@ -1,38 +1,40 @@
 schema_version: 1
 fighter_id: muhammad-ali
 status: blocked
-reason: public_normalized_card_corpus_incomplete
+reason: complete_per_card_transcript_not_verified
 sources_checked:
+- https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf
 - https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
+- https://restorationgames.com/design-diary-lee-vs-ali/
 - https://unmatched.cards/umdb/decks/muhammad-ali
-- https://www.the-unmatched.club/heroes/muhammad-ali
 construction:
   kind: fixed
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   rules: []
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
 cards: []
 external_definitions: []
 validation:
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   quantity_sum: null
   result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  reason: Official IELLO rules establish a 30-card deck and print selected Ali cards, but the complete unique-definition/quantity/type/value/BOOST/effect transcript has not been independently reconciled.
 sources:
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-26'
+  note: Establishes 30 action cards, stance rules, Stick and Move x3 and Louisville Lip x2.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-26'}
 - authority: official_component
-  url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/muhammad-ali
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/muhammad-ali
+  url: https://restorationgames.com/design-diary-lee-vs-ali/
+  checked_at: '2026-07-26'
+  note: Names and discusses multiple Ali action cards but is not a complete deck transcript.
 normalization_notes:
-- Target fixed deck size is 30; current eligible public sources do not expose a complete per-card metadata/effect corpus.
-- The current UmDb entry exposes unknown/incomplete fighter data and the current rules index reports no hero cards.
+- Deck construction is authoritative 30/30; quantity_sum remains unknown until all unique card definitions are verified.
+- This blocker is now specifically the missing complete per-card transcript, not fighter rules or deck size.
+- No fan-deck source is used.
