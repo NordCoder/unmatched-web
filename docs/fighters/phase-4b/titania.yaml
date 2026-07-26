@@ -16,9 +16,6 @@ setup:
   hooks:
     - stage: character_configuration
       operations:
-        - {op: CREATE_CARD_ZONE, zone: glamour-deck, visibility: private_order, controller: owner}
-        - {op: CREATE_CARD_ZONE, zone: active-glamour, visibility: public, controller: owner}
-        - {op: CREATE_CARD_ZONE, zone: glamour-discard, visibility: public, controller: owner}
         - {op: SHUFFLE, zone: glamour-deck}
   state_initialization: []
 
