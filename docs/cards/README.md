@@ -4,7 +4,22 @@ Action-card manifests are stored separately from fighter topology so deck constr
 
 ## Phase 4A
 
-Representative manifests are written under `phase-4a/` and follow `docs/fighters/schema.md`.
+**Status:** complete — gate passed 2026-07-26.
+
+Full representative manifests under `phase-4a/`:
+
+- `achilles.yaml`;
+- `bloody-mary.yaml`;
+- `sun-wukong.yaml`;
+- `sherlock-holmes.yaml`;
+- `dracula.yaml`;
+- `raptors.yaml`;
+- `wayward-sisters.yaml`;
+- `geralt-of-rivia.yaml`;
+- `yennefer-triss.yaml`;
+- `black-panther.yaml`.
+
+They follow `docs/fighters/schema.md` and are validated in `docs/fighters/phase-4a-validation.md`.
 
 The corpus records:
 
@@ -18,6 +33,10 @@ The corpus records:
 - normalized effect semantics;
 - external definitions such as bonus attacks/spells;
 - provenance.
+
+## Phase 4B
+
+The same schema must now be expanded across the remaining released fighter roster from `docs/sets/registry.yaml`. New semantic operations are allowed only when the full corpus proves the existing generic vocabulary insufficient.
 
 ## Source policy
 
