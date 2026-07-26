@@ -3,12 +3,7 @@ id: donatello
 display_name: Donatello
 set_ids:
 - tmnt-adventures
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/donatello
-- https://www.the-unmatched.club/heroes/donatello
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -41,22 +36,12 @@ ability:
     trigger: maneuver_draw_replacement
     optional: true
     operations:
-    - op: DRAW
-      count: 2
-    - op: MOVE_CARD
-      from_zone: hand
-      to_zone: deck
-      selector: chosen_card
-      position: bottom
-    note: Second operation is required when the two-card replacement draw is chosen.
+    - {op: DRAW, count: 2}
+    - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: controller_chosen_card, position: bottom}
+    note: The second operation is required when the two-card replacement draw is chosen.
   - id: invention-persistence
     trigger: own_invention_played_cleanup
-    operations:
-    - op: MOVE_CARD
-      from_zone: resolution
-      to_zone: inventions
-      selector: played_card
-    note: Card-specific persistent invention bonuses cannot be enumerated until deck corpus verification.
+    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: inventions, selector: played_card}]
 resources:
 - id: inventions
   kind: card_zone
@@ -66,14 +51,31 @@ persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/donatello.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: donatello-canceled-invention
+  summary: A played Invention still tucks under Donatello and grants its ongoing bonus even if its played effect is canceled.
+  source: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+- id: donatello-discarded-invention
+  summary: An Invention discarded without being played does not tuck; tucked Inventions are not in the discard pile and cannot be retrieved as discarded cards.
+  source: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/donatello
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-26'
+  note: Official Inventive rule, 30-card allocation and all three Invention definitions/ongoing bonuses.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/donatello
+  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
+  checked_at: '2026-07-26'
+  note: Physical component/unboxing cross-check.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/donatello
+  checked_at: '2026-07-26'
+  note: Complete current action-card transcription cross-checked against official Invention text.
+- authority: reference
+  url: https://www.the-unmatched.club/tools/tracker?h=donatello
+  checked_at: '2026-07-26'
+  note: Independent names/quantities cross-check.
 normalization_notes:
-- Only competitive hero behavior is modeled. Invention cards become persistent sources in a first-class card zone; their individual
-  bonuses remain blocked with the deck.
+- Only competitive Donatello/Metalhead behavior is modeled; Adventures enemy/scenario state is excluded.
+- Inventions use a first-class public card zone; ordinary card ownership is preserved.
