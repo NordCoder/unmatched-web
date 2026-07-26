@@ -1,0 +1,82 @@
+schema_version: 1
+id: geralt-of-rivia
+display_name: Geralt of Rivia
+set_ids: [witcher-steel-and-silver]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: geralt-of-rivia
+      display_name: Geralt of Rivia
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 16
+      starts_on_board: true
+      summonable: false
+    - id: dandelion
+      display_name: Dandelion
+      role: sidekick
+      count: 1
+      attack_type: ranged
+      starting_health: 5
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks:
+    - stage: deck_construction
+      pending_choice:
+        owner: controller
+        visibility: private_until_locked
+        choose_groups:
+          - {tag: gear:potion, choose_definitions: 1, include_copies: 2}
+          - {tag: gear:armor, choose_definitions: 1, include_copies: 2}
+          - {tag: gear:sword, choose_definitions: 1, include_copies: 2}
+      operations:
+        - {op: CONSTRUCT_DECK, base_card_count: 24, selected_gear_card_count: 6, final_count: 30}
+        - {op: SHUFFLE, zone: deck}
+  state_initialization: []
+
+ability:
+  id: always-prepared
+  controller: owner
+  effects:
+    - id: pregame-gear-selection
+      trigger: setup_deck_construction
+      optional: false
+      operations:
+        - {op: REQUEST_CHOICE, definition: geralt_gear_selection}
+
+resources: []
+
+persistent_state:
+  - key: selected_gear_definitions
+    type: card_ref_set
+    reset: never
+    note: Retained for validation/reconnect and to define the legal game deck.
+
+deck:
+  manifest: ../../cards/phase-4a/geralt-of-rivia.yaml
+  construction: choose_groups
+
+rulings:
+  - id: geralt-gear-before-shuffle
+    summary: Gear selection is a pre-game deck-construction choice. Exactly one Potion, one Armor and one Sword definition are selected, both copies of each are added, then the 30-card game deck is shuffled.
+    source: https://www.the-unmatched.club/rules/geralt-of-rivia
+  - id: geralt-silver-sword-printed-value
+    summary: Sword of Silver keys off the opposing card's printed value; apply the specific ruling rather than current-value modifiers when determining whether its ignore-value effect is enabled.
+    source: https://www.the-unmatched.club/rules/geralt-of-rivia
+
+sources:
+  - type: official_product
+    url: https://restorationgames.com/shop/unmatched-witcher-steel-and-silver/
+  - type: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/geralt-of-rivia
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/geralt-of-rivia
