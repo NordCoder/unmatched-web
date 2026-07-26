@@ -1,0 +1,64 @@
+schema_version: 1
+id: nikola-tesla
+display_name: Nikola Tesla
+set_ids: [tales-to-amaze]
+status: verified
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: nikola-tesla, display_name: Nikola Tesla, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
+
+setup:
+  hooks:
+    - stage: character_configuration
+      operations: [{op: SET_STATE, key: charged_coils, value: 1}]
+  state_initialization:
+    - {key: charged_coils, value: 1}
+
+ability:
+  id: electrical-overflow
+  controller: owner
+  effects:
+    - id: overflow-start-turn
+      trigger: turn_start
+      condition: {charged_coils: 2}
+      operations:
+        - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_tesla, amount: 1}
+        - {op: MOVE, target: each_opposing_fighter_adjacent_to_tesla_after_damage, max_distance: 1}
+    - id: recharge-end-turn
+      trigger: turn_end
+      operations: [{op: GAIN_RESOURCE, resource: charged_coils, amount: 1, cap: 2}]
+
+resources:
+  - id: charged-coils
+    kind: counter
+    visibility: public
+    initial: 1
+    minimum: 0
+    maximum: 2
+
+persistent_state:
+  - {key: charged_coils, type: integer, reset: never}
+
+deck:
+  manifest: ../../cards/phase-4b/nikola-tesla.yaml
+  construction: fixed
+
+rulings:
+  - id: tesla-permissive-discharge-declaration
+    summary: An effect may declare the two-coil discharge option even when only one or zero coils are charged. Exact underfunded-discharge resolution requires the generic extension proposed in the Worker C report.
+    source: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
+  - id: tesla-overflow-move-survives-no-damage
+    summary: The two-coil start-turn ability can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
+    source: https://www.the-unmatched.club/heroes/nikola-tesla
+
+sources:
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/nikola-tesla}
+  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+
+normalization_notes:
+  - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
