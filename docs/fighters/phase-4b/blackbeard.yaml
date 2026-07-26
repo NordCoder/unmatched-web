@@ -37,11 +37,13 @@ ability:
     trigger: start_turn
     optional: true
     condition: {resource: blackbeard-doubloons, gte: 1}
-    operations: [{op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1, destination: treasury-doubloons}, {op: GAIN_ACTION, count: 1}]
+    operations:
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_transfer_resource, from: blackbeard-doubloons, to: treasury-doubloons, amount: 1}
+    - {op: GAIN_ACTION, count: 1}
   - id: combat-damage-payment
     trigger: after_combat_damage
     condition: {damaged_fighter: blackbeard, combat_damage_gt: 0}
-    operations: [{op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1, destination: treasury-doubloons}]
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_transfer_resource, from: blackbeard-doubloons, to: treasury-doubloons, amount: 1}]
 resources:
 - {id: blackbeard-doubloons, kind: token_pool, visibility: public, initial: 2}
 - {id: treasury-doubloons, kind: token_pool, visibility: public, initial: 1}
@@ -60,4 +62,5 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/heroes/blackbeard, checked_at: '2026-07-26', title: The Unmatched Club — Blackbeard, note: Fighter ability and current official-ruling index.}
 normalization_notes:
 - Sea Dogs start on board but are also summonable because published cards can summon them after defeat.
-- Ransom remains a source-defined composite until the orchestrator promotes a generic eligible-payer/resource-transfer/effect-prevention primitive.
+- Doubloon movement between Blackbeard and the Treasury is an explicit transfer composite; SPEND_RESOURCE is not overloaded with an undocumented destination field.
+- Ransom remains a source-defined composite until the orchestrator promotes generic eligible-payer/resource-transfer/effect-prevention semantics.
