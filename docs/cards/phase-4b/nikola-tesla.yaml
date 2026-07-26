@@ -1,7 +1,7 @@
 schema_version: 1
 fighter_id: nikola-tesla
 status: blocked
-blocked_reason: underfunded two-coil declaration is officially legal but the accessible official verdict does not expose exact partial-discharge and dependent tier-effect resolution
+blocked_reason: underfunded two-coil declaration is officially legal and may intentionally fizzle the dependent tier effect; only the exact resource transition for declaring two with exactly one charged coil remains unresolved
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -20,9 +20,13 @@ cards:
 external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
+  - https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
   - https://unmatched.cards/umdb/decks/nikola-tesla
   - https://www.the-unmatched.club/heroes/nikola-tesla
   - https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 normalization_notes:
   - Fully funded discharge tiers and the printed 30-card corpus are verified.
-  - tiered_resource_discharge is a proposed generic composite, not Tesla-only code. The official ruling permits declaring a two-coil tier with fewer than two charged coils, but exact underfunded resolution remains blocked rather than inferred.
+  - The official ruling establishes that declaring the two-coil tier remains legal with one or zero charged coils and that this may intentionally fizzle the dependent tier effect; do not auto-downgrade that declaration to the one-coil tier.
+  - The only unresolved underfunded case is resource mutation when exactly one coil is charged and two are declared: available evidence does not establish whether that one charged coil flips to discharged.
+  - tiered_resource_discharge remains a proposed generic composite, not Tesla-only code.
