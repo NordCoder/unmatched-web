@@ -25,9 +25,11 @@ ability:
     - id: choose-question-state
       trigger: turn_start
       choices: [{owner: controller, choose: question_state, options: [to-be, not-to-be]}]
-      operations:
-        - {op: SET_STATE, key: question_state, value: chosen_question_state}
-        - {op: DEAL_EFFECT_DAMAGE, target: chosen_friendly_fighter, amount: 2, condition: {chosen_question_state: not-to-be}}
+      operations: [{op: SET_STATE, key: question_state, value: chosen_question_state}]
+      branches:
+        - condition: {chosen_question_state: not-to-be}
+          choices: [{owner: controller, choose: one_own_fighter, capture: self_damage_target}]
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.self_damage_target, amount: 2}]
     - id: to-be-extra-draw
       trigger: maneuver_draw
       condition: {question_state: to-be}
