@@ -105,57 +105,60 @@ Phase 3 establishes the exhaustive work queue for fighter/deck and battlefield r
    - Stars & Stripes White House Secret Passages addendum.
 8. Kept Adventures enemy/scenario logic deferred while registering its competitive-compatible heroes/battlefields.
 
-### Freshness decisions
-
-- **Stars & Stripes:** released; separate Secret Passages addendum is first-class authority. Complete cards still require Phase 4 physical/authoritative verification if public normalized databases lag.
-- **TMNT:** 2025 crowdfunding/release lineage with 2026 Restoration general availability; Turtles are competitive-compatible and Shredder/Krang Hero Decks are separate competitive content.
-- **Nova High:** official battlefield existence is verified; exact graph/equivalence is deferred to Phase 5.
-- **Hellboy:** official future four-character product is announced, but no final playable corpus is currently published; remains blocked.
-
 ### Gate
 
 No known released competitive fighter or battlefield is absent from the registry, and every identified set-specific mechanic has an authoritative official entry point.
 
 **Gate result:** PASS. See [`sets/phase-3-validation.md`](sets/phase-3-validation.md).
 
-Passing Phase 3 does not make fighter/card or battlefield data `developer-ready`; it defines their exhaustive later-phase queues.
-
 ---
 
 ## Phase 4A — Representative fighter/deck stress-test corpus
 
-**Status:** planned.
+**Status:** **complete — gate passed 2026-07-26.**
 
-Before transcribing the full catalog, model a deliberately difficult sample that exercises different engine behaviors. Initial candidates:
+Phase 4A validates the fighter/deck schema and the Phase 2 effect framework against deliberately difficult published characters before transcribing the full roster.
 
-- Achilles — sidekick-death state changes / bonus attacks;
-- Bloody Mary — action-count-dependent behavior / bonus attacks;
-- Sun Wukong — summonable sidekicks;
-- Sherlock Holmes — cancellation restrictions and information effects;
-- Dracula — start-of-turn ability and multiple sidekicks;
-- Raptors — multiple heroes;
-- Wayward Sisters — multiple heroes, cauldron/spell resource model;
-- Geralt of Rivia — pre-game deck construction / gear selection;
-- Yennefer & Triss — setup-time hero selection;
-- one Marvel fighter with non-standard resources/components.
+### Representative corpus
 
-### Work per fighter
+- Achilles — sidekick-defeat persistent state, combat participant replacement, bonus attack;
+- Bloody Mary — action ordinal/history, turn-start snapshot, bonus attack parent context;
+- Sun Wukong — summonable sidekicks, reserve pool, damage prevention/redirection;
+- Sherlock Holmes — cancellation protection, face-up pre-reveal prediction, effective printed values;
+- Dracula — multiple sidekicks, damage-dependent ability, returned fighter, combat-card replacement;
+- Raptors — multiple heroes with independent health and all-heroes loss condition;
+- Wayward Sisters — multiple heroes, Cauldron card zone, ingredient tags and external spells;
+- Geralt of Rivia — 36-card available pool, pre-game 30-card construction, gear and ongoing schemes;
+- Yennefer & Triss — setup-selected hero/sidekick roles, role-dependent ability, simultaneous hidden choices;
+- Black Panther — opponent-owned cards in a controlled storage zone and sequential BOOST/draw semantics.
 
-Capture:
+### Completed work
 
-- fighter stats and attack type;
-- hero/sidekick/multiple-hero topology;
-- health and movement;
-- ability and setup rules;
-- resources/tokens/state;
-- deck-construction rules;
-- every card's quantity, user, type, printed value, BOOST and normalized effects;
-- applicable errata and official rulings;
-- source provenance for every non-trivial interpretation.
+1. Created [`fighters/schema.md`](fighters/schema.md) and promoted it to the verified Phase 4A manifest contract.
+2. Created complete fighter manifests for all ten representatives under `fighters/phase-4a/`.
+3. Created complete normalized action-card manifests for all ten representatives under `cards/phase-4a/`.
+4. Reconciled every fixed deck to its published quantity and modeled Geralt's 36→30 construction explicitly.
+5. Modeled bonus attacks and Wayward spells as `external_definitions`, not fake action-card instances.
+6. Proved first-class card zones and separation of immutable ownership from current zone/use authority through Cauldron and Vibranium Suit.
+7. Extended `mechanics/effect-model.md` only where the published corpus proved a generic semantic was missing:
+   - `PREVENT_DAMAGE`;
+   - `REDIRECT_DAMAGE`;
+   - `PREVENT_OPERATION`;
+   - `SET_PRINTED_VALUE`;
+   - `ADD_BOOST_VALUE`;
+   - `REORDER`;
+   - captured parent context;
+   - `REPLACE_COMBAT_CARD` composite.
+8. Added [`fighters/phase-4a-mechanics.md`](fighters/phase-4a-mechanics.md) and [`fighters/phase-4a-validation.md`](fighters/phase-4a-validation.md).
+9. Excluded community balance-patch `/decks/...` data where it reuses original character/card names but changes published gameplay values.
 
 ### Gate
 
-The representative sample can be expressed without ad-hoc undocumented engine behavior. Any mechanic that cannot be normalized becomes an explicit custom-mechanic requirement rather than an implicit exception.
+The representative sample can be expressed without ad-hoc undocumented engine behavior. Any new mechanic discovered by the corpus is promoted to an explicit reusable semantic or composite.
+
+**Gate result:** PASS. See [`fighters/phase-4a-validation.md`](fighters/phase-4a-validation.md).
+
+Passing 4A validates the schema/framework; it does not make the complete published fighter roster `developer-ready`.
 
 ---
 
@@ -165,7 +168,7 @@ The representative sample can be expressed without ad-hoc undocumented engine be
 
 ### Work
 
-Expand the Phase 4A schema to every released competitive fighter in `sets/registry.yaml`.
+Expand the verified Phase 4A schema to every released competitive fighter in `sets/registry.yaml`.
 
 Use UmDb as the primary normalized deck index, but verify set-specific behavior and disputed wording against higher-authority sources. Never import `/decks/...` fan decks into the official corpus; published UmDb entries live under `/umdb/...`.
 
@@ -176,9 +179,10 @@ For every fighter:
 - expected card count reconciles with deck construction;
 - quantities sum correctly;
 - all card users are valid fighters;
-- every effect maps to a known mechanic primitive or explicit custom mechanic;
-- all referenced resources are defined;
-- all known official fighter/card rulings are linked.
+- every effect maps to a known mechanic primitive/composite or an explicit corpus-proven extension;
+- all referenced resources/zones/state are defined;
+- all known official fighter/card rulings are linked;
+- unsupported/incomplete released content is explicitly blocked rather than guessed.
 
 ### Gate
 
