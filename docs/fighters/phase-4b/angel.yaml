@@ -23,8 +23,12 @@ ability:
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/angel.yaml, construction: fixed}
-rulings: []
+rulings:
+  - id: disengage-current-errata
+    summary: Current official errata for Disengage requires choosing an empty space in the combat fighter's zone before placing that fighter there.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/angel}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/angel}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
