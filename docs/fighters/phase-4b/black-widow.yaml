@@ -33,7 +33,7 @@ setup:
       from_zone: deck_pool
       to_zone: hand
       selector:
-        definition_id: moscow-protocol
+        definition_id: the-moscow-protocol
     - op: SHUFFLE
       zone: deck
     - op: DRAW
