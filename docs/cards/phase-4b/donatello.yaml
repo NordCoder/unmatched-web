@@ -6,8 +6,17 @@ card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-- {id: inventions, owner: self, visibility: public}
-- {id: out-of-play, owner: self, visibility: public}
+- id: inventions
+  owner: self
+  visibility: public
+  ownership_rule: card_instance_owner_is_preserved
+  use_rule: cards_are_not_in_discard_and_are_not_normally_playable_from_this_zone
+  source_lifetime: static_invention_effects_apply_while_source_card_remains_here
+- id: out-of-play
+  owner: self
+  visibility: public
+  ownership_rule: card_instance_owner_is_preserved
+  use_rule: cards_removed_here_are_not_in_deck_hand_discard_or_inventions_and_are_not_normally_usable
 cards:
 - id: thinking-ahead
   name: Thinking Ahead
@@ -211,4 +220,5 @@ normalization_notes:
 - Thinking Ahead moves a card from discard to the bottom of the deck; the semantic audit corrected an earlier hand-zone transcription error.
 - Played Inventions tuck even when their played effect is canceled; discarded Inventions do not.
 - Invention bonuses are source-lifetime effects tied to the public inventions zone.
+- inventions and out-of-play are explicit first-class zones with preserved card ownership and non-discard semantics.
 - No unmatched.cards/decks fan namespace is used.
