@@ -11,7 +11,7 @@ topology:
   fighters:
     - {id: spike, display_name: Spike, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
     - {id: drusilla, display_name: Drusilla, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
-setup: {hooks: [], state_initialization: [{key: shadows_available, value: 3}]}
+setup: {hooks: [], state_initialization: []}
 ability:
   id: seek-the-shadows
   controller: owner
@@ -21,9 +21,8 @@ ability:
       optional: true
       note: Place an available Shadow token in a space adjacent to Spike or Drusilla. If all three Shadows are already on the board, move one Shadow token to a legal adjacent space instead.
 resources:
-  - {id: shadows, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true}
-persistent_state:
-  - {key: shadows_available, type: integer, reset: never}
+  - {id: shadows, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true, lifecycle: [available, board]}
+persistent_state: []
 deck: {manifest: ../../cards/phase-4b/spike.yaml, construction: fixed}
 rulings:
   - id: shadow-token-placement-and-reuse
@@ -36,4 +35,5 @@ sources:
   - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
   reason: positioned_special_tokens_and_blind_boost_value_transform_not_in_shared_effect_model
+  note: Shadow availability is derived from the token-instance lifecycle rather than a duplicate shadows_available integer.
   report: ../../phase-4b/worker-a-report.md
