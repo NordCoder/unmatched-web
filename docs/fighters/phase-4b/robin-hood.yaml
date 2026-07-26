@@ -1,0 +1,27 @@
+schema_version: 1
+id: robin-hood
+display_name: Robin Hood
+set_ids: [robin-hood-vs-bigfoot]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: robin-hood, display_name: Robin Hood, role: hero, count: 1, attack_type: ranged, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: outlaw, display_name: Outlaw, role: sidekick, count: 4, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: outlaw-mobility
+  controller: owner
+  effects:
+    - {id: post-attack-retreat, trigger: after_attacking, optional: true, operations: [{op: MOVE, target: attacking_fighter, max_distance: 2}]}
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/robin-hood.yaml, construction: fixed}
+rulings: []
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/robin-hood}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/robin-hood}
