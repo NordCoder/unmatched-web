@@ -14,11 +14,12 @@ cards:
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
   - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
   - {id: dash, name: Dash, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 3}]}]}
-  - {id: snipe, name: Snipe, quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
+  - {id: snipe, name: Snipe, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11, attack_count: 6, versatile_count: 17, defense_count: 3, scheme_count: 4}
 sources:
   - https://unmatched.cards/umdb/decks/medusa
   - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
-normalization_notes: []
+normalization_notes:
+  - Current UmDb deck totals reconcile to 6 Attack / 17 Versatile / 3 Defense / 4 Scheme; Snipe is therefore Versatile, not Attack.
