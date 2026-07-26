@@ -1,6 +1,6 @@
 schema_version: 1
 fighter_id: dr-ellie-sattler
-status: verified
+status: blocked
 
 construction:
   kind: fixed
@@ -21,7 +21,8 @@ cards:
       - trigger: during_combat
         operations:
           - {op: ADD_VALUE, target: this_card, amount_rule: count_insight_tokens_on_board}
-          - {op: SET_STATE, key: insight_token_locations, value: remove_all_and_return_to_supply}
+          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: return_all_insight_tokens_to_supply}
+        normalization_blocker: Counting and relocating positioned Insight token instances requires B-EXT-006.
 
   - id: hey-hey-hey
     name: Hey! Hey! Hey!
@@ -69,6 +70,7 @@ cards:
           - op: DEAL_EFFECT_DAMAGE
             target: each_opposing_fighter_on_or_adjacent_to_space_with_insight
             amount: 2
+        normalization_blocker: Selecting spaces occupied by Insight token instances requires B-EXT-006.
 
   - id: feint
     name: Feint
@@ -97,8 +99,8 @@ cards:
         condition: {insight_supply_gt: 0}
         choices: [{owner: controller, choose: battlefield_space}]
         operations:
-          - {op: SPEND_RESOURCE, resource: insight-supply, amount: 1}
-          - {op: SET_STATE, key: insight_token_locations, value: add_token_at_chosen_space}
+          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: place_one_insight_from_supply_at_chosen_space}
+        normalization_blocker: Moving one physical Insight token from supply to a chosen battlefield space requires B-EXT-006.
 
   - id: life-finds-a-way
     name: Life Finds a Way
@@ -130,7 +132,8 @@ cards:
         operations:
           - {op: DRAW, count: 1}
           - {op: RECOVER, target: dr-ellie-sattler, amount_rule: count_insight_tokens_on_board}
-          - {op: SET_STATE, key: insight_token_locations, value: remove_all_and_return_to_supply}
+          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: return_all_insight_tokens_to_supply}
+        normalization_blocker: Counting and relocating positioned Insight token instances requires B-EXT-006.
 
   - id: regroup
     name: Regroup
@@ -194,6 +197,7 @@ cards:
         condition: {insight_token_on_board_exists: true}
         choices: [{owner: controller, choose: space_with_insight_token}]
         operations: [{op: PLACE, target: own_combat_fighter, destination: chosen_space}]
+        normalization_blocker: Testing/selecting positioned Insight tokens requires B-EXT-006.
 
   - id: lock-the-doors
     name: Lock the Doors!
@@ -223,11 +227,23 @@ cards:
       - trigger: scheme
         operations:
           - {op: DRAW, count: 2}
-          - {op: SPEND_RESOURCE, resource: insight-supply, amount: 1, skip_if_empty: true}
-          - {op: SET_STATE, key: insight_token_locations, value: add_token_at_dr-ian-malcolm-space_if_available}
+          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: place_one_insight_from_supply_at_malcolm_space_if_available}
           - {op: GAIN_ACTION, count: 1}
+        normalization_blocker: Conditionally moving one physical Insight token from supply to Malcolm's current space requires B-EXT-006.
 
-external_definitions: []
+external_definitions:
+  - id: return_all_insight_tokens_to_supply
+    kind: battlefield_token_transition
+    semantics: Move every Insight token instance currently on the battlefield back to the finite Insight supply.
+    normalization_blocker: B-EXT-006
+  - id: place_one_insight_from_supply_at_chosen_space
+    kind: battlefield_token_transition
+    semantics: If at least one Insight token remains in supply, move one concrete token instance from supply to the chosen battlefield space.
+    normalization_blocker: B-EXT-006
+  - id: place_one_insight_from_supply_at_malcolm_space_if_available
+    kind: battlefield_token_transition
+    semantics: If at least one Insight token remains in supply, move one concrete token instance from supply to Dr. Ian Malcolm's current space.
+    normalization_blocker: B-EXT-006
 
 validation:
   available_pool_count: 30
@@ -247,3 +263,8 @@ normalization_notes:
   - Lock the Doors! is defense, not versatile; its two copies plus three copies of The Concept of Attraction reconcile the published five-defense-card total.
   - Insight removal returns tokens to the public insight supply; DISCARD from an empty opponent deck is not a DRAW and does not itself cause exhaustion.
   - Community /decks/ translations, reskins, and balance patches were excluded from evidence.
+  - Audit correction: the manifest no longer references an undeclared insight_token_locations state that the fighter manifest intentionally removed. Token transitions are explicit blocked composites tied to B-EXT-006.
+
+blockers:
+  - id: semantic-extension-battlefield-token-instance-positions
+    reason: Card effects must count, select, place and return physical Insight token instances, including multiple tokens in one space. This is the same B-EXT-006 blocker recorded by the fighter manifest.
