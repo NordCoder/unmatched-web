@@ -1,0 +1,204 @@
+schema_version: 1
+fighter_id: sun-wukong
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: infinite-strikes
+    name: Infinite Strikes
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_adjacent_to_opposing_fighter}]
+      - trigger: after_combat
+        operations: [{op: GAIN_ACTION, count: 1}]
+
+  - id: ruyi-jingo-bang
+    name: Ruyi Jingo Bang
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 0
+    boost: 3
+    effects:
+      - trigger: after_combat
+        condition: {opponent_played_defense_card: true}
+        operations: [{op: TRIGGER_COMPOSITE, kind: bonus_attack, definition: tricked-you}]
+
+  - id: taunting-laughter
+    name: Taunting Laughter
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: immediately
+        choices:
+          - owner: opponent
+            optional_operation: {op: DISCARD, from: hand, selector: chosen_card, count: 1}
+            if_declined: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+
+  - id: ox-form
+    name: Ox Form
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 7
+    boost: 2
+    cancellation: protected
+    effects:
+      - trigger: during_combat
+        condition: {opponent_played_combat_card: true}
+        optional: true
+        controller: opponent
+        operations: [{op: BOOST, target: opposing_combat_card, source: opponent_hand, count: 1}]
+
+  - id: seventy-two-transformations
+    name: 72 Transformations
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices:
+          - owner: controller
+            choose: card_in_own_discard
+            filter: {id_in: [ox-form, tortoise-form, phoenix-form]}
+        operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: chosen_card}]
+
+  - id: sly-monkey
+    name: Sly Monkey
+    quantity: 4
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 3
+    effects:
+      - trigger: after_combat
+        condition: {card_played_by: sun-wukong}
+        operations:
+          - op: SUMMON
+            pool: clone
+            destination: sun-wukong.current_space
+            overrides: [temporary_shared_source_space_allowed_until_followup_placement]
+          - op: PLACE
+            target: sun-wukong
+            destination_rule: any_space_in_sun-wukong-current-zone-after-summon
+        dependency: followup_placement_is_part_of_source_defined_summon_relocation_sequence
+
+  - id: wily-fighting
+    name: Wily Fighting
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]
+
+  - id: bewilderment
+    name: Bewilderment
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 0
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations: [{op: PREVENT_DAMAGE, target: own_combat_fighter, scope: all_damage_during_combat_window}]
+      - trigger: after_combat
+        optional: true
+        choices: [{owner: controller, choose: battlefield_space}]
+        operations: [{op: PLACE, target: own_combat_fighter, destination: chosen_space}]
+
+  - id: golden-chain-mail
+    name: Golden Chain Mail
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 4
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations:
+          - op: REDIRECT_DAMAGE
+            source_damage: combat_damage_that_would_be_taken_by_own_fighter
+            from: own_combat_fighter
+            to: opposing_combat_fighter
+
+  - id: tortoise-form
+    name: Tortoise Form
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 5
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        controller: opponent
+        operations: [{op: BOOST, target: opposing_attack, source: opponent_hand, count: 1}]
+
+  - id: fiery-eyes-that-see
+    name: Fiery Eyes That See
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 1
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: opponent}]
+        operations:
+          - {op: LOOK_AT, source: chosen_opponent.hand, viewer: controller, selector: all}
+        nested_choice:
+          owner: controller
+          choose: one_card_from_viewed_hand
+          then:
+            - {op: MOVE_CARD, from_zone: chosen_opponent.hand, to_zone: chosen_opponent.deck_bottom, selector: chosen_card}
+            - {op: DRAW, controller: controller, count: 1}
+            - {op: DRAW, controller: chosen_opponent, count: 1}
+
+  - id: phoenix-form
+    name: Phoenix Form
+    quantity: 1
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 1
+    effects:
+      - trigger: scheme
+        operations: [{op: RECOVER, target: sun-wukong, amount_rule: count_clones_on_battlefield}]
+
+external_definitions:
+  - id: tricked-you
+    kind: bonus_attack
+    attacker: same_as_parent_combat
+    defender: same_as_parent_combat_after_participant_replacement
+    printed_attack_value: 4
+    effects: []
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 12
+
+sources:
+  - https://unmatched.cards/card-counter/sun-wukong
+  - https://unmatched.cards/umdb/decks/sun-wukong
+  - https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+  - https://www.the-unmatched.club/rules/sun-wukong
+
+normalization_notes:
+  - Published card-counter quantities are authoritative secondary data for this manifest: 3x 72 Transformations and 2x Ox Form. Community patched variants that reverse those quantities are excluded.
+  - PREVENT_DAMAGE and REDIRECT_DAMAGE are Phase 4A primitive extensions proven necessary by this deck.
+  - Sly Monkey is represented as a source-defined summon/placement sequence with a temporary occupancy override, not as an ordinary summon into an occupied space.
