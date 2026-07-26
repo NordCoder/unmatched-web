@@ -1,58 +1,41 @@
 schema_version: 1
 id: chupacabra
 display_name: Chupacabra
-set_ids:
-- battle-of-legends-vol-3
+set_ids: [battle-of-legends-vol-3]
 status: verified
 movement: 3
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: chupacabra
-    display_name: Chupacabra
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 14
-    starts_on_board: true
-    summonable: false
+  - {id: chupacabra, display_name: Chupacabra, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
 setup:
   hooks: []
-  state_initialization:
-  - {key: won_combat_this_turn, value: false}
+  state_initialization: [{key: won_combat_this_turn, value: false}]
 ability:
   id: the-hunger
   controller: owner
   effects:
+  - id: record-combat-win
+    trigger: after_combat
+    condition: {controller_won_combat: true}
+    operations: [{op: SET_STATE, key: won_combat_this_turn, value: true}]
   - id: hunger-draw
     trigger: after_attack
     optional: true
     operations: [{op: DRAW, count: 1}]
 resources: []
 persistent_state:
-- key: won_combat_this_turn
-  type: boolean
-  reset: turn_start
+- {key: won_combat_this_turn, type: boolean, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/chupacabra.yaml
   construction: fixed
 rulings: []
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-  checked_at: '2026-07-26'
-- authority: reference
-  url: https://www.youtube.com/watch?v=6fP2amMnphI
-  checked_at: '2026-07-26'
-  note: Physical 2025 set/deck review used for component cross-checking.
-- authority: reference
-  url: https://www.unmatchedarena.com/heroes/chupacabra
-  checked_at: '2026-07-26'
-  note: Complete current deck transcription, cross-checked against physical components and an independent tracker.
-- authority: reference
-  url: https://www.the-unmatched.club/tools/tracker?h=chupacabra
-  checked_at: '2026-07-26'
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
+- {authority: reference, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-26', note: Physical 2025 set/deck review used for component cross-checking.}
+- {authority: reference, url: https://www.unmatchedarena.com/heroes/chupacabra, checked_at: '2026-07-26', note: Complete current deck transcription cross-checked against physical components and an independent tracker.}
+- {authority: reference, url: https://www.the-unmatched.club/tools/tracker?h=chupacabra, checked_at: '2026-07-26'}
 normalization_notes:
-- Historical win state is explicit because Blood in the Air depends on whether Chupacabra won an earlier combat this turn.
+- won_combat_this_turn is persisted explicitly because Blood in the Air can observe an earlier combat result later in the same turn.
 - Physical/current cross-check resolves the card title as Tooth and Tail; no fan-deck namespace is used.
