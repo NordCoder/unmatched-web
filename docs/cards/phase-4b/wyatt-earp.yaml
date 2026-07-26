@@ -1,31 +1,171 @@
 schema_version: 1
 fighter_id: wyatt-earp
-status: blocked
-reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
-- https://www.youtube.com/watch?v=KADK9FlkJqc
-- https://unmatched.cards/umdb/decks/wyatt-earp
+status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-cards: []
+cards:
+- {id: you-just-gonna-stand-there-and-bleed, name: You Just Gonna Stand There and Bleed?, quantity: 3, inclusion: fixed, usable_by: [wyatt-earp], type: attack, printed_value: 5, boost: 1, tags: [], effects: []}
+- id: i-have-two-guns-one-for-each-of-you
+  name: I Have Two Guns, One for Each of You
+  quantity: 3
+  inclusion: fixed
+  usable_by: [doc-holliday]
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {opponent_played_combat_card: true}
+    choices: [{owner: controller, choose: opposing_fighter_in_doc_holliday_zone_other_than_combat_fighter, capture: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount_rule: opposing_combat_card_printed_value}]
+- id: second-shot
+  name: Second Shot
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    choices: [{owner: controller, choose: card_in_hand_for_boost}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
+- id: fan-the-hammer
+  name: Fan the Hammer
+  quantity: 2
+  inclusion: fixed
+  usable_by: [wyatt-earp]
+  type: attack
+  printed_value: 1
+  boost: 3
+  tags: []
+  effects:
+  - trigger: cleanup_replacement
+    condition: {opposing_combat_fighter_defeated: true}
+    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]
+- id: youre-a-daisy-if-you-do
+  name: You're a Daisy If You Do
+  quantity: 2
+  inclusion: fixed
+  usable_by: [doc-holliday]
+  type: versatile
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: DRAW, count: 2}]
+- id: a-marshal-and-an-outlaw
+  name: A Marshal and an Outlaw
+  quantity: 3
+  inclusion: fixed
+  usable_by: [wyatt-earp]
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    branches:
+    - {condition: {this_card_played_as: defense}, operations: [{op: DRAW, count: 1}]}
+    - {condition: {this_card_played_as: attack}, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 1, controller: opponent}]}
+- id: im-your-huckleberry
+  name: I'm Your Huckleberry
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {combat_result: won}
+    choices: [{owner: controller, choose: opposing_fighter_in_own_combat_fighter_zone, capture: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 1}]
+- id: gunfight-at-the-ok-corral
+  name: Gunfight at the O.K. Corral
+  quantity: 2
+  inclusion: fixed
+  usable_by: [wyatt-earp]
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_alternating_damage_choices, sequence: [controller, opponent, controller], amount_each: 1, target_rule: any_fighter}]
+- id: better-swear-me-in
+  name: Better Swear Me In
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+  - trigger: after_combat
+    operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}]
+    choices: [{owner: controller, choose: disposition, options: [leave_on_top, move_to_bottom]}]
+    followup: [{op: MOVE_CARD, from_zone: opponent_deck_top, to_zone: opponent_deck, selector: captured.revealed_card, position: bottom, condition: {chosen_disposition: move_to_bottom}}]
+- id: bring-em-to-justice
+  name: Bring 'Em to Justice
+  quantity: 3
+  inclusion: fixed
+  usable_by: [wyatt-earp]
+  type: defense
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - {op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}
+    - {op: ADD_VALUE, target: this_card, amount_rule: twice_captured_revealed_card_boost}
+- id: in-vino-veritas
+  name: In Vino Veritas
+  quantity: 2
+  inclusion: fixed
+  usable_by: [doc-holliday]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - {op: DRAW, count_rule: draw_until_hand_size_4}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
+- id: you-die-first
+  name: You Die First
+  quantity: 2
+  inclusion: fixed
+  usable_by: [wyatt-earp]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    choices: [{owner: controller, choose: opposing_fighter, capture: target}]
+    operations:
+    - {op: MOVE, target: captured.target, max_distance: 1}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack, required_target: captured.target}
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: null
-  result: BLOCKED
-  reason: Official rulebook proves 30 action cards and public physical card material exists, but the complete card transcript has not yet been independently reconciled for quantity/type/value/BOOST/effects.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, result: PASS}
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 Wyatt Earp action cards.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party explanation of Showdown gameplay.}
-- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- Public physical/visual evidence exists; blocker is card-by-card transcription/reconciliation, not absence of a published deck.
-- No fan-deck reconstruction is promoted into cards[].
+- All 12 definitions reconcile to 30 physical cards.
+- Free attack actions use the Stars & Stripes immediate restricted-action rule; You Die First additionally binds the permitted target.
