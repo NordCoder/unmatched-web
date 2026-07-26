@@ -1,216 +1,249 @@
 schema_version: 1
 fighter_id: dr-ellie-sattler
-status: blocked
+status: verified
+
 construction:
   kind: fixed
   available_pool_count: 30
   game_deck_count: 30
+
 cards:
-- id: you-never-had-control-thats-the-illusion
-  name: You Never Had Control, That's the Illusion
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - dr-ellie-sattler
-  type: null
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: during_combat
-    operations:
-    - op: ADD_VALUE
-      target: this_card
-      amount_rule: count_insight_tokens_on_board
-    - op: SET_STATE
-      key: insight_token_locations
-      value: remove_all_and_return_to_supply
-  evidence_status: verified
-- id: hey-hey-hey
-  name: Hey! Hey! Hey!
-  quantity: 1
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: must-go-faster
-  name: Must Go Faster
-  quantity: 1
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: violently-if-necessary
-  name: Violently, If Necessary
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: feint
-  name: Feint
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-  evidence_status: verified
-- id: chaotician
-  name: Chaotician
-  quantity: 1
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: life-finds-a-way
-  name: Life Finds a Way
-  quantity: 2
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: woman-inherits-the-earth
-  name: Woman Inherits the Earth
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: regroup
-  name: Regroup
-  quantity: 2
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: sexism-in-survival-situations
-  name: Sexism in Survival Situations
-  quantity: 2
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: i-think-were-back-in-business
-  name: I Think We're Back in Business
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: the-concept-of-attraction
-  name: The Concept of Attraction
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: lock-the-doors
-  name: Lock the Doors!
-  quantity: 2
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
-- id: the-future-ex-mrs-malcolm
-  name: The Future Ex-Mrs. Malcolm
-  quantity: 1
-  inclusion: fixed
-  usable_by: any
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
-    allowed published source; fan translations/reskins were explicitly excluded.
+  - id: you-never-had-control-thats-the-illusion
+    name: You Never Had Control, That's the Illusion
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: [insight]
+    effects:
+      - trigger: during_combat
+        operations:
+          - {op: ADD_VALUE, target: this_card, amount_rule: count_insight_tokens_on_board}
+          - {op: SET_STATE, key: insight_token_locations, value: remove_all_and_return_to_supply}
+
+  - id: hey-hey-hey
+    name: Hey! Hey! Hey!
+    quantity: 1
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: other_friendly_fighter}]
+        operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]
+
+  - id: must-go-faster
+    name: Must Go Faster
+    quantity: 1
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        optional: true
+        operations:
+          - {op: PLACE, target: dr-ellie-sattler, destination_rule: any_legal_space}
+          - {op: PLACE, target: dr-ian-malcolm, destination_rule: any_legal_space, skip_if_defeated: true}
+
+  - id: violently-if-necessary
+    name: Violently, If Necessary
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: [insight]
+    effects:
+      - trigger: after_combat
+        operations:
+          - op: DEAL_EFFECT_DAMAGE
+            target: each_opposing_fighter_on_or_adjacent_to_space_with_insight
+            amount: 2
+
+  - id: feint
+    name: Feint
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+  - id: chaotician
+    name: Chaotician
+    quantity: 1
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: [insight]
+    effects:
+      - trigger: after_combat
+        condition: {insight_supply_gt: 0}
+        choices: [{owner: controller, choose: battlefield_space}]
+        operations:
+          - {op: SPEND_RESOURCE, resource: insight-supply, amount: 1}
+          - {op: SET_STATE, key: insight_token_locations, value: add_token_at_chosen_space}
+
+  - id: life-finds-a-way
+    name: Life Finds a Way
+    quantity: 2
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: DISCARD, from: opponent.deck_top, selector: 1, capture: discarded_card}
+          - {op: RECOVER, target: dr-ellie-sattler, amount_rule: captured.discarded_card.boost_or_0}
+          - {op: RECOVER, target: dr-ian-malcolm, amount_rule: captured.discarded_card.boost_or_0}
+
+  - id: woman-inherits-the-earth
+    name: Woman Inherits the Earth
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: [insight]
+    effects:
+      - trigger: immediately
+        operations:
+          - {op: DRAW, count: 1}
+          - {op: RECOVER, target: dr-ellie-sattler, amount_rule: count_insight_tokens_on_board}
+          - {op: SET_STATE, key: insight_token_locations, value: remove_all_and_return_to_supply}
+
+  - id: regroup
+    name: Regroup
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 1
+    tags: []
+    effects:
+      - trigger: after_combat
+        branches:
+          - condition: {combat_result: won}
+            operations: [{op: DRAW, count: 2}]
+          - condition: {combat_result: not_won}
+            operations: [{op: DRAW, count: 1}]
+
+  - id: sexism-in-survival-situations
+    name: Sexism in Survival Situations
+    quantity: 2
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - trigger: during_combat
+        condition: {opposing_combat_fighter_role: hero}
+        operations: [{op: SET_VALUE, target: this_card, value: 4}]
+      - trigger: after_combat
+        optional: true
+        operations: [{op: MOVE, target: dr-ellie-sattler, max_distance: 1}]
+
+  - id: i-think-were-back-in-business
+    name: I Think We're Back in Business
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 0
+    boost: 3
+    tags: []
+    effects:
+      - trigger: during_combat
+        operations: [{op: SET_VALUE, target: this_card, value_rule: controller_hand_size}]
+
+  - id: the-concept-of-attraction
+    name: The Concept of Attraction
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: [insight]
+    effects:
+      - trigger: after_combat
+        optional: true
+        condition: {insight_token_on_board_exists: true}
+        choices: [{owner: controller, choose: space_with_insight_token}]
+        operations: [{op: PLACE, target: own_combat_fighter, destination: chosen_space}]
+
+  - id: lock-the-doors
+    name: Lock the Doors!
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+          - {op: MOVE, target: own_combat_fighter, max_distance: 2}
+
+  - id: the-future-ex-mrs-malcolm
+    name: The Future Ex-Mrs. Malcolm
+    quantity: 1
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [insight]
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: DRAW, count: 2}
+          - {op: SPEND_RESOURCE, resource: insight-supply, amount: 1, skip_if_empty: true}
+          - {op: SET_STATE, key: insight_token_locations, value: add_token_at_dr-ian-malcolm-space_if_available}
+          - {op: GAIN_ACTION, count: 1}
+
 external_definitions: []
+
 validation:
   available_pool_count: 30
   game_deck_count: 30
-  known_quantity_sum: 30
-  quantity_reconciles: true
+  quantity_sum: 30
   unique_card_definitions: 14
+  quantity_reconciles: true
+
 sources:
-- https://unmatched.cards/umdb/cards/you-never-had-control-thats-the-illusion
-- https://unmatched.cards/umdb/cards/feint
-- https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+  - https://unmatched.cards/umdb/decks/dr-ellie-sattler
+  - https://unmatched.cards/umdb/decks/stats
+  - https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+  - https://www.the-unmatched.club/heroes/dr-ellie-sattler
+
 normalization_notes:
-- The 14-definition quantity index reconciles to 30; only independently retrieved published card metadata is populated.
-blockers:
-- id: published-card-metadata-gap
-  reason: Complete allowed-source per-card metadata was not recoverable in this pass; matching /decks/ fan translations and
-    reskins were rejected.
+  - The complete 14-definition deck reconciles to 30. Current UmDb deck statistics independently match the recovered card-type distribution: 3 attack cards, 21 versatile cards, 5 defense cards, and 1 scheme card by physical quantity.
+  - Lock the Doors! is defense, not versatile; its two copies plus three copies of The Concept of Attraction reconcile the published five-defense-card total.
+  - Insight removal returns tokens to the public insight supply; DISCARD from an empty opponent deck is not a DRAW and does not itself cause exhaustion.
+  - Community /decks/ translations, reskins, and balance patches were excluded from evidence.
