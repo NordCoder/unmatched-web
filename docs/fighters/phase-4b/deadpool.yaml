@@ -1,0 +1,35 @@
+schema_version: 1
+id: deadpool
+display_name: Deadpool
+set_ids: [deadpool-solo]
+status: blocked
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: deadpool, display_name: Deadpool, role: hero, count: 1, attack_type: melee, starting_health: 10, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: maximum-effort
+  controller: owner
+  effects:
+    - {id: post-attack-heal, trigger: after_attacking, operations: [{op: RECOVER, target: deadpool, amount: 1}]}
+    - id: logan-name-bonus
+      trigger: static
+      continuous: true
+      note: Published ability gives Deadpool +5 attack value when the opposing player has the real name Logan; this external-world predicate is not represented in the shared engine model.
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/deadpool.yaml, construction: fixed}
+rulings:
+  - id: physical-and-social-effects-are-published
+    summary: Several cards intentionally depend on real-world player names, physical card/sleeve state, clothing, food/drink, spoken/noise actions or writing on the physical card. They are preserved as published semantics, not converted into ordinary digital predicates.
+    source: https://unmatched.cards/umdb/decks/deadpool
+sources:
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/deadpool}
+  - {type: release_crosscheck, url: https://boardgamegeek.com/boardgameversion/557976/english-edition}
+blocker:
+  reason: external_world_predicates_mutable_physical_components_and_dynamic_attack_mode_are_outside_shared_effect_model
+  report: ../../phase-4b/worker-a-report.md
