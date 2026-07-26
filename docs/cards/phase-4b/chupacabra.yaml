@@ -1,11 +1,7 @@
 schema_version: 1
 fighter_id: chupacabra
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
@@ -90,10 +86,8 @@ cards:
   effects:
   - trigger: after_combat
     branches:
-    - condition: {combat_result: won}
-      operations: [{op: RECOVER, target: chupacabra, amount: 2}]
-    - condition: {combat_result_not: won}
-      operations: [{op: RECOVER, target: chupacabra, amount: 1}]
+    - {condition: {combat_result: won}, operations: [{op: RECOVER, target: chupacabra, amount: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: RECOVER, target: chupacabra, amount: 1}]}
 - id: feint
   name: Feint
   quantity: 3
@@ -117,7 +111,7 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    choices: [{owner: controller, choose: adjacent_fighters, min: 0, max: 2, capture: targets}]
+    choices: [{owner: controller, choose: fighters_adjacent_to_chupacabra, min: 0, max: 2, capture: targets}]
     operations:
     - {op: DEAL_EFFECT_DAMAGE, target: captured.targets, amount: 1, capture: actually_damaged_targets}
     - {op: RECOVER, target: chupacabra, amount_rule: count_captured_actually_damaged_targets}
@@ -145,9 +139,7 @@ cards:
   tags: []
   effects:
   - trigger: scheme
-    operations:
-    - {op: MOVE, target: chosen_friendly_fighter, max_distance: 4, overrides: [may_move_through_opposing_fighters]}
-    - {op: GAIN_ACTION, count: 1}
+    operations: [{op: MOVE, target: chupacabra, max_distance: 4, overrides: [may_move_through_opposing_fighters]}, {op: GAIN_ACTION, count: 1}]
 - id: unsettle
   name: Unsettle
   quantity: 2
@@ -159,35 +151,24 @@ cards:
   tags: []
   effects:
   - trigger: scheme
-    choices: [{owner: controller, choose: opponent_with_fighter_in_chupacabra_zone, capture: target_player}]
-    operations: [{op: DISCARD, from: captured.target_player.hand, selector: controller_chosen, count: 1}]
-  - trigger: scheme
-    optional: true
-    costs: [{op: DEAL_EFFECT_DAMAGE, target: chupacabra, amount: 2}]
-    operations: [{op: DISCARD, from: captured.target_player.hand, selector: controller_chosen, count: 1}]
-    dependency: second_discard_only_if_damage_cost_paid
+    choices:
+    - {owner: controller, choose: opponent_with_fighter_in_chupacabra_zone, capture: target_player}
+    - {owner: controller, choose: pay_two_chupacabra_damage_for_two_discards_instead, optional: true, capture: amplified}
+    branches:
+    - condition: {captured.amplified: true}
+      costs: [{op: DEAL_EFFECT_DAMAGE, target: chupacabra, amount: 2}]
+      operations: [{op: DISCARD, from: captured.target_player.hand, selector: target_player_chosen, count: 2, controller: captured.target_player}]
+    - condition: {captured.amplified: false}
+      operations: [{op: DISCARD, from: captured.target_player.hand, selector: target_player_chosen, count: 1, controller: captured.target_player}]
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 11
-  result: PASS
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11, result: PASS}
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
-- authority: reference
-  url: https://www.youtube.com/watch?v=6fP2amMnphI
-  checked_at: '2026-07-26'
-  note: Physical deck review used as component cross-check.
-- authority: reference
-  url: https://www.unmatchedarena.com/heroes/chupacabra
-  checked_at: '2026-07-26'
-  note: Complete current card transcription.
-- authority: reference
-  url: https://www.the-unmatched.club/tools/tracker?h=chupacabra
-  checked_at: '2026-07-26'
-  note: Independent names/quantities cross-check; resolves Tooth and Tail spelling.
+- {authority: reference, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-26', note: Physical deck review used as component cross-check.}
+- {authority: reference, url: https://www.unmatchedarena.com/heroes/chupacabra, checked_at: '2026-07-26', note: Complete current card transcription.}
+- {authority: reference, url: https://www.the-unmatched.club/tools/tracker?h=chupacabra, checked_at: '2026-07-26', note: Independent names/quantities cross-check; resolves Tooth and Tail spelling.}
 normalization_notes:
 - Quantity reconciliation is 30/30.
-- won_combat_this_turn is historical fighter state; the engine must set it when Chupacabra wins a combat.
+- won_combat_this_turn is historical fighter state set when Chupacabra wins a combat.
+- Unsettle commits its optional damage branch before resolving the opponent's one-versus-two-card discard count.
 - No unmatched.cards/decks fan namespace is used.
