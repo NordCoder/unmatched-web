@@ -1,0 +1,40 @@
+schema_version: 1
+id: alice
+display_name: Alice
+set_ids: [battle-of-legends-vol-1]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: alice, display_name: Alice, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: jabberwock, display_name: Jabberwock, role: sidekick, count: 1, attack_type: melee, starting_health: 8, starts_on_board: true, summonable: false}
+
+setup:
+  hooks:
+    - stage: after_placement
+      pending_choice: {owner: controller, visibility: public, choose: [big, small]}
+      operations: [{op: SET_STATE, key: alice_size, value: chosen_value}]
+  state_initialization: [{key: alice_size, value: source_defined_setup_choice}]
+
+ability:
+  id: the-big-and-small-of-it
+  controller: owner
+  effects:
+    - {id: big-attack, trigger: static, continuous: true, condition: {state: alice_size, equals: big, attacker: alice}, operations: [{op: ADD_VALUE, target: alice_attack, amount: 2}]}
+    - {id: small-defense, trigger: static, continuous: true, condition: {state: alice_size, equals: small, defender: alice}, operations: [{op: ADD_VALUE, target: alice_defense, amount: 1}]}
+resources: []
+persistent_state:
+  - {key: alice_size, type: enum, values: [big, small], reset: never, visibility: public}
+deck: {manifest: ../../cards/phase-4b/alice.yaml, construction: fixed}
+rulings:
+  - id: alice-size-current-state
+    summary: Size-changing effects immediately change which static combat modifier applies; subsequent effects read the current public size state.
+    source: https://www.the-unmatched.club/heroes/alice
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/alice}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/alice}
