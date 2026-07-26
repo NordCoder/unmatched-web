@@ -8,17 +8,36 @@ cards:
   - {id: distracted-triage, name: Distracted Triage, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: after_combat, condition: {form: jekyll, combat_result: won}, operations: [{op: RECOVER, target: jekyll-and-hyde, amount: 2}]}]}
   - {id: with-haste, name: With Haste!, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {form: jekyll}, operations: [{op: MOVE, target: jekyll-and-hyde, max_distance: 4}]}]}
   - {id: scientific-method, name: Scientific Method, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 2, boost: 2, effects: [{trigger: after_combat, condition: {form: jekyll}, operations: [{op: DRAW, count: combat_damage_taken}]}]}
-  - {id: calming-research, name: Calming Research, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, condition: {form: jekyll}, operations: [{op: RECOVER, target: jekyll-and-hyde, amount: 2}, {op: DRAW, count: up_to_3}, {op: REQUEST_CHOICE, definition: calming_research_keep_one}, {op: MOVE_CARD, from_zone: hand, to_zone: deck_bottom, selector: unkept_drawn_cards}, {op: REORDER, zone: deck_bottom, selector: unkept_drawn_cards, order: chosen_order}]}]}
+  - id: calming-research
+    name: Calming Research
+    quantity: 2
+    usable_by: [jekyll-and-hyde]
+    tags: [jekyll]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        condition: {form: jekyll}
+        operations:
+          - {op: RECOVER, target: jekyll-and-hyde, amount: 2}
+          - {op: REQUEST_CHOICE, definition: calming_research_draw_count}
+          - {op: DRAW, count: chosen_draw_count}
+          - {op: REQUEST_CHOICE, definition: calming_research_keep_one_if_any}
+          - {op: MOVE_CARD, from_zone: hand, to_zone: deck_bottom, selector: other_cards_drawn_by_this_effect}
+          - {op: REORDER, zone: deck_bottom, selector: other_cards_drawn_by_this_effect, order: chosen_order}
   - {id: recoiling-blow, name: Recoiling Blow, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: attack, printed_value: 5, boost: 2, effects: [{trigger: after_combat, condition: {form: hyde}, operations: [{op: PLACE, target: jekyll-and-hyde, destination_rule: any_space_in_current_zone}, {op: SET_STATE, key: form, value: jekyll}]}]}
   - {id: forever-hyde, name: Forever Hyde, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: attack, printed_value: 5, boost: 2, effects: [{trigger: during_combat, condition: {form: hyde}, optional: true, costs: [{op: DISCARD, from: hand, selector: any_number_of_jekyll_cards}], operations: [{op: ADD_VALUE, target: this_card, amount: twice_discarded_count}]}]}
   - {id: madness-relents, name: Madness Relents, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {form: hyde}, operations: [{op: SET_STATE, key: form, value: jekyll}]}]}
   - {id: pure-evil, name: Pure Evil, quantity: 3, usable_by: [jekyll-and-hyde], tags: [hyde], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, condition: {form: hyde}, operations: [{op: PLACE, target: jekyll-and-hyde, destination_rule: any_space_in_own_zone}, {op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_jekyll-and-hyde, amount: 2}]}]}
-  - {id: strange-case, name: Strange Case, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, condition: {form: hyde}, operations: [{op: REVEAL, source: deck, count: 1}, {op: DEAL_EFFECT_DAMAGE, target: chosen_adjacent_fighter, amount: revealed_card_boost}, {op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: revealed_card}]}]}
+  - {id: strange-case, name: Strange Case, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, condition: {form: hyde}, choices: [{choose: fighter_adjacent_to_jekyll-and-hyde}], operations: [{op: REVEAL, source: deck, count: 1}, {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: revealed_card_boost}, {op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: revealed_card}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
   - {id: skirmish, name: Skirmish, quantity: 3, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
   - {id: duality-of-man, name: Duality of Man, quantity: 2, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {any_of: [{form: jekyll, role: defender}, {form: hyde, role: attacker}]}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
 
-external_definitions: []
+external_definitions:
+  - {id: calming_research_draw_count, kind: integer_choice, controller: owner, min: 0, max: 3, output: chosen_draw_count}
+  - {id: calming_research_keep_one_if_any, kind: choice, controller: owner, domain: cards_drawn_by_this_effect, choose: up_to_one_if_nonempty, retained_zone: hand}
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
 sources:
   - https://unmatched.cards/umdb/decks/jekyll-hyde
@@ -30,4 +49,6 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Jekyll/Hyde card legality is encoded by card tags plus the public form state; all 30 cards remain in one fixed deck.
+  - Calming Research now declares both its 0..3 draw-count choice and the later keep-one choice over cards actually drawn by this effect; integration still needs a generic typed result-binding convention for identifiers such as chosen_draw_count and cards_drawn_by_this_effect.
+  - Strange Case now explicitly declares the adjacent-fighter choice before using chosen_fighter.
   - Current UmDb recheck preserves the previous Recoiling Blow correction: after the Hyde effect resolves, the form returns to Jekyll.
