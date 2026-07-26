@@ -3,12 +3,7 @@ id: leonardo
 display_name: Leonardo
 set_ids:
 - tmnt-adventures
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/leonardo
-- https://www.the-unmatched.club/heroes/leonardo
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -39,13 +34,8 @@ ability:
   effects:
   - id: team-tactics-move
     trigger: start_turn
-    choices:
-    - owner: controller
-      choose: any_fighter
-    operations:
-    - op: MOVE
-      target: chosen_fighter
-      max_distance: 1
+    choices: [{owner: controller, choose: any_fighter}]
+    operations: [{op: MOVE, target: chosen_fighter, max_distance: 1}]
 resources: []
 persistent_state: []
 deck:
@@ -53,11 +43,19 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/leonardo
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-26'
+  note: Official competitive hero stats, ability, deck allocation and printed For Sensei reference.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/leonardo
+  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
+  checked_at: '2026-07-26'
+  note: Physical TMNT component/unboxing cross-check.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/leonardo
+  checked_at: '2026-07-26'
+  note: Complete current action-card transcription cross-checked against official rules/components.
 normalization_notes:
-- Only competitive hero behavior is modeled; Adventures enemy/scenario state is excluded.
+- Only competitive Leonardo/Splinter behavior is modeled; Adventures enemy, threat, initiative and scenario behavior is excluded.
+- Official IELLO rules establish a 30-card Leonardo action deck.
