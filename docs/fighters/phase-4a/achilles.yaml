@@ -1,0 +1,86 @@
+schema_version: 1
+id: achilles
+display_name: Achilles
+set_ids: [battle-of-legends-vol-2]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: achilles
+      display_name: Achilles
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 18
+      starts_on_board: true
+      summonable: false
+    - id: patroclus
+      display_name: Patroclus
+      role: sidekick
+      count: 1
+      attack_type: melee
+      starting_health: 6
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: patroclus_defeated, value: false}
+
+ability:
+  id: rage-of-achilles
+  controller: owner
+  effects:
+    - id: patroclus-defeat-trigger
+      trigger: fighter_defeated
+      condition: {fighter: patroclus}
+      optional: false
+      operations:
+        - {op: DISCARD, from: hand, selector: random, count: 2, controller: owner}
+        - {op: SET_STATE, key: patroclus_defeated, value: true}
+    - id: rage-attack-modifier
+      trigger: static
+      condition: {state: patroclus_defeated, equals: true, attacker: achilles}
+      optional: false
+      continuous: true
+      operations:
+        - {op: ADD_VALUE, target: achilles_attack, amount: 2}
+    - id: rage-win-draw
+      trigger: after_combat
+      condition: {state: patroclus_defeated, equals: true, fighter: achilles, combat_result: won}
+      optional: false
+      operations:
+        - {op: DRAW, count: 1}
+
+resources: []
+
+persistent_state:
+  - key: patroclus_defeated
+    type: boolean
+    reset: never
+
+deck:
+  manifest: ../../cards/phase-4a/achilles.yaml
+  construction: fixed
+
+rulings:
+  - id: achilles-patroclus-defeat-during-combat
+    summary: Defeat timing can change Achilles state during an unresolved combat; card/effect conditions must use authoritative timing rather than pre-combat snapshots unless specifically stated.
+    source: https://www.the-unmatched.club/rules/achilles
+  - id: achilles-self-damage-patroclus
+    summary: Patroclus may take source-defined self-damage even when that damage defeats him; defeat triggers then resolve under normal timing.
+    source: https://www.the-unmatched.club/rules/achilles
+
+sources:
+  - type: official_set
+    url: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/achilles
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/achilles
