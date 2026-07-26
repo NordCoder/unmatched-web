@@ -1,0 +1,42 @@
+schema_version: 1
+id: willow
+display_name: Willow
+set_ids: [buffy-the-vampire-slayer]
+status: blocked
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: willow, display_name: Willow, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: tara, display_name: Tara, role: sidekick, count: 1, attack_type: ranged, starting_health: 6, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: [{key: form, value: willow}]}
+ability:
+  id: dark-willow
+  controller: owner
+  effects:
+    - id: transform-on-damage
+      trigger: damage_dealt
+      condition: {target_in: [willow, tara]}
+      operations: [{op: SET_STATE, key: form, value: dark-willow}]
+    - id: calm-with-tara
+      trigger: turn_end
+      condition: {state: form, equals: dark-willow, adjacent: [willow, tara]}
+      operations: [{op: SET_STATE, key: form, value: willow}]
+resources: []
+persistent_state:
+  - {key: form, type: enum, values: [willow, dark-willow], reset: never, visibility: public}
+deck: {manifest: ../../cards/phase-4b/willow.yaml, construction: fixed}
+rulings:
+  - id: dark-willow-damage-trigger
+    summary: Damage dealt to either Willow or Tara changes the public form to Dark Willow; card clauses marked for Dark Willow read the current form at resolution.
+    source: https://www.the-unmatched.club/heroes/willow
+sources:
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/willow}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/willow}
+blocker:
+  reason: absolute_health_assignment_on_revived_fighter_not_in_shared_effect_model
+  affected_card: resurrect
+  report: ../../phase-4b/worker-a-report.md
