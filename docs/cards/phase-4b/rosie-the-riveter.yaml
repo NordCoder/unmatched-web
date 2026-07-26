@@ -46,10 +46,10 @@ cards:
   - trigger: after_combat
     operations:
     - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_activate_all_upgrades, capture: all_were_already_active}
-  - trigger: after_combat
-    condition: {captured.all_were_already_active: true}
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: RECOVER, target: rosie-the-riveter, amount: 1}]
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_capture_active_upgrade_count, capture: upgrades_already_active}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_activate_all_upgrades}
+    - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_from: captured.upgrades_already_active}
+    - {op: RECOVER, target: rosie-the-riveter, amount_from: captured.upgrades_already_active}
 - id: arc-welding
   name: Arc Welding
   quantity: 3
@@ -174,5 +174,6 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Current visual action-card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
 - All 11 action-card definitions reconcile to 30 physical cards.
-- Action-card corpus is verified independently of the still-partial fighter-level upgrade-token definitions.
-- Upgrade activation/deactivation preserves ordered-token semantics through source-defined composites.
+- D-Day captures the number of upgrades already active before activating all four; its damage and recovery scale by that captured count.
+- Ordered upgrade activation/deactivation follows the set-rule token row through source-defined composites.
+- Action-card corpus is verified independently of the still-partial fighter-level token identity/order mapping.
