@@ -119,8 +119,9 @@ cards:
     tags: []
     effects:
       - trigger: after_combat
+        choices: [{owner: controller, choose: friendly_fighter}]
         operations:
-          - {op: MOVE, target: houdini, max_distance: 1}
+          - {op: MOVE, target: chosen_fighter, max_distance: 1}
           - {op: DRAW, count: 1}
           - {op: GAIN_ACTION, count: 1}
 
@@ -172,7 +173,10 @@ cards:
       - trigger: scheme
         operations:
           - {op: DRAW, count: 3}
-          - {op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: chosen_card}
+        nested_choice:
+          owner: controller
+          choose: card_in_hand_after_draw
+          then: [{op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: chosen_card}]
       - trigger: card_used_as_boost_source
         condition: {source_card: this_card}
         choices:
@@ -199,7 +203,10 @@ cards:
         optional: true
         operations:
           - {op: MOVE_CARD, from_zone: combat, to_zone: hand, selector: this_card}
-          - {op: REPLACE_COMBAT_CARD, side: own, card: chosen_legal_replacement, rule: resolve_replacement_normally}
+        nested_choice:
+          owner: controller
+          choose: different_legal_combat_card_from_hand
+          then: [{op: REPLACE_COMBAT_CARD, side: own, card: chosen_card, rule: resolve_replacement_normally}]
       - trigger: card_used_as_boost_source
         condition: {source_card: this_card}
         operations: [{op: DRAW, count: 1}]
@@ -255,7 +262,8 @@ cards:
     tags: []
     effects:
       - trigger: after_combat
-        operations: [{op: MOVE, target: chosen_combat_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]
+        choices: [{owner: controller, choose: combat_fighter}]
+        operations: [{op: MOVE, target: chosen_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]
 
 external_definitions: []
 
@@ -279,6 +287,7 @@ normalization_notes:
   - BOOSTED WITH text is represented explicitly but remains blocked on a reusable event for effects printed on the card consumed as the BOOST source.
   - The Big Reveal requires both boost cards to be chosen together; a draw caused by the first selected BOOST source does not create a new decision before the second.
   - Audit correction: All Part of the Show carries explicit cancellation protection; And the Beautiful Bess! includes its opponent-caused-discard draw; Flourish includes its ordinary DURING COMBAT BOOST option.
+  - Audit correction: For My Next Trick and Vanishing Act explicitly bind their fighter choices; Set the Stage chooses the returned card only after drawing; Sleight of Hand chooses its replacement only after the original card has returned to hand.
 
 blockers:
   - id: semantic-extension-boost-source-trigger
