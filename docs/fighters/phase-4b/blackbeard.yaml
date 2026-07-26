@@ -24,8 +24,8 @@ topology:
     attack_type: melee
     starting_health: 1
     starts_on_board: true
-    summonable: false
-    runtime_identity: Each Sea Dog token is a distinct one-health fighter instance.
+    summonable: true
+    runtime_identity: Each Sea Dog token is a distinct one-health fighter instance and can be summoned again after defeat when a source allows it.
 setup:
   hooks: []
   state_initialization: []
@@ -36,35 +36,15 @@ ability:
   - id: start-turn-buy-action
     trigger: start_turn
     optional: true
-    condition:
-      resource: blackbeard-doubloons
-      gte: 1
-    operations:
-    - op: SPEND_RESOURCE
-      resource: blackbeard-doubloons
-      amount: 1
-      destination: treasury-doubloons
-    - op: GAIN_ACTION
-      count: 1
+    condition: {resource: blackbeard-doubloons, gte: 1}
+    operations: [{op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1, destination: treasury-doubloons}, {op: GAIN_ACTION, count: 1}]
   - id: combat-damage-payment
     trigger: after_combat_damage
-    condition:
-      damaged_fighter: blackbeard
-      combat_damage_gt: 0
-    operations:
-    - op: SPEND_RESOURCE
-      resource: blackbeard-doubloons
-      amount: 1
-      destination: treasury-doubloons
+    condition: {damaged_fighter: blackbeard, combat_damage_gt: 0}
+    operations: [{op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1, destination: treasury-doubloons}]
 resources:
-- id: blackbeard-doubloons
-  kind: token_pool
-  visibility: public
-  initial: 2
-- id: treasury-doubloons
-  kind: token_pool
-  visibility: public
-  initial: 1
+- {id: blackbeard-doubloons, kind: token_pool, visibility: public, initial: 2}
+- {id: treasury-doubloons, kind: token_pool, visibility: public, initial: 1}
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/blackbeard.yaml
@@ -74,25 +54,10 @@ rulings:
   summary: Any opponent may pay a displayed ransom from the Treasury; paid doubloons move to Blackbeard and the marked effect is ignored.
   source: https://www.the-unmatched.club/heroes/blackbeard
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-  checked_at: '2026-07-26'
-  title: 'Unmatched: Battle of Legends, Vol. 3'
-- authority: reference
-  url: https://www.youtube.com/watch?v=6fP2amMnphI
-  checked_at: '2026-07-26'
-  title: Unmatched Battle of Legends 3 Box Opening
-  note: Physical set/deck review used to cross-check current transcriptions.
-- authority: reference
-  url: https://www.unmatchedarena.com/heroes/blackbeard
-  checked_at: '2026-07-26'
-  title: Unmatched Arena — Blackbeard
-  note: Complete current deck transcription; cross-checked against physical component review.
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/blackbeard
-  checked_at: '2026-07-26'
-  title: The Unmatched Club — Blackbeard
-  note: Fighter ability and current official-ruling index.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26', title: 'Unmatched: Battle of Legends, Vol. 3'}
+- {authority: reference, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-26', title: Unmatched Battle of Legends 3 Box Opening, note: Physical set/deck review used to cross-check current transcriptions.}
+- {authority: reference, url: https://www.unmatchedarena.com/heroes/blackbeard, checked_at: '2026-07-26', title: Unmatched Arena — Blackbeard, note: Complete current deck transcription cross-checked against physical component review.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/blackbeard, checked_at: '2026-07-26', title: The Unmatched Club — Blackbeard, note: Fighter ability and current official-ruling index.}
 normalization_notes:
+- Sea Dogs start on board but are also summonable because published cards can summon them after defeat.
 - Ransom remains a source-defined composite until the orchestrator promotes a generic eligible-payer/resource-transfer/effect-prevention primitive.
-- Only competitive published Blackbeard content is represented.
