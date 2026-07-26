@@ -1,0 +1,182 @@
+schema_version: 1
+fighter_id: achilles
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: brothers-in-arms
+    name: Brothers in Arms
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 2
+    effects:
+      - trigger: after_combat
+        condition: {fighter_undefeated: patroclus}
+        operations: [{op: GAIN_ACTION, count: 1}]
+
+  - id: battle-frenzy
+    name: Battle Frenzy
+    quantity: 2
+    usable_by: [patroclus]
+    type: attack
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: DEAL_EFFECT_DAMAGE, target: own_combat_fighter, amount: 2}
+          - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+
+  - id: the-day-of-your-doom
+    name: The Day of Your Doom
+    quantity: 2
+    usable_by: [patroclus]
+    type: attack
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        condition: {fighter_undefeated: patroclus}
+        costs: [{op: DEAL_EFFECT_DAMAGE, target: patroclus, amount: 2}]
+        operations: [{op: SET_VALUE, target: this_card, value: 5}]
+        dependency: set_value_only_if_damage_cost_was_performed
+
+  - id: test-for-weakness
+    name: Test for Weakness
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 1
+    boost: 3
+    effects:
+      - trigger: after_combat
+        operations: [{op: TRIGGER_COMPOSITE, kind: bonus_attack, definition: relentless-assault}]
+
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        choices: [{owner: controller, choose: combat_fighter}]
+        operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]
+
+  - id: wily-fighting
+    name: Wily Fighting
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]
+
+  - id: blessed-by-hermes
+    name: Blessed by Hermes
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations:
+          - op: MOVE
+            target: each_friendly_fighter
+            max_distance: 3
+            overrides: [may_move_through_opposing_fighters]
+
+  - id: feint
+    name: Feint
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+  - id: battle-hardened
+    name: Battle Hardened
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: card_in_own_discard}]
+        operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: chosen_card}]
+
+  - id: achilles-heel
+    name: Achilles' Heel
+    quantity: 3
+    usable_by: [achilles]
+    type: defense
+    printed_value: 4
+    boost: 2
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: lost}
+        operations: [{op: GAIN_ACTION, controller: opponent, count: 1}]
+
+  - id: under-achilles-helm
+    name: Under Achilles' Helm
+    quantity: 3
+    usable_by: [achilles]
+    type: defense
+    printed_value: 2
+    boost: 4
+    effects:
+      - trigger: immediately
+        optional: true
+        condition: {fighter_undefeated: patroclus}
+        operations:
+          - {op: SWAP, a: achilles, b: patroclus}
+          - {op: CHANGE_STATE, key: combat.defender, value: patroclus}
+        dependency: defender_changes_only_if_swap_occurs
+
+  - id: spear-throw
+    name: Spear Throw
+    quantity: 2
+    usable_by: [achilles]
+    type: scheme
+    printed_value: null
+    boost: 1
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: opposing_fighter_in_achilles_zone}]
+        operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]
+
+external_definitions:
+  - id: relentless-assault
+    kind: bonus_attack
+    attacker: same_as_parent_combat
+    defender: same_as_parent_combat_after_participant_replacement
+    printed_attack_value: 3
+    effects: []
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 12
+
+sources:
+  - https://unmatched.cards/umdb/decks/achilles
+  - https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+  - https://www.the-unmatched.club/rules/achilles
+
+normalization_notes:
+  - Patroclus defeat state and Achilles' +2/draw ability live in the fighter manifest, not duplicated on every card.
+  - Under Achilles' Helm is SWAP plus combat-state mutation; it does not require a fighter-specific resolver.
+  - Relentless Assault is an external bonus-attack definition, not an additional action-card instance.
