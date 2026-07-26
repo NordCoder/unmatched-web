@@ -1,85 +1,52 @@
 schema_version: 1
 id: rosie-the-riveter
 display_name: Rosie the Riveter
-set_ids:
-- stars-and-stripes
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- https://unmatched.cards/umdb/decks/rosie-the-riveter
-- https://www.the-unmatched.club/heroes/rosie-the-riveter
+set_ids: [stars-and-stripes]
+status: partial
+reason: upgrade_token_definitions_not_transcribed
 movement: 2
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: rosie-the-riveter
-    display_name: Rosie the Riveter
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 15
-    starts_on_board: true
-    summonable: false
-  - id: wendy-the-welder
-    display_name: Wendy the Welder
-    role: sidekick
-    count: 1
-    attack_type: melee
-    starting_health: 7
-    starts_on_board: true
-    summonable: false
+  - {id: rosie-the-riveter, display_name: Rosie the Riveter, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: wendy-the-welder, display_name: Wendy the Welder, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
 setup:
   hooks: []
   state_initialization:
-  - key: active_upgrade_count
-    value: 0
+  - {key: active_upgrade_count, value: 0}
 ability:
   id: freedom-xk-ii-mech-suit
   controller: owner
   effects:
   - id: activate-upgrade
     trigger: start_turn
-    operations:
-    - op: CHANGE_STATE
-      key: active_upgrade_count
-      transition: activate_next_inactive
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]
   - id: reset-upgrades
     trigger: end_turn
-    condition:
-      state: active_upgrade_count
-      equals: 4
-    operations:
-    - op: SET_STATE
-      key: active_upgrade_count
-      value: 0
+    condition: {state: active_upgrade_count, equals: 4}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_all_upgrades}]
 resources:
 - id: upgrade-tokens
   kind: token_pool
   visibility: public
   initial: 4
+  note: Four unique ordered upgrade tokens exist. Their individual active-side abilities are not yet transcribed into this manifest.
 persistent_state:
-- key: active_upgrade_count
-  type: integer
-  reset: never
+- {key: active_upgrade_count, type: integer, reset: never}
 deck:
   manifest: ../../cards/phase-4b/rosie-the-riveter.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: ordered-upgrade-activation
+  summary: Upgrades begin inactive and are activated/deactivated in the ordered token row according to the Stars & Stripes special rules.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/rosie-the-riveter
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/rosie-the-riveter
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', note: Confirms four upgrade tokens and one Mech Suit reference card.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms active upgrades grant additional abilities and interact with action cards.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Fighter rules plus visual action-card corpus used during reconciliation.}
 normalization_notes:
-- All four upgrades start inactive; exact per-upgrade bonuses must be sourced from the physical reference component/card corpus
-  before verification.
+- The 30-card action deck is fully verified separately.
+- Fighter status remains partial because the four unique active upgrade abilities are required gameplay definitions and were not present in the supplied action-card screenshots.
+- active_upgrade_count alone is not a substitute for the ordered identities/abilities of the four upgrade tokens.
