@@ -1,6 +1,6 @@
 # Core effect-resolution baseline
 
-This file records only effect semantics explicitly present in the modern Core Rules. Phase 2 will build the complete event/choice/effect model and reconcile all global rulings.
+This file records effect semantics explicitly present in the modern Core Rules. Phase 2 has now expanded this baseline into the complete global event/choice/effect framework under `docs/mechanics/` and `docs/rulings/`.
 
 ## General precedence
 
@@ -16,6 +16,8 @@ Source: CORE p. 13.
 `EFFECT-004` — An instruction allowing an amount `up to N` permits choosing zero.  
 Source: CORE p. 13.
 
+Phase 2 refinement: see `docs/mechanics/choices-and-resume.md` for explicit choice ownership, locking, visibility and resume semantics.
+
 ## Partial resolution
 
 `EFFECT-010` — If only part of an effect can be resolved, resolve every resolvable part and ignore the impossible remainder unless the effect itself establishes a dependency or different instruction.  
@@ -24,7 +26,7 @@ Source: CORE p. 13.
 `EFFECT-011` — Failure of one independent clause does not automatically cancel other independently resolvable clauses of the same effect.  
 Source: normalized consequence of EFFECT-010.
 
-The boundary between “independent clause,” prerequisite, cost, and conditional consequence is Phase 2 work and must be derived from rulings/card wording rather than guessed.
+Phase 2 refinement: `docs/mechanics/effect-model.md` distinguishes conditions, explicit costs/prerequisites, choices, ordered operations and dependency edges such as `if you do`.
 
 ## Values
 
@@ -42,18 +44,20 @@ Source: normalized requirement from EFFECT-020/021.
 `EFFECT-030` — If an effect is canceled, that canceled effect is not resolved.  
 Source: CORE p. 13.
 
-`EFFECT-031` — Core rules do not by themselves define every cancellation identity/scope needed by all fighters. For example, rulings distinguish card effects from character abilities and address cards with no printed effects. Those details are Phase 2/4 requirements.  
-Source: REF10 major ruling “Cancelling Card Effects” and character clarifications.
+`EFFECT-031` — Card effects, character abilities, battlefield effects and other effect-bearing sources must not be treated as one undifferentiated cancellation scope.  
+Source: REF10 cancellation rulings; Phase 2 normalization.
+
+Phase 2 refinement: see `docs/mechanics/cancellation.md`, including effectless-card cancellation and attached combat-item effects.
 
 ## Simultaneous combat effects
 
 `EFFECT-040` — Within a combat timing window, if attacker and defender effects would resolve at the same time, defender-controlled effects have priority.  
 Source: CORE p. 11.
 
-`EFFECT-041` — If one player controls multiple effects that would resolve at the same time, that player chooses their order.  
+`EFFECT-041` — If one player controls multiple effects that would resolve at the same combat timing, that player chooses their order.  
 Source: CORE p. 11.
 
-These are combat-specific ordering rules. Do not automatically extend them to every simultaneous non-combat event until Phase 2 establishes a general model.
+These are combat-specific ordering rules. Phase 2 deliberately does not invent a universal cross-player non-combat ordering rule; see `docs/mechanics/event-model.md` and `docs/rulings/ambiguity-register.md`.
 
 ## Effects from defeated fighters
 
@@ -68,27 +72,26 @@ Source: CORE pp. 11, 14.
 `EFFECT-060` — Effect-granted movement follows generic movement rules unless the effect overrides them. When moving an opposing fighter, interpret friendly/opposing occupancy from that fighter owner's perspective.  
 Source: CORE p. 7.
 
-`EFFECT-061` — Placement does not trace a movement path. A successful placement results in the fighter occupying an empty destination.  
-Source: CORE p. 7.
+`EFFECT-061` — Placement does not trace a movement path. A successful placement relocates the fighter directly to the selected destination under the applicable occupancy policy.  
+Source: CORE p. 7; Phase 2 placement ruling normalization.
 
-`EFFECT-062` — The later official placement ruling permits some wording to select an occupied space and then have placement fail. This choice-vs-result distinction is intentionally not generalized until Phase 2.  
-Source: REF10 major ruling “Placement”; current Rules Hub freshness index.
+`EFFECT-062` — Selection legality and placement success are distinct. When wording does not require `empty` or `other`, an occupied space may be selectable and the subsequent placement may fail, leaving the fighter where it was.  
+Source: REF10 Major Rulings: Placement; current Rules Hub official correction.
 
-## Phase 2 handoff
+Phase 2 refinement: see `docs/mechanics/movement-and-placement.md`.
 
-The following are explicitly **not closed by this document**:
+## Phase 2 closure
 
-- costs versus effects;
-- nested/triggered effects;
-- event snapshots and re-checking conditions;
-- effect ownership/control when cards change hands;
-- `after attacking`, `start of turn`, `end of turn`, defeat triggers, and other non-card timing queues;
-- hidden/public choices and when options are locked;
-- `End the turn`;
-- dormant players;
-- bonus attacks;
-- generalized extra/free actions;
-- replacement effects and destination replacement;
-- cancellation of whole cards versus individual effects.
+The former Phase 2 handoff topics are now covered by the following authoritative specification layers:
 
-Each must become explicit before the overall specification reaches `developer-ready`.
+- costs/dependencies and normalized operations → `docs/mechanics/effect-model.md`;
+- event windows, nested effects and conditions → `docs/mechanics/event-model.md`;
+- hidden/public choices and resume points → `docs/mechanics/choices-and-resume.md`, `information-visibility.md`;
+- cancellation identity/scope → `docs/mechanics/cancellation.md`;
+- `End the turn` and dormant players → `docs/mechanics/end-turn-and-dormancy.md`;
+- bonus attacks → `docs/mechanics/bonus-attacks.md`;
+- gained/free actions → `docs/mechanics/action-accounting.md`;
+- setup hooks → `docs/mechanics/setup-hooks.md`;
+- unresolved content-specific interactions → `docs/rulings/ambiguity-register.md`.
+
+Phase 2 does not claim that every future fighter-specific interaction is already resolved. It defines the global framework and requires unresolved content-specific cases to remain explicit blockers rather than implementation guesses.
