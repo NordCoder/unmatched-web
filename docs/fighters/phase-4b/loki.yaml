@@ -27,7 +27,11 @@ ability:
   - id: trick-cleanup-replacement
     trigger: cleanup_replacement
     condition: {played_card_tag: trick, card_owner: loki}
-    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: opponent_hand, selector: played_card}]
+    branches:
+    - condition: {played_card_controller: loki}
+      operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: opponent_hand, selector: played_card}]
+    - condition: {played_card_controller_not: loki}
+      operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: owner_discard, selector: played_card}]
   - id: trick-opponent-discard-recovery
     trigger: owned_card_discarded_from_opponent_hand
     optional: true
@@ -50,6 +54,9 @@ rulings:
 - id: loki-tricks-retain-owner
   summary: TRICK cards placed in opponents' hands remain Loki-owned card instances; zone/controller changes do not change ownership.
   source: https://www.the-unmatched.club/rules/loki
+- id: loki-trick-play-cleanup
+  summary: A TRICK played by Loki enters an opponent hand during cleanup; a Loki-owned TRICK played by an opponent enters Loki's discard during cleanup.
+  source: https://www.the-unmatched.club/rules/loki
 - id: loki-trick-boost
   summary: TRICK cards have no BOOST value and cannot provide a positive BOOST unless a source explicitly overrides that fact.
   source: https://www.the-unmatched.club/rules/loki
@@ -67,7 +74,8 @@ sources:
   url: https://www.the-unmatched.club/tools/tracker?h=loki
   checked_at: '2026-07-26'
   note: Independent names/quantities cross-check.
-- {authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-26'}
+- {authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-27'}
 normalization_notes:
 - Opponent-held TRICK cards preserve owner_player=Loki while current_zone and zone controller change.
+- Cleanup disposition depends on who played the Loki-owned TRICK; ownership alone is not sufficient to select the destination.
 - The movement-value bonus is a proposed generic extension; corpus verification does not require modifying the shared model on this worker branch.
