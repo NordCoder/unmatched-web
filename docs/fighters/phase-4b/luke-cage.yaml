@@ -43,12 +43,25 @@ ability:
       target: luke-cage
       scope:
         combat_damage_amount: 2
+  - id: win-defense-when-no-combat-damage
+    trigger: combat_result_resolution
+    condition:
+      all:
+      - defender: luke-cage
+      - combat_damage_taken: 0
+    operations:
+    - op: SET_STATE
+      key: combat_result.winner
+      value: controller
 resources: []
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/luke-cage.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: luke-cage-zero-damage-defense-win
+  summary: When Luke Cage is defending, he wins the combat if he takes no combat damage, including when he played no defense card.
+  source: https://unmatched.cards/umdb/decks/luke-cage
 sources:
 - type: official_product
   url: https://restorationgames.com/shop/marvel-redemption-row/
@@ -58,3 +71,4 @@ sources:
   url: https://www.the-unmatched.club/heroes/luke-cage
 normalization_notes:
 - Damage reduction applies to combat damage Luke Cage would take, not effect damage.
+- Audit correction: the published zero-damage defending win rule is represented explicitly; it also covers undefended attacks.
