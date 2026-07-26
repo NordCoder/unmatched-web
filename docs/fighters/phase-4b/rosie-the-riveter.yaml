@@ -3,7 +3,7 @@ id: rosie-the-riveter
 display_name: Rosie the Riveter
 set_ids: [stars-and-stripes]
 status: partial
-reason: upgrade_token_definitions_not_transcribed
+reason: upgrade_token_printed_labels_and_order_not_directly_transcribed
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -21,32 +21,76 @@ ability:
   effects:
   - id: activate-upgrade
     trigger: start_turn
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_upgrade}]
   - id: reset-upgrades
     trigger: end_turn
     condition: {state: active_upgrade_count, equals: 4}
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_all_upgrades}]
+  - id: upgrade-ranged
+    trigger: static
+    continuous: true
+    condition: {source_defined_upgrade_active: ranged_attack}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_attack_type_modifier, target: rosie-the-riveter, attack_type: ranged}]
+  - id: upgrade-movement
+    trigger: static
+    continuous: true
+    condition: {source_defined_upgrade_active: movement_three}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_move_value_modifier, target: rosie-the-riveter, set_value: 3}]
+  - id: upgrade-attack
+    trigger: static
+    continuous: true
+    condition: {source_defined_upgrade_active: attack_plus_one}
+    operations: [{op: ADD_VALUE, target: rosie_attack, amount: 1}]
+  - id: upgrade-after-attack-draw
+    trigger: after_attack
+    optional: true
+    condition: {source_defined_upgrade_active: draw_after_attack, attacker: rosie-the-riveter}
+    operations: [{op: DRAW, count: 1}]
 resources:
 - id: upgrade-tokens
   kind: token_pool
   visibility: public
   initial: 4
-  note: Four unique ordered upgrade tokens exist. Their individual active-side abilities are not yet transcribed into this manifest.
+  definitions:
+  - id: ranged_attack
+    printed_name: null
+    printed_order: null
+    evidence_status: semantics_identified_printed_identity_unverified
+    active_effect: Rosie becomes a ranged fighter.
+  - id: movement_three
+    printed_name: null
+    printed_order: null
+    evidence_status: semantics_identified_printed_identity_unverified
+    active_effect: Rosie's movement value is 3 instead of 2.
+  - id: attack_plus_one
+    printed_name: null
+    printed_order: null
+    evidence_status: semantics_identified_printed_identity_unverified
+    active_effect: Rosie's attacks get +1 value.
+  - id: draw_after_attack
+    printed_name: null
+    printed_order: null
+    evidence_status: semantics_identified_printed_identity_unverified
+    active_effect: After Rosie attacks, she may draw 1 card.
 persistent_state:
 - {key: active_upgrade_count, type: integer, reset: never}
 deck:
   manifest: ../../cards/phase-4b/rosie-the-riveter.yaml
   construction: fixed
 rulings:
-- id: ordered-upgrade-activation
-  summary: Upgrades begin inactive and are activated/deactivated in the ordered token row according to the Stars & Stripes special rules.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+- id: upgrade-activation
+  summary: All four upgrades begin inactive; card and fighter effects activate/deactivate upgrade tokens during play.
+  source: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
 - {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', note: Confirms four upgrade tokens and one Mech Suit reference card.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms active upgrades grant additional abilities and interact with action cards.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Fighter rules plus visual action-card corpus used during reconciliation.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms four upgrades, inactive-at-start behavior and that active upgrades grant Rosie additional abilities.}
+- {authority: official_component, url: https://restorationgames.com/wp-content/uploads/2026/05/Rosie-Upgrades-1024x354.png, checked_at: '2026-07-27', note: First-party image asset for the four Rosie upgrades; direct printed labels/order were not visually transcribed in this worker session.}
+- {authority: reference, url: https://www.reddit.com/r/Unmatched/comments/1ujtwaj/now_i_wait/, checked_at: '2026-07-27', note: Physical-owner description corroborates the four active semantics together: ranged, movement 3, +1 attacks and draw after attacking.}
+- {authority: reference, url: https://www.reddit.com/r/Unmatched/comments/1st3tb4/stars_stripes_complexity/, checked_at: '2026-07-27', note: Independent owner discussion corroborates the draw-after-attack upgrade.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Fighter rules plus verified visual action-card corpus.}
 normalization_notes:
-- The 30-card action deck is fully verified separately.
-- Fighter status remains partial because the four unique active upgrade abilities are required gameplay definitions and were not present in the supplied action-card screenshots.
-- active_upgrade_count alone is not a substitute for the ordered identities/abilities of the four upgrade tokens.
+- The complete gameplay semantics of all four upgrades are now recorded: ranged attack type, movement 3, +1 to Rosie's attacks, and optional draw 1 after Rosie attacks.
+- Fighter remains partial only because the exact printed token labels and physical ordering/identity mapping have not been directly transcribed from the first-party upgrade image.
+- Semantic ids above are descriptive normalization ids, not claimed printed token names.
+- The 30-card action deck remains fully verified separately.
