@@ -1,0 +1,40 @@
+schema_version: 1
+id: king-arthur
+display_name: King Arthur
+set_ids: [battle-of-legends-vol-1]
+status: blocked
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: king-arthur, display_name: King Arthur, role: hero, count: 1, attack_type: melee, starting_health: 18, starts_on_board: true, summonable: false}
+    - {id: merlin, display_name: Merlin, role: sidekick, count: 1, attack_type: ranged, starting_health: 7, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: noble-sacrifice
+  controller: owner
+  effects:
+    - id: arthur-attack-boost
+      trigger: combat_card_commit
+      condition: {attacker: king-arthur}
+      optional: true
+      operations: [{op: BOOST, target: own_attack_card, card_or_blind_source: chosen_hand_card}]
+      note: The BOOST card is committed face-down with the attack and follows current cancellation rulings.
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/king-arthur.yaml, construction: fixed}
+rulings:
+  - id: arthur-boost-cancellation
+    summary: Current rulings treat the ability BOOST as part of the attack resolution; when the opposing effect cancels it, the committed BOOST card is discarded without adding its BOOST value.
+    source: https://www.the-unmatched.club/heroes/king-arthur
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/king-arthur}
+blocker:
+  reason: absolute_health_assignment_not_in_shared_effect_model
+  affected_card: the-holy-grail
+  report: ../../phase-4b/worker-a-report.md
