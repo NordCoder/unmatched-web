@@ -1,0 +1,71 @@
+schema_version: 1
+id: dracula
+display_name: Dracula
+set_ids: [cobble-and-fog]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: dracula
+      display_name: Dracula
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 13
+      starts_on_board: true
+      summonable: false
+    - id: sister
+      display_name: Sister
+      role: sidekick
+      count: 3
+      attack_type: melee
+      starting_health: 1
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks: []
+  state_initialization: []
+
+ability:
+  id: bloodthirsty
+  controller: owner
+  effects:
+    - id: start-turn-bloodthirsty
+      trigger: turn_start
+      optional: true
+      condition: {fighter_adjacent_to: dracula, target_scope: any_fighter}
+      choices:
+        - {owner: controller, choose: fighter_adjacent_to_dracula}
+      operations:
+        - {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1, capture_actual_damage: bloodthirsty_damage}
+        - {op: DRAW, count: 1, condition: {bloodthirsty_damage: greater_than_0}}
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4a/dracula.yaml
+  construction: fixed
+
+rulings:
+  - id: dracula-friendly-bloodthirsty-target
+    summary: Dracula may choose a friendly Sister as the adjacent fighter for his ability.
+    source: https://www.the-unmatched.club/rules/dracula
+  - id: dracula-damage-must-occur-for-draw
+    summary: The follow-up draw depends on successful damage. If the selected damage is prevented, no draw occurs; redirected damage follows the official damage-dealt ruling.
+    source: https://www.the-unmatched.club/rules/dracula
+  - id: dracula-return-sister
+    summary: Returning a defeated Sister is a RETURN_FIGHTER operation with source-defined placement/health, not ordinary recovery.
+    source: https://www.the-unmatched.club/rules/dracula
+
+sources:
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/dracula
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/dracula
