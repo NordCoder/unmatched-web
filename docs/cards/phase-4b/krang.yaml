@@ -1,42 +1,186 @@
 schema_version: 1
 fighter_id: krang
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/stats
-- https://www.the-unmatched.club/heroes/krang
-construction:
-  kind: fixed
-  available_pool_count: null
-  game_deck_count: null
-  rules: []
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
-cards: []
-external_definitions: []
-validation:
-  available_pool_count: null
-  game_deck_count: null
-  quantity_sum: null
-  result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
+cards:
+- id: android-arms-powerbomb
+  name: 'Android Arms: Powerbomb'
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    choices: [{owner: controller, choose: card_in_hand_for_boost}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
+  - trigger: after_combat
+    choices: [{owner: controller, choose: move_distance, min: 0, max_rule: combat_damage_dealt}]
+    operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: chosen_move_distance}]
+- id: android-arms-chain-flail
+  name: 'Android Arms: Chain Flail'
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: [ultimate_destruction]
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_ultimate_destruction_roll
+      capture: destruction_result
+      on_number:
+      - condition: {opposing_card_not_played_or_printed_value_lt_captured_result: true}
+        operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 2, controller: opponent}]
+- id: android-arms-missiles
+  name: 'Android Arms: Missiles'
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: attack
+  printed_value: 1
+  boost: 1
+  tags: [ultimate_destruction]
+  play_overrides: [may_play_face_up_as_ranged_attack]
+  effects:
+  - trigger: during_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_add_value, target: this_card}]
+- id: warlord-of-dimension-x
+  name: Warlord of Dimension X
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_reveal_top_cards_compare_name_length_and_draw_own_if_longer}]
+- id: pan-dimensional-portal
+  name: Pan-Dimensional Portal
+  quantity: 2
+  inclusion: fixed
+  usable_by: [krang]
+  type: versatile
+  printed_value: 3
+  boost: null
+  boost_rule: roll_die_of_ultimate_destruction
+  tags: [ultimate_destruction]
+  effects:
+  - trigger: after_combat
+    choices: [{owner: controller, choose: combat_fighter, capture: target}, {owner: controller, choose: any_open_space, capture: destination}]
+    operations:
+    - {op: PLACE, target: captured.target, destination_rule: captured.destination}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_lock_fighter_in_space_until_turn_end, target: captured.target}
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_ultimate_destruction_roll
+      capture: hand_bottom_count
+      on_number:
+      - {op: MOVE_CARD, from_zone: each_player_hand, to_zone: each_player_deck, selector: random, count: captured.hand_bottom_count, position: bottom}
+    - {op: DRAW, controller: each_player, count: 2}
+- id: molecular-amplification-unit
+  name: Molecular Amplification Unit
+  quantity: 4
+  inclusion: fixed
+  usable_by: [krang]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: [ultimate_destruction]
+  effects:
+  - trigger: immediately
+    operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]
+  - trigger: during_combat
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_add_value, target: this_card}]
+- id: welcome-to-the-technodrome
+  name: Welcome to the Technodrome!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    choices: [{owner: controller, choose: mode, options: [cancel_opponent_card, activate_machine]}]
+    branches:
+    - {condition: {chosen_mode: cancel_opponent_card}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+    - {condition: {chosen_mode: activate_machine}, operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]}
+- id: minimizer
+  name: Minimizer
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: defense
+  printed_value: 0
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: -4}]
+  - trigger: after_combat
+    operations: [{op: END_TURN}]
+- id: android-arms-wings
+  name: 'Android Arms: Wings'
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: [ultimate_destruction]
+  effects:
+  - trigger: scheme
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_ultimate_destruction_roll
+      capture: move_result
+      on_number:
+      - {op: MOVE, target: krang, max_distance: captured.move_result, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}
+      - {op: DEAL_EFFECT_DAMAGE, target: captured.opposing_fighters_moved_through, amount: 1}
+      - {op: GAIN_ACTION, count: 1}
+- id: iq-of-968
+  name: IQ of 968
+  quantity: 3
+  inclusion: fixed
+  usable_by: [krang]
+  type: scheme
+  printed_value: null
+  boost: null
+  boost_rule: roll_die_of_ultimate_destruction
+  tags: [ultimate_destruction]
+  effects:
+  - trigger: scheme
+    operations:
+    - {op: SET_STATE, key: active_doomsday_machines, value: 3}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_draw}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_recover, target: krang}
+external_definitions:
+- id: ultimate-destruction-symbol
+  kind: random_resolution_rule
+  operations:
+  - Roll the Die of Ultimate Destruction independently for each symbol.
+  - Numbered result supplies that symbol's value.
+  - X counts as zero and the effect for that symbol does not resolve.
+  - Krang may deactivate an active machine after a roll to reroll; repeat while machines remain active.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 10, result: PASS}
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/stats
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/krang
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
+- {authority: reference, url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf, checked_at: '2026-07-27', note: Set-rules mirror used for authoritative destruction-die procedure.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', note: Current competitive Hero Deck visual corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- Official product proves a competitive Krang hero deck exists, but checked eligible sources do not expose its complete action-card
-  transcript.
-- The Adventures villain deck and villain-specific die behavior are deliberately not substituted.
+- All 10 competitive Hero Deck definitions reconcile to 30 physical cards.
+- Pan-Dimensional Portal and IQ of 968 have a destruction-die BOOST symbol rather than a numeric BOOST; boost_rule preserves this without inventing a number.
+- Adventures villain AI/scenario behavior is excluded.
