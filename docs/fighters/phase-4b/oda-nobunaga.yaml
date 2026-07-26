@@ -1,0 +1,53 @@
+schema_version: 1
+id: oda-nobunaga
+display_name: Oda Nobunaga
+set_ids: [suns-origin]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: oda-nobunaga, display_name: Oda Nobunaga, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - id: honor-guard
+      display_name: Honor Guard
+      role: sidekick
+      count: 2
+      attack_type: melee
+      starting_health: 6
+      starts_on_board: true
+      summonable: false
+      runtime_identity: Each Honor Guard is an independently damageable fighter with its own health dial/instance state.
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: master-strategist
+  controller: owner
+  effects:
+    - id: friendly-zone-combat-bonus
+      trigger: static
+      continuous: true
+      condition: {friendly_fighter_other_than_oda_in_oda_zone: true}
+      operations: [{op: ADD_VALUE, target: that_friendly_fighters_played_combat_card, amount: 1}]
+
+resources: []
+persistent_state:
+  - {key: turn_start_space_by_fighter, type: space_ref, reset: turn_start, note: Required by Momentous Shift for independently moving Honor Guards and Oda.}
+
+deck:
+  manifest: ../../cards/phase-4b/oda-nobunaga.yaml
+  construction: fixed
+
+rulings:
+  - id: flanked-definition
+    summary: A fighter is flanked when at least two fighters controlled by the same player are adjacent to it.
+    source: https://unmatched.cards/umdb/decks/oda-nobunaga
+
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/suns-origin-unmatched/}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/oda-nobunaga}
+
+normalization_notes:
+  - The two Honor Guards are not a one-hit token group; their health is tracked independently.
