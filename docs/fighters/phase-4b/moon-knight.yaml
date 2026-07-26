@@ -33,7 +33,7 @@ ability:
     operations:
     - op: MOVE
       target: moon-knight
-      distance: 2
+      max_distance: 2
   - id: khonshu-attack-bonus
     trigger: static
     continuous: true
@@ -75,6 +75,10 @@ persistent_state:
 - key: active_identity
   type: enum
   reset: never
+- key: turn_start_space
+  type: space_ref
+  reset: turn_start
+  note: Required by Madness Will Keep You Alive; the condition is historical and must retain the fighter's start-of-turn space after later movement.
 deck:
   manifest: ../../cards/phase-4b/moon-knight.yaml
   construction: fixed
@@ -88,3 +92,5 @@ sources:
   url: https://www.the-unmatched.club/heroes/moon-knight
 normalization_notes:
 - All three identities share one fighter piece and one health track.
+- Moon Knight's start-turn movement is "up to 2 spaces"; choosing zero spaces satisfies the mandatory move instruction without requiring a separate optional flag.
+- Audit correction: turn-start position is explicit historical state for Madness Will Keep You Alive.
