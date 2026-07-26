@@ -19,7 +19,9 @@ topology:
     summonable: false
 setup:
   hooks: []
-  state_initialization: []
+  state_initialization:
+  - key: ignore_brainwashed_effects
+    value: false
 ability:
   id: brainwashed
   controller: owner
@@ -33,18 +35,27 @@ ability:
         op: CANCEL_EFFECTS
         target_scope: winter-soldier-card-effects
 resources: []
-persistent_state: []
+persistent_state:
+- key: ignore_brainwashed_effects
+  type: boolean
+  reset: turn_end
+  note: Set by A Boy Named Bucky. BRAINWASHED-tagged negative effects check this state and do not resolve while it is true.
 deck:
   manifest: ../../cards/phase-4b/winter-soldier.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: boy-named-bucky-ignores-brainwashed
+  summary: A Boy Named Bucky lets the controller ignore BRAINWASHED/star effects on Winter Soldier's cards for the rest of that turn; it does not ignore the ordinary non-star portions of those cards.
+  source: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
 sources:
 - type: official_product
   url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+- type: official_rulebook
+  url: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
 - type: published_database
   url: https://unmatched.cards/umdb/decks/winter-soldier
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/winter-soldier
 normalization_notes:
-- Protection applies to effects on Winter Soldier's own cards; it does not make their combat values impossible to ignore or
-  otherwise modify by separate rules.
+- Protection applies to effects on Winter Soldier's own cards; it does not make their combat values impossible to ignore or otherwise modify by separate rules.
+- Audit correction: A Boy Named Bucky's turn-scoped suppression flag is declared explicitly and consumed by individual BRAINWASHED effects in the deck manifest.
