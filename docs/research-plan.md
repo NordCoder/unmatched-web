@@ -66,33 +66,57 @@ The gate deliberately excludes fighter/set-specific mechanics that require Phase
 
 ## Phase 2 — Timing, choices, effects and global rulings
 
-**Status:** planned.
+**Status:** **complete — gate passed 2026-07-26.**
 
-This is the highest-risk phase for the eventual engine.
+This phase establishes the global resolution framework that fighter/card content must target.
 
-### Work
+### Completed work
 
-1. Build an event/timing model.
-2. Specify simultaneous-effect ordering and effect precedence.
-3. Distinguish operations that look similar but are mechanically different, e.g. `move` vs `place`, combat damage vs non-combat damage, printed value vs combat value.
-4. Define pending-player choices and interruption/resume semantics.
-5. Build an initial effect taxonomy from the Unmatched Reference and Rulings Archive.
-6. Record official errata and global rulings separately from inferred implementation behavior.
+1. Built an event/window/checkpoint model for turns, actions and combat.
+2. Defined deterministic pause/resume semantics for player choices, including reconnect during hidden combat and setup choices.
+3. Separated public, private, committed-hidden and temporarily revealed information.
+4. Defined a normalized effect representation that preserves trigger, condition, choice, cost/dependency, ordered operations and provenance.
+5. Established an extensible primitive taxonomy for cards, health, relocation, actions/resources/state, combat values, cancellation and control flow.
+6. Reconciled cancellation semantics, including effectless cards and attached battlefield-item effects.
+7. Formalized normal/gained/free action accounting.
+8. Formalized move versus place, corrected occupied-space placement selection, failed placement and swap semantics.
+9. Formalized corrected bonus-attack behavior as nested combat inside one Attack action.
+10. Formalized current `End the turn` and dormant-player rulings.
+11. Added generalized setup hooks for pre-game configuration/deck construction/placement.
+12. Indexed global rulings separately from normalized engine semantics.
+13. Created a severity-based ambiguity register so unresolved content-specific interactions cannot be silently guessed.
 
-### Target effect primitives
+### Output
 
-The taxonomy should test whether common effects can normalize into primitives such as:
+Primary documents are under [`mechanics/`](mechanics/) and [`rulings/`](rulings/):
 
-`draw`, `discard`, `damage`, `heal`, `move`, `place`, `swap`, `gain_action`, `modify_value`, `cancel_effect`, `reveal`, `look_at_hand`, `choose_card`, `choose_fighter`, `choose_space`, `summon`, `defeat`, `transform_state`.
+- `mechanics/event-model.md`;
+- `mechanics/choices-and-resume.md`;
+- `mechanics/effect-model.md`;
+- `mechanics/cancellation.md`;
+- `mechanics/action-accounting.md`;
+- `mechanics/movement-and-placement.md`;
+- `mechanics/bonus-attacks.md`;
+- `mechanics/end-turn-and-dormancy.md`;
+- `mechanics/information-visibility.md`;
+- `mechanics/setup-hooks.md`;
+- `rulings/global-rulings.md`;
+- `rulings/ambiguity-register.md`.
 
-This list is a hypothesis, not a frozen design.
+The primitive taxonomy remains extensible. A future fighter may require an explicit custom mechanic, but it must declare the same trigger/choice/state/cancellation/provenance semantics rather than hiding behavior in implementation code.
 
 ### Gate
 
-- Every core timing window is ordered.
-- A rule exists for pausing resolution when another player must choose something.
-- Global errata/rulings have been reconciled with the current Core Rules.
-- Unknown interactions are explicitly marked; none are silently guessed.
+- Every core timing window is ordered: **PASS**.
+- A rule exists for pausing resolution when another player must choose something: **PASS**.
+- Global errata/rulings have been reconciled with the current Core Rules: **PASS**.
+- Unknown interactions are explicitly marked; none are silently guessed: **PASS**.
+
+See [`mechanics/phase-2-validation.md`](mechanics/phase-2-validation.md).
+
+Remaining P1 ambiguities in the register are explicitly `deferred-content`: they block only affected fighter/set content until Phase 3/4 supplies authoritative rules. There are no open P0 ambiguities in the current global framework.
+
+Passing Phase 2 does not make the published fighter roster `developer-ready`; it makes the global resolution model ready to receive authoritative set/fighter/card data.
 
 ---
 
@@ -231,7 +255,7 @@ Every supported battlefield has a deterministic graph representation that can an
 
 ### Gate
 
-There are no unresolved **P0/P1 semantic ambiguities** affecting legal moves, hidden information, choice ownership, combat outcome, fighter defeat, or game end.
+There are no unresolved **P0/P1 semantic ambiguities** affecting legal moves, hidden information, choice ownership, combat outcome, fighter defeat, or game end for the intended launch scope.
 
 ---
 
