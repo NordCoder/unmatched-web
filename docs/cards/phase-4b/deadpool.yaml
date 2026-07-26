@@ -11,11 +11,11 @@ cards:
   - {id: gimme-gimme-chimichanga, name: Gimme Gimme Chimichanga, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: RECOVER, target: deadpool, amount: 1}]}]}
   - {id: dumpster-divin-deadpool, name: Dumpster Divin' Deadpool, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, choices: [{choose: 5, from: own_discard}], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: chosen_cards}, {op: SHUFFLE, zone: deck}, {op: RECOVER, target: deadpool, amount: 1}]}]}
   - {id: non-retinal-scan-access-to-danger-room, name: Non-Retinal Scan Access to Danger Room, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 4, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: opponent_hand, viewer: owner}, {op: RECOVER, target: deadpool, amount: 1}]}]}
-  - {id: time-out-time-out-time-out, name: Time out time out time out!, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 0, boost: 3, effects: [{trigger: immediately, choices: [{choose: legally_playable_card, from: deck}], operations: [{op: REPLACE_COMBAT_CARD, old_card: this_card, new_card: chosen_card}, {op: SHUFFLE, zone: deck}]}]}
+  - {id: time-out-time-out-time-out, name: Time out time out time out!, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 0, boost: 3, effects: [{trigger: immediately, choices: [{choose: legally_playable_card, from: deck}], operations: [{op: REPLACE_COMBAT_CARD, old_card: this_card, new_card: chosen_card}]}]}
   - {id: holy-mackerel, name: Holy Mackerel!, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: card_name}], operations: [{op: REQUEST_CHOICE, definition: holy_mackerel_named_card_check}]}]}
-  - {id: sweeet, name: Sweeet!, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [], normalization_blocker: subjective_board_color_predicate_yellowish}
+  - {id: sweeet, name: Sweeet!, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: REQUEST_CHOICE, definition: sweeet_two_distinct_yellowish_spaces}, {op: PLACE, target: deadpool, destination_rule: first_chosen_space}, {op: PLACE, target: deadpool, destination_rule: second_chosen_space}]}], normalization_blocker: subjective_board_color_predicate_yellowish}
   - {id: wanna-bet, name: Wanna bet?, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 2, boost: 1, effects: [], external_semantics: [post_game_drink_wager]}
-  - {id: robs-pouch-and-shoe-emporium, name: Rob's Pouch & Shoe Emporium, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 1, controller: owner}]}]}
+  - {id: robs-pouch-and-shoe-emporium, name: Rob's Pouch & Shoe Emporium, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, min_distance: 1, max_distance: 1, controller: owner}]}]}
   - {id: push-to-teleport, name: Push to Teleport, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 6, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
   - {id: cha-ching, name: Cha-Ching!, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 1, boost: 3, effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
   - {id: i-always-get-the-last-word, name: I Always Get The Last Word, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {role: attacker}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
@@ -39,6 +39,7 @@ external_definitions:
   - {id: next_move_choice, kind: choice_bundle, options: [deal_2_to_opposing_combat_fighter, move_deadpool_up_to_3]}
   - {id: holy_mackerel_named_card_check, kind: named_hidden_information_check, success: opponent_discards_all_matching_name, failure: owner_draws_1}
   - {id: deadpool_gaze_mirror_resolution, kind: external_predicate_branch, no_mirror: deal_8_to_opposing_combat_fighter, mirror: deal_8_to_medusa_if_applicable}
+  - {id: sweeet_two_distinct_yellowish_spaces, kind: external_predicate_choice, choose: 2, distinct: true, domain: spaces_in_subjectively_yellowish_zones, ordered: true}
   - {id: external-world-semantics, kind: proposed_generic_extension_family, examples: [real_name, food_present, physical_noise, set_ownership, clothing, sleeve_state, mutable_writing, post_game_wager, subjective_board_color]}
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 30, attack_count: 11, versatile_count: 11, defense_count: 4, scheme_count: 4}
 sources:
@@ -47,3 +48,4 @@ sources:
 normalization_notes:
   - All published cards are one copy each.
   - Physical/social joke semantics are preserved as provenance-bearing external semantics and are not replaced with digital-only house rules.
+  - Time Out replaces the combat card from the deck without inventing a shuffle not present in the published effect.
