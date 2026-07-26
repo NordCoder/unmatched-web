@@ -28,7 +28,7 @@ The work is ordered by semantic dependency, not by release date. A large card ca
 
 ## Phase 1 — Formalize competitive core rules
 
-**Status:** planned.
+**Status:** **complete — gate passed 2026-07-26.**
 
 ### Inputs
 
@@ -38,7 +38,7 @@ The work is ordered by semantic dependency, not by release date. A large card ca
 
 ### Output
 
-Create `docs/rules/` with implementation-oriented rules for:
+`docs/rules/` now contains implementation-oriented rules for:
 
 - component and actor model: player, character, hero, sidekick, fighter;
 - battlefield spaces, adjacency, zones, starting spaces;
@@ -50,13 +50,17 @@ Create `docs/rules/` with implementation-oriented rules for:
 - combat reveal and ordered resolution;
 - `IMMEDIATELY`, `DURING COMBAT`, damage and `AFTER COMBAT`;
 - defeat, game-end checks, hand limit and exhaustion;
-- two-player first, then free-for-all/team deltas.
+- two-player rules plus separately scoped free-for-all/team deltas.
 
-Each normative rule must have a stable rule ID and source reference.
+Each normative rule has a stable rule ID and source reference.
 
 ### Gate
 
-A minimal two-fighter match with only vanilla cards can be simulated from documentation alone, including exhaustion and every game-end path.
+A minimal two-fighter match with only vanilla cards can be simulated from documentation alone, including exhaustion and every generic two-player game-end path.
+
+**Gate result:** PASS. See [`rules/phase-1-validation.md`](rules/phase-1-validation.md).
+
+The gate deliberately excludes fighter/set-specific mechanics that require Phase 2 timing, choice, cancellation, bonus-attack, extra-action, placement, or other global rulings. Passing Phase 1 does not make the overall project `developer-ready`.
 
 ---
 
