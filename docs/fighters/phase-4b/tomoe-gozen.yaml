@@ -19,7 +19,7 @@ ability:
   effects:
     - id: damage-hero-leaving-zone
       trigger: fighter_leaves_zone
-      condition: {fighter: opposing_hero, zone_owner: tomoe-gozen}
+      condition: {fighter: opposing_hero, zone_owner: tomoe-gozen, caused_by_tomoe_moving: false}
       operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_hero, amount: 1}]
 
 resources: []
@@ -31,11 +31,12 @@ deck:
 
 rulings:
   - id: leaving-zone-is-event-semantic
-    summary: The ability applies when an opposing hero leaves Tomoe's zone by movement, placement outside it, or leaving the board; it is not limited to Maneuver movement.
-    source: https://www.geektopiagames.com/unmatched/tomoe-gozen/
+    summary: The ability applies whenever an opposing hero leaves Tomoe's zone through movement, placement, or removal from the board, including multiple times in one effect; it does not trigger merely because Tomoe herself moved and changed the zone relationship, and it never applies to sidekicks.
+    source: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
 
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/suns-origin-unmatched/}
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen}
   - {type: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen}
 
