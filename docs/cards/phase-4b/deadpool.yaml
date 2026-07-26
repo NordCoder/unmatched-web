@@ -44,8 +44,12 @@ external_definitions:
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 30, attack_count: 11, versatile_count: 11, defense_count: 4, scheme_count: 4}
 sources:
   - https://unmatched.cards/umdb/decks/deadpool
-  - https://www.unmatchedarena.com/heroes/deadpool
+  - https://unmatched.cards/umdb/decks/stats
+  - https://mondoshop.com/blogs/news/april-pools-day
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
-  - All published cards are one copy each.
+  - All published cards are one copy each; current UmDb reconciles exactly to 11 Attack / 11 Versatile / 4 Defense / 4 Scheme.
   - Physical/social joke semantics are preserved as provenance-bearing external semantics and are not replaced with digital-only house rules.
   - Time Out replaces the combat card from the deck without inventing a shuffle not present in the published effect.
+  - The official Mondo release page establishes first-party release provenance; published UmDb supplies the complete 30-card metadata/effect corpus.
