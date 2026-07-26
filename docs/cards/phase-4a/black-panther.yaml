@@ -1,0 +1,204 @@
+schema_version: 1
+fighter_id: black-panther
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+card_zones:
+  - id: vibranium-suit
+    visibility: public
+    controller: owner
+    ownership_rule: Stored cards retain their original opponent owner.
+
+cards:
+  - id: analyze-and-adjust
+    name: Analyze and Adjust
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed_card}
+          - {op: MOVE_CARD, from_zone: opponent.deck_top, to_zone: vibranium-suit, selector: captured.revealed_card, preserve_owner: true}
+
+  - id: ancestral-insight
+    name: Ancestral Insight
+    quantity: 3
+    usable_by: [black-panther]
+    type: attack
+    printed_value: 4
+    boost: 1
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        operations:
+          - {op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed_card}
+          - {op: MOVE_CARD, from_zone: opponent.deck_top, to_zone: vibranium-suit, selector: captured.revealed_card, preserve_owner: true}
+
+  - id: anti-metal-claws
+    name: Anti-Metal Claws
+    quantity: 2
+    usable_by: [black-panther]
+    type: attack
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount: opposing_combat_card.boost_or_0}]
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_card, source: eligible_black_panther_boost_source, count: 1}]
+
+  - id: cat-like-reflexes
+    name: Cat-Like Reflexes
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        choices: [{owner: controller, choose: combat_fighter}]
+        operations: [{op: MOVE, target: chosen_fighter, max_distance: 3}]
+
+  - id: evade
+    name: Evade
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: after_combat
+        operations: [{op: DRAW, count: 1}]
+
+  - id: feint
+    name: Feint
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+  - id: nanotriage-processor
+    name: Nanotriage Processor
+    quantity: 2
+    usable_by: [shuri]
+    type: defense
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        operations: [{op: RECOVER, target: shuri, amount: 1}]
+      - trigger: after_combat
+        condition: {black_panther_same_zone_as_shuri: true}
+        operations: [{op: RECOVER, target: black-panther, amount: 1}]
+
+  - id: regroup
+    name: Regroup
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: after_combat
+        branches:
+          - condition: {combat_result: won}
+            operations: [{op: DRAW, count: 2}]
+          - condition: {combat_result: not_won}
+            operations: [{op: DRAW, count: 1}]
+
+  - id: stalking-panther
+    name: Stalking Panther
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}
+          - {op: GAIN_ACTION, count: 1}
+
+  - id: tactical-remote-scanning
+    name: Tactical Remote Scanning
+    quantity: 2
+    usable_by: [shuri]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: opponent}]
+        operations:
+          - {op: REVEAL, source: chosen_opponent.deck_top, selector: up_to_2, capture: revealed_cards}
+          - {op: MOVE_CARD, from_zone: chosen_opponent.deck_top, to_zone: vibranium-suit, selector: captured.revealed_cards, preserve_owner: true}
+
+  - id: wakanda-forever
+    name: Wakanda Forever!
+    quantity: 3
+    usable_by: [black-panther]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: during_combat
+        optional: true
+        repeat:
+          max: 2
+          sequential: true
+          operation: {op: BOOST, target: this_card, source: eligible_black_panther_boost_source, count: 1}
+          note: Black Panther's ability draw resolves immediately after each BOOST value before the next optional repetition is offered.
+
+  - id: vibranium-shockwave
+    name: Vibranium Shockwave
+    quantity: 2
+    usable_by: [black-panther]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_card, source: eligible_black_panther_boost_source, count: 1}]
+
+  - id: microweave-mesh
+    name: Microweave Mesh
+    quantity: 2
+    usable_by: [black-panther]
+    type: defense
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_card, source: eligible_black_panther_boost_source, count: 1}]
+
+external_definitions: []
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 13
+
+sources:
+  - https://unmatched.cards/umdb/decks/black-panther
+  - https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+  - https://www.the-unmatched.club/rules/black-panther
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+
+normalization_notes:
+  - REVEAL/MOVE_CARD from an empty or undersized opponent deck does not invoke exhaustion because these are not DRAW operations.
+  - Stored cards preserve `owner_player`; Vibranium Suit changes current zone and use authority, not ownership.
+  - `eligible_black_panther_boost_source` includes a legal card from hand or a stored opponent card with a BOOST value.
+  - When a stored card is used to BOOST, resolve its BOOST effect as applicable and move that card to its owner's discard pile.
+  - Black Panther's ability draw is interleaved immediately after each BOOST value, so a repeated BOOST sequence cannot lock both BOOST choices in advance.
