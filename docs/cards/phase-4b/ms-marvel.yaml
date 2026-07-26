@@ -112,9 +112,34 @@ cards:
     operations:
     - op: REQUEST_CHOICE
       definition:
-        choose_one_or_both_when_no_shared_zones:
-        - opponent_discards_1
-        - move_opposing_fighter_up_to_3
+        owner: controller
+        branches:
+        - condition:
+            ms_marvel_shares_no_zones_with_opposing_fighter: true
+          execute_all:
+          - op: DISCARD
+            controller: opponent
+            from_zone: hand
+            selector: chosen_by_opponent
+            count: 1
+          - op: MOVE
+            target: opposing_combat_fighter
+            max_distance: 3
+        - condition:
+            ms_marvel_shares_at_least_one_zone_with_opposing_fighter: true
+          choose_one:
+          - id: opponent-discards-one
+            operations:
+            - op: DISCARD
+              controller: opponent
+              from_zone: hand
+              selector: chosen_by_opponent
+              count: 1
+          - id: move-opposing-fighter
+            operations:
+            - op: MOVE
+              target: opposing_combat_fighter
+              max_distance: 3
 - id: slingshot
   name: Slingshot
   quantity: 3
@@ -181,8 +206,19 @@ cards:
       count: 2
     - op: REQUEST_CHOICE
       definition:
-        optional_cost: spend_1_action
-        then: draw_until_hand_size_7
+        owner: controller
+        optional: true
+        condition:
+          actions_remaining_gte: 1
+        costs:
+        - op: CHANGE_STATE
+          key: actions_remaining
+          delta: -1
+          cost_semantics: true
+        operations:
+        - op: DRAW
+          count_rule: until_own_hand_size_7
+        dependency: draw_to_seven_only_if_additional_action_cost_was_paid
 - id: gyro-and-fries
   name: Gyro and Fries
   quantity: 2
@@ -214,3 +250,6 @@ sources:
 - https://unmatched.cards/umdb/decks/ms-marvel
 - https://www.the-unmatched.club/rules/ms-marvel
 - https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+normalization_notes:
+- Audit correction: Shrink! Shrink! Shrink! now executes both consequences when the fighters share no zones and otherwise exposes a real one-of-two choice with concrete operations.
+- Audit correction: Friends and Family's additional action is a cost whose successful payment gates the draw-to-seven consequence.
