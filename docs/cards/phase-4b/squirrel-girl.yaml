@@ -1,6 +1,6 @@
 schema_version: 1
 fighter_id: squirrel-girl
-status: verified
+status: blocked
 construction:
   kind: fixed
   available_pool_count: 30
@@ -21,7 +21,8 @@ cards:
     operations:
     - op: MOVE
       target: each_squirrel
-      distance: 3
+      max_distance: 3
+    normalization_blocker: Moving small fighters while preserving shared-space/pass-through/capacity semantics requires B-EXT-002.
 - id: bite-of-steel
   name: Bite of Steel
   quantity: 3
@@ -94,6 +95,7 @@ cards:
     - op: PLACE
       target: squirrel-girl
       destination_rule: any_space_in_squirrel-girl-zone
+    normalization_blocker: Summoning a small fighter into Squirrel Girl's occupied space and validating the resulting shared occupancy requires B-EXT-002.
 - id: get-em-tippy-toe
   name: Get 'Em Tippy-Toe!
   quantity: 3
@@ -106,11 +108,15 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
+    choices:
+    - owner: controller
+      choose: battlefield_space
     operations:
     - op: SUMMON
       pool: squirrel
       count: 2
       destination: chosen_space
+    normalization_blocker: Summoning two small fighters into one chosen space and validating capacity/coexistence requires B-EXT-002.
 - id: dash
   name: Dash
   quantity: 2
@@ -126,7 +132,7 @@ cards:
     operations:
     - op: MOVE
       target: own_combat_fighter
-      distance: 3
+      max_distance: 3
 - id: call-of-the-mild
   name: Call of the Mild
   quantity: 3
@@ -180,7 +186,7 @@ cards:
     operations:
     - op: MOVE
       target: squirrel-girl
-      distance: 3
+      max_distance: 3
       overrides:
       - may_move_through_sidekicks
       - spaces_containing_sidekicks_cost_zero_movement
@@ -203,6 +209,7 @@ cards:
     - op: SUMMON
       pool: squirrel
       destination_rule: adjacent_to_squirrel-girl
+    normalization_blocker: Small-fighter summon destination legality, including coexistence with ordinary fighters, requires B-EXT-002.
 - id: horde-of-squirrels
   name: Horde of Squirrels
   quantity: 2
@@ -215,9 +222,12 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: space_adjacent_to_at_least_4_squirrels_with_fighter
     operations:
     - op: DEAL_EFFECT_DAMAGE
-      target: fighter_in_space_adjacent_to_space_with_at_least_4_squirrels
+      target: fighter_in_chosen_space
       amount: 2
 - id: nutwork-of-spies
   name: Nutwork of Spies
@@ -231,16 +241,24 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: opponent
     operations:
     - op: LOOK_AT
-      source: opponent.hand
+      source: chosen_opponent.hand
       selector: all
       viewer: controller
-    - op: DISCARD
-      controller: opponent
-      from_zone: hand
-      selector: chosen_by_controller
-      count_rule: 2_if_opponent_fighter_adjacent_to_4_squirrels_else_1
+      capture: viewed_hand
+    nested_choice:
+      owner: controller
+      choose: 2_cards_if_chosen_opponent_has_fighter_adjacent_to_4_squirrels_else_1_from_viewed_hand
+      then:
+      - op: DISCARD
+        controller: chosen_opponent
+        from_zone: hand
+        selector: chosen_cards
+        count_rule: chosen_card_count
 external_definitions: []
 validation:
   available_pool_count: 30
@@ -253,4 +271,8 @@ sources:
 - https://www.unmatchedarena.com/heroes/squirrel-girl
 - https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
 normalization_notes:
-- Deck metadata is verified independently of unresolved small-fighter shared-occupancy semantics.
+- Deck metadata and quantities are verified independently, but the manifest is blocked because several card effects require unresolved small-fighter shared-occupancy runtime semantics.
+- Audit correction: Get 'Em Tippy-Toe!, Horde of Squirrels and Nutwork of Spies explicitly bind their choices; movement uses up-to semantics; small-fighter-dependent summon/move effects point to B-EXT-002.
+blockers:
+- id: semantic-extension-small-fighter-shared-occupancy
+  reason: Fuzzball Special, Squirmish, Get 'Em Tippy-Toe! and Eat Nuts require small-fighter shared-space capacity/coexistence/path semantics covered by B-EXT-002.
