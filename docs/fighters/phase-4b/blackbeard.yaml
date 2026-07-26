@@ -3,12 +3,7 @@ id: blackbeard
 display_name: Blackbeard
 set_ids:
 - battle-of-legends-vol-3
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- https://unmatched.cards/umdb/decks/blackbeard
-- https://www.the-unmatched.club/heroes/blackbeard
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -23,14 +18,14 @@ topology:
     starts_on_board: true
     summonable: false
   - id: seadog
-    display_name: Seadog
+    display_name: Sea Dog
     role: sidekick
     count: 2
     attack_type: melee
     starting_health: 1
     starts_on_board: true
     summonable: false
-    runtime_identity: Each Seadog token is a distinct fighter instance.
+    runtime_identity: Each Sea Dog token is a distinct one-health fighter instance.
 setup:
   hooks: []
   state_initialization: []
@@ -42,13 +37,13 @@ ability:
     trigger: start_turn
     optional: true
     condition:
-      state: blackbeard_doubloons
+      resource: blackbeard-doubloons
       gte: 1
     operations:
     - op: SPEND_RESOURCE
       resource: blackbeard-doubloons
       amount: 1
-      destination: treasury
+      destination: treasury-doubloons
     - op: GAIN_ACTION
       count: 1
   - id: combat-damage-payment
@@ -60,13 +55,7 @@ ability:
     - op: SPEND_RESOURCE
       resource: blackbeard-doubloons
       amount: 1
-      destination: treasury
-  - id: ransom-framework
-    trigger: source_defined_ransom_window
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_third_party_ransom
-    note: Generic multi-opponent ransom/payment semantics are proposed in the worker report.
+      destination: treasury-doubloons
 resources:
 - id: blackbeard-doubloons
   kind: token_pool
@@ -80,14 +69,30 @@ persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/blackbeard.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: blackbeard-ransom-payer
+  summary: Any opponent may pay a displayed ransom from the Treasury; paid doubloons move to Blackbeard and the marked effect is ignored.
+  source: https://www.the-unmatched.club/heroes/blackbeard
 sources:
 - authority: official_component
   url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/blackbeard
+  checked_at: '2026-07-26'
+  title: 'Unmatched: Battle of Legends, Vol. 3'
+- authority: reference
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-26'
+  title: Unmatched Battle of Legends 3 Box Opening
+  note: Physical set/deck review used to cross-check current transcriptions.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/blackbeard
+  checked_at: '2026-07-26'
+  title: Unmatched Arena — Blackbeard
+  note: Complete current deck transcription; cross-checked against physical component review.
 - authority: reference
   url: https://www.the-unmatched.club/heroes/blackbeard
+  checked_at: '2026-07-26'
+  title: The Unmatched Club — Blackbeard
+  note: Fighter ability and current official-ruling index.
 normalization_notes:
-- Three physical doubloons move between Blackbeard and the Treasury; card-specific ransom amounts cannot be validated until
-  the deck corpus is complete.
+- Ransom remains a source-defined composite until the orchestrator promotes a generic eligible-payer/resource-transfer/effect-prevention primitive.
+- Only competitive published Blackbeard content is represented.
