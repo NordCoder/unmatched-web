@@ -1,25 +1,18 @@
 schema_version: 1
 fighter_id: george-washington
 status: blocked
-reason: public_normalized_card_corpus_incomplete
+reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
 sources_checked:
 - https://restorationgames.com/shop/unmatched-stars-and-stripes/
 - https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
+- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
+- https://www.youtube.com/watch?v=KADK9FlkJqc
 - https://unmatched.cards/umdb/decks/george-washington
-- https://www.the-unmatched.club/heroes/george-washington
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
 cards: []
 external_definitions: []
 validation:
@@ -27,18 +20,12 @@ validation:
   game_deck_count: 30
   quantity_sum: null
   result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  reason: Official rulebook proves 30 action cards and public physical card material exists, but the complete card transcript has not yet been independently reconciled for quantity/type/value/BOOST/effects.
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/george-washington
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/george-washington
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 George Washington action cards.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party explanation of Culper Spy Ring/ruse gameplay.}
+- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
 normalization_notes:
-- Official rulebook/component inventory establishes 30 action cards for George Washington; current UmDb is incomplete and
-  the current rules index reports no hero cards.
+- Public physical/visual evidence exists; blocker is card-by-card transcription/reconciliation, not absence of a published deck.
+- No fan-deck reconstruction is promoted into cards[].
