@@ -80,6 +80,7 @@ cards:
       destination_rule: adjacent_to_dagger
     - op: GAIN_ACTION
       count: 1
+    dependency: gain_action_only_if_placement_succeeded
 - id: into-the-void
   name: Into the Void
   quantity: 3
@@ -125,9 +126,12 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
+    choices:
+    - owner: controller
+      choose: combat_fighter
     operations:
     - op: MOVE
-      target: chosen_combat_fighter
+      target: chosen_fighter
       max_distance: 3
 - id: the-living-light
   name: The Living Light
@@ -206,6 +210,7 @@ cards:
     - op: SET_VALUE
       target: this_card
       value: 4
+    dependency: defender_and_value_change_only_if_swap_succeeded
 - id: chosen-fate
   name: Chosen Fate
   quantity: 2
@@ -217,10 +222,15 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: friendly_hero
+    - owner: controller
+      choose: damage_amount_0_to_4
     operations:
     - op: DEAL_EFFECT_DAMAGE
       target: chosen_friendly_hero
-      amount: chosen_0_to_4
+      amount: chosen_amount
       capture: dealt
     - op: RECOVER
       target: other_friendly_hero
@@ -240,3 +250,5 @@ sources:
 - https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
 normalization_notes:
 - Audit correction: Lightforce Barrage uses the schema's first-class cancellation protection instead of relying only on a decorative tag.
+- Audit correction: Channel the Dark and Living Shadow preserve their official IF/THEN dependencies: later consequences do not resolve when the required placement/swap cannot occur.
+- Audit correction: Into Darkness and Chosen Fate explicitly bind their fighter/value choices.
