@@ -1,0 +1,67 @@
+schema_version: 1
+id: sherlock-holmes
+display_name: Sherlock Holmes
+set_ids: [cobble-and-fog]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: sherlock-holmes
+      display_name: Sherlock Holmes
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 16
+      starts_on_board: true
+      summonable: false
+    - id: dr-watson
+      display_name: Dr. Watson
+      role: sidekick
+      count: 1
+      attack_type: ranged
+      starting_health: 8
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks: []
+  state_initialization: []
+
+ability:
+  id: master-deduction
+  controller: owner
+  effects:
+    - id: protected-named-fighter-card-effects
+      trigger: static
+      continuous: true
+      condition:
+        card_user_in: [sherlock-holmes, dr-watson]
+      operations:
+        - {op: SET_STATE, key: card_effect_cancellation_protection, value: opponent_cannot_cancel}
+      note: ANY cards are not protected merely because Holmes or Watson plays them.
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4a/sherlock-holmes.yaml
+  construction: fixed
+
+rulings:
+  - id: sherlock-protection-scoped-by-card-user
+    summary: Cancellation protection is determined by the card's authorized fighter banner, not simply by which fighter happened to play an ANY card.
+    source: https://www.the-unmatched.club/rules/sherlock-holmes
+  - id: sherlock-deduce-vs-static-modifiers
+    summary: Deduce Strategy changes printed-value semantics and must be reconciled with effects that key off printed/current values according to the specific official ruling.
+    source: https://www.the-unmatched.club/rules/sherlock-holmes
+
+sources:
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/sherlock-holmes
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/sherlock-holmes
