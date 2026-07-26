@@ -14,12 +14,15 @@ topology:
     - {id: xander, display_name: Xander, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: false, summonable: false, setup_selectable: true}
 setup:
   hooks:
-    - stage: deck_construction
-      note: Current Reference setup order resolves Buffy's sidekick choice and 30-card deck construction before shuffle/draw and before hero placement.
+    - stage: CHARACTER_CONFIGURATION
+      note: Choose Giles or Xander as the active sidekick before deck construction; the unselected sidekick and its five-card package are out of play for this match.
       pending_choice: {owner: controller, visibility: public, choose: [giles, xander]}
       operations:
         - {op: SET_STATE, key: selected_sidekick, value: chosen_value}
-        - {op: CONSTRUCT_DECK, base_card_count: 25, selected_group_card_count: 5, final_count: 30}
+    - stage: DECK_CONSTRUCTION
+      note: Construct the 30-card game deck from the 25 base cards plus the five-card package matching selected_sidekick, then continue to shuffle/draw under the generalized setup order.
+      operations:
+        - {op: CONSTRUCT_DECK, base_card_count: 25, selected_group_from_state: selected_sidekick, selected_group_card_count: 5, final_count: 30}
   state_initialization: [{key: selected_sidekick, value: source_defined_setup_choice}]
 ability:
   id: slayer
