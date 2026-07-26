@@ -47,6 +47,9 @@ resources:
   kind: card_zone
   visibility: public
   initial: empty
+  ownership_rule: card_instance_owner_is_preserved
+  use_rule: cards_are_not_in_discard_and_are_not_normally_playable_from_this_zone
+  source_lifetime: invention_static_effects_apply_while_source_card_remains_in_zone
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/donatello.yaml
@@ -79,3 +82,4 @@ sources:
 normalization_notes:
 - Only competitive Donatello/Metalhead behavior is modeled; Adventures enemy/scenario state is excluded.
 - Inventions use a first-class public card zone; ordinary card ownership is preserved.
+- The inventions zone explicitly owns the lifetime of its static source effects rather than relying on hidden fighter-specific state.
