@@ -21,8 +21,7 @@ cards:
   name: Commanding Impact
   quantity: 3
   inclusion: fixed
-  usable_by:
-  - luke-cage
+  usable_by: any
   type: attack
   printed_value: 5
   boost: 1
@@ -82,7 +81,7 @@ cards:
     operations:
     - op: MOVE
       target: opposing_combat_fighter
-      distance: 3
+      max_distance: 3
       overrides:
       - may_move_through_other_opposing_fighters
     - op: DEAL_EFFECT_DAMAGE
@@ -101,12 +100,14 @@ cards:
   - trigger: after_combat
     condition:
       combat_result: won
+    choices:
+    - owner: controller
+      choose: exactly_2_cards_in_own_discard
     operations:
     - op: MOVE_CARD
       from_zone: discard
       to_zone: deck
-      selector:
-        count: 2
+      selector: chosen_cards
     - op: SHUFFLE
       zone: deck
 - id: pushback
@@ -124,7 +125,7 @@ cards:
     operations:
     - op: MOVE
       target: opposing_combat_fighter
-      distance: 3
+      max_distance: 3
 - id: regroup
   name: Regroup
   quantity: 3
@@ -177,6 +178,7 @@ cards:
     - op: SET_STATE
       key: combat.defender
       value: luke-cage
+    dependency: defender_changes_only_if_swap_occurs
 - id: trash-talk
   name: Trash Talk
   quantity: 3
@@ -243,3 +245,5 @@ sources:
 - https://unmatched.cards/umdb/decks/luke-cage
 - https://unmatched.cards/card-counter/luke-cage
 - https://restorationgames.com/shop/marvel-redemption-row/
+normalization_notes:
+- Audit correction: Power Man and Pushback are up-to movements; Still Standing explicitly binds the two discard-pile cards; Got My Back preserves the swap-to-defender dependency.
