@@ -1,0 +1,70 @@
+schema_version: 1
+id: john-henry
+display_name: John Henry
+set_ids:
+- stars-and-stripes
+status: blocked
+reason: public_normalized_card_corpus_incomplete
+sources_checked:
+- https://restorationgames.com/shop/unmatched-stars-and-stripes/
+- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
+- https://unmatched.cards/umdb/decks/john-henry
+- https://www.the-unmatched.club/heroes/john-henry
+movement: 2
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: john-henry
+    display_name: John Henry
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 17
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: steel-driving-man
+  controller: owner
+  effects:
+  - id: lay-track
+    trigger: start_turn
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_place_track_token
+      destination_rule: space_in_john_henry_zone
+    note: A generic positioned-resource token operation is proposed in the worker report.
+  - id: track-movement-cost
+    trigger: static
+    continuous: true
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_movement_space_cost_override
+      target: john-henry
+      marked_spaces: track_tokens
+    note: Only spaces John Henry moves through with track tokens ignore movement count; generic path-cost semantics are proposed.
+resources:
+- id: track-tokens
+  kind: token_pool
+  visibility: public
+  initial: 10
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/john-henry.yaml
+  construction: fixed
+rulings: []
+sources:
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+- authority: official_set
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+- authority: official_set
+  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
+- authority: secondary_database
+  url: https://unmatched.cards/umdb/decks/john-henry
+- authority: reference
+  url: https://www.the-unmatched.club/heroes/john-henry

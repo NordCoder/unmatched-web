@@ -1,0 +1,84 @@
+schema_version: 1
+id: krang
+display_name: Krang
+set_ids:
+- tmnt-shredder-krang-hero-decks
+status: blocked
+reason: public_normalized_card_corpus_incomplete
+sources_checked:
+- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+- https://unmatched.cards/umdb/decks/stats
+- https://www.the-unmatched.club/heroes/krang
+movement: 1
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: krang
+    display_name: Krang
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 16
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization:
+  - key: active_doomsday_machines
+    value: 1
+ability:
+  id: dooooom
+  controller: owner
+  effects:
+  - id: machine-move-modifier
+    trigger: static
+    continuous: true
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_move_value_modifier
+      amount_rule: active_doomsday_machine_count
+    note: Generic movement-value modifier is proposed in the worker report.
+  - id: ultimate-destruction-reroll
+    trigger: after_source_defined_die_roll
+    optional: true
+    condition:
+      state: active_doomsday_machines
+      gte: 1
+    operations:
+    - op: CHANGE_STATE
+      key: active_doomsday_machines
+      transition: minus_one
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_reroll_die
+    note: The hero ability's reroll is recorded, but Adventures villain die-outcome logic is not imported.
+resources:
+- id: doomsday-machines
+  kind: token_pool
+  visibility: public
+  initial: 3
+- id: die-of-ultimate-destruction
+  kind: external_definition_pool
+  visibility: public
+  initial: physical_die_from_tmnt_base_set
+persistent_state:
+- key: active_doomsday_machines
+  type: integer
+  reset: never
+deck:
+  manifest: ../../cards/phase-4b/krang.yaml
+  construction: fixed
+rulings: []
+sources:
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+- authority: secondary_database
+  url: https://unmatched.cards/umdb/decks/stats
+- authority: reference
+  url: https://www.the-unmatched.club/heroes/krang
+normalization_notes:
+- Only competitive hero behavior is modeled. The Adventures villain decision tree and scenario logic are excluded.
+- The actual competitive card(s) that roll the die and their result semantics remain deck-source-dependent and blocked.

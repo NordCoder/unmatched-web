@@ -1,0 +1,42 @@
+schema_version: 1
+fighter_id: shredder
+status: blocked
+reason: public_normalized_card_corpus_incomplete
+sources_checked:
+- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+- https://unmatched.cards/umdb/decks/stats
+- https://www.the-unmatched.club/heroes/shredder
+construction:
+  kind: fixed
+  available_pool_count: null
+  game_deck_count: null
+  rules: []
+card_zones:
+- id: deck
+  owner: self
+- id: hand
+  owner: self
+- id: discard
+  owner: self
+cards: []
+external_definitions: []
+validation:
+  available_pool_count: null
+  game_deck_count: null
+  quantity_sum: null
+  result: BLOCKED
+  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+sources:
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+- authority: secondary_database
+  url: https://unmatched.cards/umdb/decks/stats
+- authority: reference
+  url: https://www.the-unmatched.club/heroes/shredder
+normalization_notes:
+- Official product proves a competitive Shredder hero deck exists, but checked eligible sources do not expose its complete
+  action-card transcript.
+- Adventures villain cards are deliberately not substituted for the hero deck.

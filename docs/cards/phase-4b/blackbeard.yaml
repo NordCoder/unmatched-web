@@ -1,0 +1,38 @@
+schema_version: 1
+fighter_id: blackbeard
+status: blocked
+reason: public_normalized_card_corpus_incomplete
+sources_checked:
+- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+- https://unmatched.cards/umdb/decks/blackbeard
+- https://www.the-unmatched.club/heroes/blackbeard
+construction:
+  kind: fixed
+  available_pool_count: null
+  game_deck_count: null
+  rules: []
+card_zones:
+- id: deck
+  owner: self
+- id: hand
+  owner: self
+- id: discard
+  owner: self
+cards: []
+external_definitions: []
+validation:
+  available_pool_count: null
+  game_deck_count: null
+  quantity_sum: null
+  result: BLOCKED
+  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+sources:
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+- authority: secondary_database
+  url: https://unmatched.cards/umdb/decks/blackbeard
+- authority: reference
+  url: https://www.the-unmatched.club/heroes/blackbeard
+normalization_notes:
+- Battle of Legends Volume Three contains a fixed 30-card Blackbeard deck, but eligible public sources checked here do not
+  expose all card quantities, types, values, BOOSTs, effects, and ransom annotations.

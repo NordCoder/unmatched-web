@@ -1,0 +1,86 @@
+schema_version: 1
+fighter_id: pandora
+status: blocked
+reason: public_normalized_card_corpus_incomplete
+sources_checked:
+- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+- https://unmatched.cards/umdb/decks/pandora
+- https://www.the-unmatched.club/heroes/pandora
+construction:
+  kind: fixed
+  available_pool_count: null
+  game_deck_count: null
+  rules: []
+card_zones:
+- id: deck
+  owner: self
+- id: hand
+  owner: self
+- id: discard
+  owner: self
+cards: []
+external_definitions:
+- id: hope
+  kind: pandora_misery
+  feathers: 0
+  operations:
+  - op: LOOK_AT
+    source: pandora_box_top
+    selector: 1
+    viewer: controller
+  note: Look at the next Box card before deciding whether to continue the source-defined reveal loop.
+- id: confusion
+  kind: pandora_misery
+  feathers: 0
+  operations:
+  - op: MOVE
+    target: pandora
+    max_distance: 1
+- id: woe
+  kind: pandora_misery
+  feathers: 0
+  operations:
+  - op: SUMMON
+    pool: kakodaemons
+    destination_rule: space_in_pandora_zone
+- id: greed
+  kind: pandora_misery
+  feathers: 1
+  operations:
+  - op: DRAW
+    count: 1
+- id: toil
+  kind: pandora_misery
+  feathers: 1
+  operations:
+  - op: SET_STATE
+    key: pandora_attack_bonus_this_turn
+    value_rule: current_plus_1
+- id: pain
+  kind: pandora_misery
+  feathers: 1
+  operations:
+  - op: DEAL_EFFECT_DAMAGE
+    target: each_opposing_fighter_adjacent_to_pandora
+    amount: 1
+- id: misfortune
+  kind: pandora_misery
+  feathers: 2
+  operations: []
+validation:
+  available_pool_count: null
+  game_deck_count: null
+  quantity_sum: null
+  result: BLOCKED
+  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+sources:
+- authority: official_component
+  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+- authority: secondary_database
+  url: https://unmatched.cards/umdb/decks/pandora
+- authority: reference
+  url: https://www.the-unmatched.club/heroes/pandora
+normalization_notes:
+- Seven Box/Misery definitions are retained as external definitions and do not count toward the 30-card action deck.
+- Current public UmDb exposes only a small partial subset of Pandora's action cards; quantity/type/value/BOOST/effect reconciliation
+  is therefore blocked.
