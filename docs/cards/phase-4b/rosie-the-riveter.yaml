@@ -1,25 +1,18 @@
 schema_version: 1
 fighter_id: rosie-the-riveter
 status: blocked
-reason: public_normalized_card_corpus_incomplete
+reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
 sources_checked:
 - https://restorationgames.com/shop/unmatched-stars-and-stripes/
 - https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
+- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
+- https://www.youtube.com/watch?v=KADK9FlkJqc
 - https://unmatched.cards/umdb/decks/rosie-the-riveter
-- https://www.the-unmatched.club/heroes/rosie-the-riveter
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
 cards: []
 external_definitions: []
 validation:
@@ -27,18 +20,12 @@ validation:
   game_deck_count: 30
   quantity_sum: null
   result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  reason: Official rulebook proves 30 action cards and first-party/physical card material is public, but the full 30-card corpus has not yet been frame-transcribed and independently reconciled for quantity/type/value/BOOST/effects.
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/rosie-the-riveter
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/rosie-the-riveter
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 Rosie action cards.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party gameplay article and card-layout imagery for Rosie's mech upgrades.}
+- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
 normalization_notes:
-- Official rulebook/component inventory establishes 30 action cards for Rosie, but no eligible public source checked exposes
-  all 30 per-card quantities/types/values/BOOSTs/effects.
+- This is no longer classified as an absent public corpus. Physical/visual evidence exists; the blocker is completing a trustworthy card-by-card transcription and reconciliation.
+- No preview-derived guess or fan deck is promoted into cards[].
