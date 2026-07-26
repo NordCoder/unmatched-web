@@ -1,0 +1,25 @@
+schema_version: 1
+fighter_id: oda-nobunaga
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: student-of-war, name: Student of War, quantity: 2, usable_by: [oda-nobunaga], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count_rule: combat_damage_dealt_to_opposing_fighter}]}]}
+  - {id: lightning-and-thunder, name: Lightning and Thunder, quantity: 3, usable_by: [honor-guard], type: attack, printed_value: 4, boost: 1, tags: [flanking], effects: [{trigger: immediately, condition: {opposing_fighter_flanked: true}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}]}]}
+  - {id: fire-and-flames, name: Fire and Flames, quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 3, tags: [flanking], effects: [{trigger: during_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - {id: sun-and-moon, name: Sun and Moon, quantity: 2, usable_by: [honor-guard], type: attack, printed_value: 2, boost: 1, tags: [flanking], effects: [{trigger: during_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+  - {id: momentous-shift, name: Momentous Shift, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: during_combat, condition: {own_fighter_current_space_not_equal_turn_start_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - {id: battle-maneuvers, name: Battle Maneuvers, quantity: 4, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: MOVE, target: each_friendly_fighter, max_distance: 2}]}]}
+  - {id: patience-and-strategy, name: Patience and Strategy, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, tags: [flanking], effects: [{trigger: after_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: RECOVER, target: own_combat_fighter, amount: 2}]}]}
+  - {id: spring-the-trap, name: Spring the Trap, quantity: 3, usable_by: any, type: defense, printed_value: 2, boost: 2, tags: [], effects: [{trigger: immediately, optional: true, choices: [{owner: controller, choose: adjacent_friendly_fighter}], operations: [{op: SWAP, a: own_combat_fighter, b: chosen_fighter}, {op: SET_STATE, key: combat_defender, value: chosen_fighter, condition: {swap_completed: true}}]}, {trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
+  - {id: pragmatism, name: Pragmatism, quantity: 3, usable_by: [oda-nobunaga], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: reinforce, name: Reinforce, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: two_distinct_branches, options: [recover_all_friendly, draw_two, gain_action]}], operations: [{op: RECOVER, target: each_friendly_fighter, amount: 1, condition: {recover_all_friendly_selected: true}}, {op: DRAW, count: 2, condition: {draw_two_selected: true}}, {op: GAIN_ACTION, count: 1, condition: {gain_action_selected: true}}]}]}
+  - {id: demon-king-of-the-sixth-heaven, name: Demon King of the Sixth Heaven, quantity: 2, usable_by: [oda-nobunaga], type: scheme, printed_value: null, boost: 3, tags: [flanking], effects: [{trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_flanked_fighter, amount: 2}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+sources:
+  - https://unmatched.cards/umdb/decks/oda-nobunaga
+  - https://restorationgames.com/shop/suns-origin-unmatched/
+normalization_notes:
+  - flanked is a board predicate: at least two fighters controlled by the same player are adjacent to the target fighter.
