@@ -11,9 +11,7 @@ topology:
   fighters:
     - {id: robert-muldoon, display_name: Robert Muldoon, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
     - {id: ingen-worker, display_name: InGen Worker, role: sidekick, count: 3, attack_type: ranged, starting_health: 1, starts_on_board: true, summonable: false}
-setup:
-  hooks: []
-  state_initialization: [{key: traps_available, value: 8}]
+setup: {hooks: [], state_initialization: []}
 ability:
   id: ingen-traps
   controller: owner
@@ -21,14 +19,13 @@ ability:
     - id: place-trap
       trigger: turn_start
       optional: true
-      note: Place one available trap in an unoccupied fighter/token-free space in Muldoon's zone.
+      note: Place one not-yet-used trap in an unoccupied fighter/token-free space in Muldoon's zone.
     - id: trigger-trap
       trigger: opposing_fighter_enters_trap_space
-      note: Stop that movement immediately, deal 1 damage, return the trap to supply, then draw 1 for the returned own trap.
+      note: Stop that movement immediately, deal 1 damage, move the triggered trap permanently to the box, then resolve Muldoon's draw-on-return ability.
 resources:
-  - {id: traps, kind: token_pool, visibility: public, initial: 8, max: 8, position_sensitive: true}
-persistent_state:
-  - {key: traps_available, type: integer, reset: never}
+  - {id: traps, kind: token_pool, visibility: public, initial: 8, max: 8, position_sensitive: true, lifecycle: [available, board, box], reusable_from_box: false}
+persistent_state: []
 deck: {manifest: ../../cards/phase-4b/robert-muldoon.yaml, construction: fixed}
 rulings:
   - id: traps-do-not-trigger-friendly
@@ -40,4 +37,5 @@ sources:
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/ingen}
 blocker:
   reason: positioned_special_tokens_and_movement_interrupt_not_in_shared_effect_model
+  note: Trap availability must be derived from token-instance lifecycle rather than a duplicate traps_available integer. A triggered/removed trap goes to the box permanently and is not reusable.
   report: ../../phase-4b/worker-a-report.md
