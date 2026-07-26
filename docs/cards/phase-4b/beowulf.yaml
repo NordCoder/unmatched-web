@@ -19,10 +19,14 @@ cards:
 
 external_definitions:
   - {id: golden-drinking-horn-distinct-effects, kind: distinct_choice_per_resource, options: [draw_2, move_beowulf_up_to_4, recover_beowulf_2]}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, attack_count: 11, versatile_count: 9, defense_count: 3, scheme_count: 7}
 sources:
   - https://unmatched.cards/umdb/decks/beowulf
+  - https://unmatched.cards/umdb/decks/stats
+  - https://restorationgames.com/shop/little-red-beowulf-unmatched/
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf
-  - https://www.the-unmatched.club/heroes/beowulf
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Rage gain from the fighter ability is once per damage effect, not once per damage point.
+  - Current UmDb aggregate statistics reconcile exactly to 11 Attack / 9 Versatile / 3 Defense / 7 Scheme cards; fan/community transcriptions were excluded.
