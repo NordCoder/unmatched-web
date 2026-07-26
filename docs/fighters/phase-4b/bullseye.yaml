@@ -3,7 +3,7 @@ id: bullseye
 display_name: Bullseye
 set_ids:
 - marvel-hells-kitchen
-status: verified
+status: blocked
 movement: 2
 topology:
   type: single_hero
@@ -27,17 +27,25 @@ ability:
   - id: extended-attack-range
     trigger: static
     continuous: true
+    normalization_blocker: Bullseye may attack by graph distance up to 5 while ignoring zones. Phase 4A has no reusable graph-distance attack-legality modifier; the previous structured object stored in enum-typed state had no shared contract.
+  - id: record-final-combat-win
+    trigger: combat_end_after_after_combat_effects
+    condition:
+      final_combat_winner: bullseye
     operations:
     - op: SET_STATE
-      key: attack_range_rule
-      value:
-        max_space_distance: 5
-        ignore_zones: true
+      key: won_combat_this_turn
+      value: true
 resources: []
 persistent_state:
-- key: attack_range_rule
-  type: enum
-  reset: never
+- key: turn_start_space
+  type: space_ref
+  reset: turn_start
+  note: Required by card conditions that compare Bullseye's current space to the space where he started the turn.
+- key: won_combat_this_turn
+  type: boolean
+  reset: turn_start
+  note: Historical state used by published effects that ask whether Bullseye already won a combat this turn. It is updated only after the combat's final winner is known, so Arrogant But Effective can make that combat count for later effects.
 deck:
   manifest: ../../cards/phase-4b/bullseye.yaml
   construction: fixed
@@ -51,3 +59,7 @@ sources:
   url: https://www.the-unmatched.club/heroes/bullseye
 normalization_notes:
 - Attack legality is based on space distance up to 5, ignoring zones.
+- Audit correction: turn-start position and prior-win history are explicit persistent state instead of being reconstructed from current board/combat state.
+blockers:
+- id: semantic-extension-spatial-attack-range
+  reason: A reusable attack-legality modifier is required for graph-distance attacks that ignore zones. The previous attack_range_rule object was stored in an enum-typed persistent state and was not defined by the shared Phase 4A semantic contract.
