@@ -25,24 +25,25 @@ ability:
   controller: owner
   effects:
   - id: hellfire-maneuver
-    trigger: maneuver_movement_choice
+    trigger: maneuver_movement_choice_after_optional_boost
     optional: true
     costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: 1
+      cost_semantics: true
     operations:
-    - op: SET_STATE
-      key: current_maneuver_move_value
-      value: 4
     - op: MOVE
       target: ghost-rider
-      distance: 4
+      max_distance: 4
+      replacement_for: maneuver_movement
       overrides:
       - may_move_through_opposing_fighters
+      - ignore_maneuver_boost_for_move_value
     - op: DEAL_EFFECT_DAMAGE
       target: each_opposing_fighter_moved_through
       amount: 1
+    dependency: movement_override_and_damage_only_if_hellfire_cost_was_paid
 resources:
 - id: hellfire
   kind: counter
@@ -51,9 +52,6 @@ resources:
   min: 0
   max: 5
 persistent_state:
-- key: current_maneuver_move_value
-  type: integer
-  reset: action_end
 - key: turn_start_space
   type: space_ref
   reset: turn_start
@@ -73,4 +71,5 @@ sources:
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/ghost-rider
 normalization_notes:
+- Audit correction: Hell on Wheels is normalized as the maneuver's replacement movement, up to 4 spaces, after any optional movement BOOST; spending Hellfire fixes the effective move value at 4 rather than adding to a BOOST.
 - Audit correction: turn-start position is explicit persistent historical state for The Wicked Will Burn, following FIGHTER-SCHEMA-005.
