@@ -22,7 +22,10 @@ external_definitions:
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
   - https://unmatched.cards/umdb/decks/ingen
+  - https://unmatched.cards/umdb/decks/stats
   - https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf
-  - https://www.geektopiagames.com/unmatched/ingen/
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Trap positions and trap return-to-supply are preserved as source semantics but are not represented with invented fighter-specific operations.
+  - Current UmDb recheck confirms 30 cards, 11 unique definitions, and the published quantities/users/value/BOOST metadata used here.
