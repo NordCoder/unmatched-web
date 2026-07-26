@@ -13,7 +13,7 @@ cards:
   - {id: tactical-advance, name: Tactical Advance, quantity: 3, usable_by: [ingen-worker], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_ingen_worker, max_distance: 2}]}]}
   - {id: rending-shot, name: Rending Shot, quantity: 4, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3, controller: owner}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
   - {id: leap-away, name: Leap Away, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]}]}
 
 external_definitions:
@@ -28,4 +28,5 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Trap positions and trap return-to-supply are preserved as source semantics but are not represented with invented fighter-specific operations.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Current UmDb recheck confirms 30 cards, 11 unique definitions, and the published quantities/users/value/BOOST metadata used here.
