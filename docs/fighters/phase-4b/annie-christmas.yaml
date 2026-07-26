@@ -1,0 +1,45 @@
+schema_version: 1
+id: annie-christmas
+display_name: Annie Christmas
+set_ids: [tales-to-amaze]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: annie-christmas, display_name: Annie Christmas, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: charlie, display_name: Charlie, role: sidekick, count: 1, attack_type: ranged, starting_health: 8, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: necklace-of-pearls
+  controller: owner
+  effects:
+    - id: underdog-attack-bonus
+      trigger: static
+      continuous: true
+      condition: {attacker: annie-christmas, annie_health_less_than_defender: true}
+      operations: [{op: ADD_VALUE, target: annie_attack, amount: 2}]
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/annie-christmas.yaml
+  construction: fixed
+
+rulings:
+  - id: annie-static-bonus-not-cancelable
+    summary: Necklace of Pearls is a character ability/static bonus, not an effect on the combat card, so ordinary effect cancellation does not cancel it.
+    source: https://www.the-unmatched.club/heroes/annie-christmas
+
+sources:
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/annie-christmas}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/annie-christmas}
+  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+
+normalization_notes:
+  - Competitive hero behavior only. No Adventures villain, minion, initiative, threat, or scenario state is modeled here.
