@@ -118,7 +118,9 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2, position: shuffled}]
+    operations:
+    - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2}
+    - {op: SHUFFLE, zone: deck}
 - id: michelangelo-is-a-party-dude
   name: Michelangelo Is a Party Dude!!
   quantity: 2
@@ -161,7 +163,7 @@ cards:
       - {id: each_opponent_discards, operations: [{op: DISCARD, from: each_opponent_hand, selector: opponent_chosen, count: 1, controller: each_opponent}]}
       - {id: move_friendly, operations: [{op: MOVE, target: controller_chosen_friendly_fighter, max_distance: 2}]}
       - {id: bottom_card_for_action, costs: [{op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: controller_chosen_card, position: bottom}], operations: [{op: GAIN_ACTION, count: 1}]}
-      - {id: recycle_random, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2, position: shuffled}]}
+      - {id: recycle_random, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2}, {op: SHUFFLE, zone: deck}]}
 external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, result: PASS}
 sources:
@@ -170,5 +172,7 @@ sources:
 - {authority: reference, url: https://www.the-unmatched.club/heroes/michelangelo, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
 - All 12 definitions reconcile to 30 physical cards.
+- Back for Seconds and Shell Insertion recycling use explicit SHUFFLE after cards enter the deck; RNG is not encoded as a MOVE_CARD position shortcut.
 - Shell Insertion is a choose-two-distinct multi-effect composite pending generic choice-fanout integration.
+- Cowabunga requires authoritative per-turn card-play history; that history model remains an orchestrator integration item rather than an implicit current-state reconstruction.
 - Adventures enemy/scenario behavior is excluded.
