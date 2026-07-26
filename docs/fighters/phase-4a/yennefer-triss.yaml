@@ -1,0 +1,95 @@
+schema_version: 1
+id: yennefer-triss
+display_name: Yennefer & Triss
+set_ids: [witcher-realms-fall]
+status: verified
+movement: 2
+
+topology:
+  type: selectable_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: yennefer
+      display_name: Yennefer
+      role: selectable_hero
+      count: 1
+      attack_type: ranged
+      starting_health: source_defined_by_role
+      starts_on_board: true
+      summonable: false
+    - id: triss
+      display_name: Triss
+      role: selectable_hero
+      count: 1
+      attack_type: ranged
+      starting_health: source_defined_by_role
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks:
+    - stage: character_configuration
+      pending_choice:
+        owner: controller
+        visibility: public_after_lock
+        choose_one: [yennefer, triss]
+      operations:
+        - {op: SET_STATE, key: selected_hero, value: chosen_fighter}
+        - {op: SET_ROLE, target: chosen_fighter, role: hero, starting_health: 14}
+        - {op: SET_ROLE, target: other_fighter, role: sidekick, starting_health: 6}
+        - {op: INSTALL_ABILITY, source_rule: selected_hero_only}
+  state_initialization: []
+
+ability:
+  id: rival-hero-ability
+  controller: owner
+  effects:
+    - id: yennefer-sorceress-of-vengerberg
+      active_when: {selected_hero: yennefer}
+      trigger: immediately
+      condition: {attacker: yennefer}
+      optional: true
+      cancellation: protected
+      operations:
+        - {op: BOOST, target: yennefer_attack, source: hand, count: 1}
+    - id: triss-merigold-the-fearless
+      active_when: {selected_hero: triss}
+      trigger: after_scheme
+      condition: {scheme_played_by: triss}
+      optional: false
+      choices:
+        - {owner: controller, choose: fighter_adjacent_to_triss, friendly_allowed: true}
+      operations:
+        - {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}
+
+resources: []
+
+persistent_state:
+  - key: selected_hero
+    type: fighter_ref
+    reset: never
+
+deck:
+  manifest: ../../cards/phase-4a/yennefer-triss.yaml
+  construction: fixed
+
+rulings:
+  - id: yennefer-triss-hero-choice-timing
+    summary: Hero identity is selected at the beginning of the game and determines both starting health roles and which special ability is active.
+    source: https://www.the-unmatched.club/rules/yennefer-triss
+  - id: yennefer-boost-protected
+    summary: Yennefer's special-ability BOOST in the IMMEDIATELY window cannot be canceled. If her attack card also has an IMMEDIATELY effect, her controller orders the two eligible own effects.
+    source: https://www.the-unmatched.club/rules/yennefer-triss
+  - id: triss-after-scheme-mandatory
+    summary: Triss resolves the scheme first, then must choose an adjacent fighter and deal 2 damage; a friendly fighter is a legal/required target when applicable.
+    source: https://www.the-unmatched.club/rules/yennefer-triss
+
+sources:
+  - type: official_product
+    url: https://restorationgames.com/shop/unmatched-witcher-realms-fall/
+  - type: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/yennefer-triss
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/yennefer-triss
