@@ -1,37 +1,159 @@
 schema_version: 1
 fighter_id: raphael
-status: blocked
-reason: complete_per_card_transcript_not_verified
-sources_checked:
-- https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/raphael
-- https://www.the-unmatched.club/heroes/raphael
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-cards: []
+cards:
+- id: batter-up
+  name: Batter Up!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [casey-jones]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {combat_result: won}
+    operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3}]
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    choices: [{owner: controller, choose: card_in_hand_for_boost}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
+- id: unbridled-rage
+  name: Unbridled Rage
+  quantity: 2
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 3
+  boost: 4
+  tags: []
+  effects:
+  - trigger: during_combat
+    choices: [{owner: controller, choose: defense_or_versatile_cards_in_hand, min: 0, max: all, capture: chosen_cards}]
+    operations:
+    - {op: DISCARD, from: hand, selector: captured.chosen_cards}
+    - {op: ADD_VALUE, target: this_card, amount_rule: two_per_captured_chosen_card}
+- id: crowd-control
+  name: Crowd Control
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - {op: DRAW, count_rule: count_adjacent_opposing_fighters_to_own_combat_fighter}
+    - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}
+- id: lets-do-this
+  name: Let's Do This!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 1
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    branches:
+    - {condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: DRAW, count: 1}]}
+- {id: sai, name: Sai, quantity: 2, inclusion: fixed, usable_by: [raphael], type: versatile, printed_value: 4, boost: 2, tags: [], effects: []}
+- id: relentless
+  name: Relentless
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: deck, selector: this_card, position: shuffled}, {op: DRAW, count: 1}]
+- id: break-something
+  name: Break Something
+  quantity: 3
+  inclusion: fixed
+  usable_by: [raphael]
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_cancel_opposing_during_and_after_effects, capture: canceled_any}]
+  - trigger: after_combat
+    condition: {captured.canceled_any: false}
+    choices: [{owner: controller, choose: adjacent_opposing_fighter, capture: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 2}]
+- id: payback-time
+  name: Payback Time!
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {state: lost_combat_this_turn, equals: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+- id: slapshot
+  name: Slapshot
+  quantity: 3
+  inclusion: fixed
+  usable_by: [casey-jones]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {casey_jones_adjacent_to_opposing_combat_fighter: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 6}]
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [raphael], type: defense, printed_value: 5, boost: 2, tags: [], effects: []}
+- id: raphael-is-cool-but-rude
+  name: Raphael Is Cool But Rude
+  quantity: 2
+  inclusion: fixed
+  usable_by: [raphael]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_friendly_fighter, amount: 1}
+    - {op: DRAW, count: 1}
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: null
-  result: BLOCKED
-  reason: Official IELLO rules establish a 30-card deck and competitive Anger Issues behavior, but a complete per-card quantity/type/value/BOOST/effect transcript has not been independently reconciled.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, result: PASS}
 sources:
-- authority: official_set
-  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
-  checked_at: '2026-07-26'
-  note: Establishes Raphael's 30-card allocation and Anger Issues rules.
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
-- {authority: secondary_database, url: https://unmatched.cards/umdb/decks/raphael, checked_at: '2026-07-26'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-26'}
+- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- Deck construction is authoritative 30/30; quantity_sum remains unknown until every action-card definition is verified.
+- All 12 definitions reconcile to 30 physical cards.
+- Break Something records whether its selective cancellation actually canceled an effect so its AFTER COMBAT fallback is historical-state safe.
 - Adventures enemy/scenario behavior is excluded.
