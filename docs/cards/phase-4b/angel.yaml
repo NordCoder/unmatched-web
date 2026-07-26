@@ -8,7 +8,7 @@ cards:
   - {id: five-by-five, name: Five by Five, quantity: 2, usable_by: [faith], type: attack, printed_value: 5, boost: 3, effects: [{trigger: after_combat, operations: [{op: MOVE, target: faith, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
   - {id: disengage, name: Disengage, quantity: 3, usable_by: any, type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, choices: [{choose: empty_space_in_own_combat_fighter_zone}], operations: [{op: PLACE, target: own_combat_fighter, destination_rule: chosen_space}]}]}
   - {id: cursed-with-a-soul, name: Cursed with a Soul, quantity: 2, usable_by: [angel], type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: lost}, operations: [{op: RECOVER, target: angel, amount: 1}]}]}
-  - {id: wisdom-of-ages, name: Wisdom of Ages, quantity: 2, usable_by: [angel], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, branches: [{condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: wisdom-of-ages, name: Wisdom of Ages, quantity: 2, usable_by: [angel], type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, branches: [{condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}]}
   - {id: brooding, name: Brooding, quantity: 2, usable_by: [angel], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: lost}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
   - {id: the-rogue-slayer, name: The Rogue Slayer, quantity: 2, usable_by: [faith], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_faith, amount: 1}]}]}
   - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
@@ -18,10 +18,13 @@ cards:
   - {id: killer-of-the-dead, name: Killer of the Dead, quantity: 3, usable_by: [faith], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, choices: [{choose: opposing_fighter_adjacent_to_faith}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, attack_count: 12, versatile_count: 13, defense_count: 2, scheme_count: 3}
 sources:
   - https://unmatched.cards/umdb/decks/angel
+  - https://unmatched.cards/umdb/decks/stats
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
-  - https://www.the-unmatched.club/heroes/angel
-  - https://gridbeast.gg/unmatched-angel/
-normalization_notes: []
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
+normalization_notes:
+  - Current UmDb aggregate statistics require 5 unique Attack definitions / 12 attack cards and 5 unique Versatile definitions / 13 versatile cards. Wisdom of Ages is therefore Attack; The Rogue Slayer remains Versatile.
+  - Current official Disengage errata requires an empty destination space.
