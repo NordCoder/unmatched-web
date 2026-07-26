@@ -1,31 +1,178 @@
 schema_version: 1
 fighter_id: rosie-the-riveter
-status: blocked
-reason: physical_card_corpus_requires_frame_transcription_and_reconciliation
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/
-- https://www.youtube.com/watch?v=KADK9FlkJqc
-- https://unmatched.cards/umdb/decks/rosie-the-riveter
+status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
 - {id: discard, owner: self}
-cards: []
+cards:
+- id: we-can-do-it
+  name: We Can Do It!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [rosie-the-riveter]
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]
+- id: overrun
+  name: Overrun
+  quantity: 3
+  inclusion: fixed
+  usable_by: [rosie-the-riveter]
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - {op: MOVE, target: rosie-the-riveter, max_distance: 3, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}
+    - {op: DEAL_EFFECT_DAMAGE, target: captured.opposing_fighters_moved_through, amount: 1}
+- id: d-day
+  name: D-Day
+  quantity: 3
+  inclusion: fixed
+  usable_by: [rosie-the-riveter]
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_activate_all_upgrades, capture: all_were_already_active}
+  - trigger: after_combat
+    condition: {captured.all_were_already_active: true}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: RECOVER, target: rosie-the-riveter, amount: 1}]
+- id: arc-welding
+  name: Arc Welding
+  quantity: 3
+  inclusion: fixed
+  usable_by: [wendy-the-welder]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    choices: [{owner: controller, choose: mode, options: [activate_upgrade, damage_adjacent_opponents]}]
+    branches:
+    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
+    - {condition: {chosen_mode: damage_adjacent_opponents}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_adjacent_opposing_fighter, amount: 1}]}
+- id: technological-superiority
+  name: Technological Superiority
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    condition: {state: active_upgrade_count, gte: 3}
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+- id: momentous-shift
+  name: Momentous Shift
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition: {own_combat_fighter_started_turn_in_different_space: true}
+    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+- id: loose-lips-sink-ships
+  name: Loose Lips Sink Ships!
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - {op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}
+    - {op: ADD_VALUE, target: opposing_combat_card, amount_rule: negative_captured_revealed_card_boost}
+- id: full-metal
+  name: Full Metal
+  quantity: 3
+  inclusion: fixed
+  usable_by: [rosie-the-riveter]
+  type: versatile
+  printed_value: 1
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations: [{op: ADD_VALUE, target: this_card, amount_from_state: active_upgrade_count}]
+- id: hasty-repairs
+  name: Hasty Repairs
+  quantity: 3
+  inclusion: fixed
+  usable_by: [rosie-the-riveter]
+  type: defense
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition: {state: active_upgrade_count, gt: 0}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}, {op: RECOVER, target: rosie-the-riveter, amount: 3}]
+- id: e-award
+  name: '"E" Award'
+  quantity: 2
+  inclusion: fixed
+  usable_by: [wendy-the-welder]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    choices: [{owner: controller, choose: mode, options: [activate_upgrade, deactivate_upgrade]}]
+    branches:
+    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
+    - {condition: {chosen_mode: deactivate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}]}
+  - trigger: scheme
+    operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3}]
+- id: rapid-development
+  name: Rapid Development
+  quantity: 2
+  inclusion: fixed
+  usable_by: [wendy-the-welder]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations: [{op: DRAW, count: 2}]
+  - trigger: scheme
+    choices: [{owner: controller, choose: mode, options: [activate_upgrade, deactivate_upgrade]}]
+    branches:
+    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
+    - {condition: {chosen_mode: deactivate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}]}
+  - trigger: scheme
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}]
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: null
-  result: BLOCKED
-  reason: Official rulebook proves 30 action cards and first-party/physical card material is public, but the full 30-card corpus has not yet been frame-transcribed and independently reconciled for quantity/type/value/BOOST/effects.
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11, result: PASS}
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-26'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-26', note: Contents page explicitly lists 30 Rosie action cards.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-26', note: First-party gameplay article and card-layout imagery for Rosie's mech upgrades.}
-- {authority: reference, url: https://www.youtube.com/watch?v=KADK9FlkJqc, checked_at: '2026-07-26', note: Public physical all-cards reveal; manual frame transcription/reconciliation remains pending.}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Current visual action-card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
-- This is no longer classified as an absent public corpus. Physical/visual evidence exists; the blocker is completing a trustworthy card-by-card transcription and reconciliation.
-- No preview-derived guess or fan deck is promoted into cards[].
+- All 11 action-card definitions reconcile to 30 physical cards.
+- Action-card corpus is verified independently of the still-partial fighter-level upgrade-token definitions.
+- Upgrade activation/deactivation preserves ordered-token semantics through source-defined composites.
