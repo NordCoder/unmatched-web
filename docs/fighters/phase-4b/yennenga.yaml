@@ -16,12 +16,13 @@ ability:
   id: shield-of-the-archers
   controller: owner
   effects:
-    - id: redirect-yennenga-damage
+    - id: allocate-yennenga-damage
       trigger: before_damage_application
       condition: {target: yennenga}
       optional: true
       choices: [{owner: controller, choose: damage_split_to_archers_in_yennenga_zone, max_per_archer: remaining_health}]
-      operations: [{op: REDIRECT_DAMAGE, source_damage: pending_damage, from: yennenga, to: chosen_archer_allocations}]
+      operations: []
+      normalization_blocker: pending_damage_must_be_partially_allocated_across_zero_or_more_eligible_archers_with_unallocated_remainder_still_applied_to_yennenga_without_changing_damage_type
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/yennenga.yaml, construction: fixed}
@@ -30,7 +31,7 @@ rulings:
     summary: VOLLEY is a bonus attack after the parent combat using the published attacker/defender/value rules; it is not another Attack action, and current rulings prevent it if either participant was defeated during the parent attack.
     source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
   - id: archer-damage-allocation-cap
-    summary: Damage redirected from Yennenga may be divided among eligible Archers in her zone, but no Archer may be assigned more damage than its current remaining health.
+    summary: Damage redirected from Yennenga may be divided among eligible Archers in her zone, but no Archer may be assigned more damage than its current remaining health; any unallocated damage remains on Yennenga.
     source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/}
@@ -39,6 +40,6 @@ sources:
   - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
   - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
-  reason: movement_path_capture_required_by_stallion_charge_not_in_shared_effect_model
-  affected_card: stallion-charge
+  reason: movement_path_capture_and_partial_pending_damage_allocation_not_in_shared_effect_model
+  affected_mechanics: [stallion-charge, shield-of-the-archers]
   report: ../../phase-4b/worker-a-report.md
