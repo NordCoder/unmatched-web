@@ -1,0 +1,24 @@
+schema_version: 1
+fighter_id: bigfoot
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: larger-than-life, name: Larger Than Life, quantity: 3, usable_by: [bigfoot], type: attack, printed_value: 6, boost: 3, effects: []}
+  - {id: savagery, name: Savagery, quantity: 3, usable_by: [bigfoot], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_bigfoot, amount: 1}]}]}
+  - {id: crash-through-the-trees, name: Crash Through the Trees, quantity: 2, usable_by: [bigfoot], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: MOVE, target: bigfoot, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
+  - {id: jackalope-horns, name: Jackalope Horns, quantity: 3, usable_by: [jackalope], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: MOVE, target: jackalope, max_distance: 5, overrides: [may_move_through_opposing_fighters]}], choices: [{choose: fighter_adjacent_to_jackalope}], followup_operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
+  - {id: hoax, name: Hoax, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
+  - {id: disengage, name: Disengage, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, choices: [{choose: empty_space_in_own_combat_fighter_zone}], operations: [{op: PLACE, target: own_combat_fighter, destination_rule: chosen_space}]}]}
+  - {id: its-just-your-imagination, name: "It's Just Your Imagination", quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
+  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+sources:
+  - https://unmatched.cards/umdb/decks/bigfoot
+  - https://www.geektopiagames.com/unmatched/big-foot/
+normalization_notes: []
