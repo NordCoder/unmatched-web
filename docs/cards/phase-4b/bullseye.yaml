@@ -1,199 +1,219 @@
 schema_version: 1
 fighter_id: bullseye
 status: blocked
+
 construction:
   kind: fixed
   available_pool_count: 30
   game_deck_count: 30
+
 cards:
-- id: worlds-greatest-assassin
-  name: World's Greatest Assassin
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: attack
-  printed_value: 4
-  boost: 3
-  tags: []
-  effects:
-  - trigger: immediately
-    condition:
-      won_combat_earlier_this_turn: true
-    operations:
-    - op: IGNORE_VALUE
-      target: opposing_combat_card
-  evidence_status: verified
-- id: i-never-miss
-  name: I Never Miss
-  quantity: 4
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: for-my-next-trick
-  name: For My Next Trick
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: i-planned-to-be-here
-  name: I Planned To Be Here
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: ricochet
-  name: Ricochet
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: master-strategist
-  name: Master Strategist
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: right-between-the-eyes
-  name: Right Between The Eyes
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: im-better-and-ill-prove-it
-  name: I'm Better And I'll Prove It
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: arrogant-but-effective
-  name: Arrogant But Effective
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: feint
-  name: Feint
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: defense
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-  evidence_status: verified
-- id: tactical-retreat
-  name: Tactical Retreat
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
-- id: study-the-target
-  name: Study The Target
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - bullseye
-  type: null
-  printed_value: null
-  boost: null
-  tags: []
-  effects: []
-  evidence_status: blocked
-  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
-    from an allowed published source during this pass.
+  - id: worlds-greatest-assassin
+    name: World's Greatest Assassin
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects:
+      - trigger: immediately
+        condition: {won_combat_earlier_this_turn: true}
+        operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+
+  - id: i-never-miss
+    name: I Never Miss
+    quantity: 4
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - trigger: during_combat
+        choices:
+          - owner: controller
+            choose: boost_this_attack_or_draw
+            branches:
+              boost:
+                operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
+              draw:
+                operations: [{op: DRAW, count: 1}]
+
+  - id: for-my-next-trick
+    name: For My Next Trick
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: MOVE, target: bullseye, max_distance: 1}
+          - {op: DRAW, count: 1}
+          - {op: GAIN_ACTION, count: 1}
+
+  - id: i-planned-to-be-here
+    name: I Planned To Be Here
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - trigger: during_combat
+        condition: {bullseye_current_space_equals_turn_start_space: true}
+        operations: [{op: SET_VALUE, target: this_card, value: 5}]
+
+  - id: ricochet
+    name: Ricochet
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: null
+    tags: []
+    effects:
+      - trigger: after_combat
+        condition: {opposing_combat_fighter_defeated_by_this_attack: false}
+        choices: [{owner: controller, choose: fighter_in_opposing_combat_fighter_current_zone}]
+        operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]
+    evidence_status: partial
+    evidence_gap: Type, value, quantity, and effect are independently cross-checked, but the printed BOOST value was not recovered from a sufficiently authoritative/current allowed source in this follow-up pass.
+
+  - id: master-strategist
+    name: Master Strategist
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations:
+          - {op: MOVE, target: bullseye, distance: exactly_4, overrides: [may_move_through_opposing_fighters]}
+
+  - id: right-between-the-eyes
+    name: Right Between The Eyes
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - trigger: immediately
+        condition: {won_combat_earlier_this_turn: true}
+        operations: [{op: DISCARD, from: opponent.hand, selector: opponent_choice, count: 1}]
+
+  - id: im-better-and-ill-prove-it
+    name: I'm Better And I'll Prove It
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - trigger: during_combat
+        condition: {won_combat_earlier_this_turn: true}
+        operations: [{op: SET_VALUE, target: this_card, value: 6}]
+
+  - id: arrogant-but-effective
+    name: Arrogant But Effective
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations: [{op: SET_STATE, key: combat_result.winner, value: controller}]
+
+  - id: feint
+    name: Feint
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+  - id: tactical-retreat
+    name: Tactical Retreat
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: defense
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - trigger: after_combat
+        operations:
+          - op: PLACE
+            target: bullseye
+            destination_rule: any_space_sharing_no_zones_with_bullseye_pre_effect_space
+
+  - id: study-the-target
+    name: Study The Target
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - trigger: scheme
+        operations: [{op: DRAW, count: 2}]
+      - trigger: scheme
+        condition: {won_combat_earlier_this_turn: true}
+        operations:
+          - {op: DRAW, count: 1}
+          - {op: GAIN_ACTION, count: 1}
+
 external_definitions: []
+
 validation:
   available_pool_count: 30
   game_deck_count: 30
-  known_quantity_sum: 30
-  quantity_reconciles: true
+  quantity_sum: 30
   unique_card_definitions: 12
+  quantity_reconciles: true
+
 sources:
-- https://unmatched.cards/umdb/decks/bullseye
-- https://unmatched.cards/card-counter/bullseye
-- https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+  - https://unmatched.cards/umdb/decks/bullseye
+  - https://unmatched.cards/umdb/decks/stats
+  - https://unmatched.cards/umdb/cards/feint
+  - https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+  - https://www.the-unmatched.club/heroes/bullseye
+
 normalization_notes:
-- The 12-definition quantity index reconciles to 30. No community /decks/ records were used to fill missing printed metadata.
+  - The 12-definition quantity index reconciles to 30. Current UmDb type statistics reconcile to 11 physical attack cards, 14 versatile cards, 3 defense cards, and 2 scheme cards.
+  - Feint is versatile in Bullseye's deck; Tactical Retreat is the single defense definition.
+  - A secondary strategy article incorrectly reports four Arrogant But Effective copies. The current UmDb/component evidence and the 30-card quantity reconciliation support the three-copy published deck record used here.
+  - Ricochet's type, value, quantity, and effect are independently cross-checked; only its BOOST value remains intentionally unfilled.
+  - No community /decks/ record was used.
+
 blockers:
-- id: published-card-metadata-gap
-  reason: Full per-card printed metadata for 10 of 12 definitions was not independently retrievable from allowed current published
-    sources.
+  - id: ricochet-boost-evidence-gap
+    reason: One printed field remains unverified: Ricochet's BOOST value. It is intentionally null rather than inferred from fan copies or secondary aggregate assumptions.
