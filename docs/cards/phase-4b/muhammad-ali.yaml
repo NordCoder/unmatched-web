@@ -32,9 +32,12 @@ cards:
   effects:
   - trigger: after_combat
     operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]
+  - trigger: after_combat
     condition: {combat_result: won}
     choices: [{owner: controller, choose: card_in_opponent_hand, capture: chosen_card}]
-    followup: [{op: MOVE_CARD, from_zone: opponent_hand, to_zone: opponent_deck, selector: captured.chosen_card, position: shuffled}]
+    operations:
+    - {op: MOVE_CARD, from_zone: opponent_hand, to_zone: opponent_deck, selector: captured.chosen_card}
+    - {op: SHUFFLE, zone: opponent_deck}
 - id: ali-shuffle
   name: Ali Shuffle
   quantity: 3
@@ -53,7 +56,9 @@ cards:
   - trigger: after_combat
     condition: {combat_result: won}
     choices: [{owner: controller, choose: non_scheme_card_in_discard, capture: chosen_card}]
-    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: captured.chosen_card, position: shuffled}]
+    operations:
+    - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: captured.chosen_card}
+    - {op: SHUFFLE, zone: deck}
 - id: jab
   name: Jab
   quantity: 2
@@ -207,4 +212,6 @@ sources:
 normalization_notes:
 - All 13 unique definitions reconcile to 30 physical cards.
 - Butterfly-only clauses are represented by ali_stance=float conditions; Bee's +2 attack remains fighter-level continuous state.
+- Stronger Than the Skill looks at the opponent hand unconditionally; only the shuffle branch requires a combat win.
+- Deck insertion followed by randomization is represented as MOVE_CARD plus explicit SHUFFLE so RNG is a first-class replay event.
 - No fan-deck namespace is used.
