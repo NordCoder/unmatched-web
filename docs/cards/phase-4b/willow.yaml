@@ -9,21 +9,24 @@ cards:
   - {id: black-magic, name: Black Magic, quantity: 3, usable_by: [willow], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: during_combat, condition: {form: dark-willow}, operations: [{op: BOOST, target: this_card, card_or_blind_source: top_of_deck}]}]}
   - {id: love-and-loss, name: Love and Loss, quantity: 2, usable_by: [willow], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}]}, {trigger: scheme, condition: {form: dark-willow}, operations: [{op: MOVE_CARD, from_zone: deck, to_zone: discard, selector: top_2_cards}, {op: REQUEST_CHOICE, definition: love_and_loss_sidekick}, {op: DEAL_EFFECT_DAMAGE, target: chosen_sidekick, amount: 3}]}]}
   - {id: flayed-alive, name: Flayed Alive, quantity: 3, usable_by: [willow], type: attack, printed_value: 4, boost: 3, effects: [{trigger: during_combat, condition: {form: dark-willow}, operations: [{op: BOOST, target: this_card, card_or_blind_source: top_of_deck}]}]}
-  - {id: hacker, name: Hacker, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: deck, count: 1, viewer: owner}, {op: REQUEST_CHOICE, definition: top_or_bottom_viewed_card}]}]}
+  - {id: hacker, name: Hacker, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: deck, count: 1, viewer: owner}, {op: REQUEST_CHOICE, definition: hacker_top_or_bottom}, {op: MOVE_CARD, from_zone: deck_top, to_zone: chosen_destination, selector: viewed_card}]}]}
   - {id: when-good-magic-fails, name: When Good Magic Fails, quantity: 2, usable_by: [willow], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {form: dark-willow}, operations: [{op: PLACE, target: willow, destination_rule: any_space_in_willow_zone}, {op: MOVE_CARD, from_zone: deck, to_zone: discard, selector: top_card}]}]}
   - {id: knowledge-of-the-craft, name: Knowledge of the Craft, quantity: 2, usable_by: [tara], type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: card_in_own_discard}], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: chosen_card}]}]}
   - {id: resurrect, name: Resurrect, quantity: 2, usable_by: [willow], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: defeated_friendly_fighter}], operations: [{op: RETURN_FIGHTER, target: chosen_fighter, destination: any_space_in_willow_zone, health_rule: unresolved_exact_3}]}], normalization_blocker: returned_fighter_health_must_be_set_exactly_to_3}
   - {id: revoke, name: Revoke, quantity: 2, usable_by: [tara], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
   - {id: swift-strike, name: Swift Strike, quantity: 2, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 4}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
 
 external_definitions:
   - {id: love_and_loss_sidekick, kind: choice, domain: sidekick_in_willow_zone}
+  - {id: hacker_top_or_bottom, kind: choice, controller: owner, domain: [deck_top, deck_bottom], output: chosen_destination}
   - {id: set-returned-health-absolute, kind: proposed_generic_operation, affected_card: resurrect, semantics: return_defeated_fighter_then_set_current_health_exactly_to_source_value}
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
 sources:
   - https://unmatched.cards/umdb/decks/willow
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
 normalization_notes:
+  - Hacker now records the actual top-or-bottom card disposition after the private look/choice.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Resurrect is not approximated as RECOVER; exact post-return health assignment is a shared-model blocker.
