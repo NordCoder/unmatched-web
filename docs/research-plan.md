@@ -30,37 +30,27 @@ The work is ordered by semantic dependency, not by release date. A large card ca
 
 **Status:** **complete — gate passed 2026-07-26.**
 
-### Inputs
-
-- current Core Rules;
-- official errata and general rulings;
-- later set rules where they clarify a core term retroactively.
-
 ### Output
 
-`docs/rules/` now contains implementation-oriented rules for:
+`docs/rules/` contains implementation-oriented rules for:
 
-- component and actor model: player, character, hero, sidekick, fighter;
-- battlefield spaces, adjacency, zones, starting spaces;
+- player/character/hero/sidekick/fighter semantics;
+- battlefield spaces, adjacency and zones;
 - setup and starting player;
-- turn and action economy;
-- Maneuver, movement, BOOST and drawing;
-- Scheme action;
-- Attack legality, melee/ranged targeting and defense;
-- combat reveal and ordered resolution;
-- `IMMEDIATELY`, `DURING COMBAT`, damage and `AFTER COMBAT`;
-- defeat, game-end checks, hand limit and exhaustion;
-- two-player rules plus separately scoped free-for-all/team deltas.
+- turn/action economy;
+- Maneuver, movement, BOOST, drawing and exhaustion;
+- Scheme;
+- Attack legality and combat resolution;
+- defeat, game-end checks and hand limit;
+- separately scoped multiplayer deltas.
 
-Each normative rule has a stable rule ID and source reference.
+Every normative rule has a stable rule ID and source reference.
 
 ### Gate
 
-A minimal two-fighter match with only vanilla cards can be simulated from documentation alone, including exhaustion and every generic two-player game-end path.
+A minimal vanilla two-player match can be simulated from documentation alone, including exhaustion and all generic two-player game-end paths.
 
 **Gate result:** PASS. See [`rules/phase-1-validation.md`](rules/phase-1-validation.md).
-
-The gate deliberately excludes fighter/set-specific mechanics that require Phase 2 timing, choice, cancellation, bonus-attack, extra-action, placement, or other global rulings. Passing Phase 1 does not make the overall project `developer-ready`.
 
 ---
 
@@ -72,79 +62,63 @@ This phase establishes the global resolution framework that fighter/card content
 
 ### Completed work
 
-1. Built an event/window/checkpoint model for turns, actions and combat.
-2. Defined deterministic pause/resume semantics for player choices, including reconnect during hidden combat and setup choices.
-3. Separated public, private, committed-hidden and temporarily revealed information.
-4. Defined a normalized effect representation that preserves trigger, condition, choice, cost/dependency, ordered operations and provenance.
-5. Established an extensible primitive taxonomy for cards, health, relocation, actions/resources/state, combat values, cancellation and control flow.
-6. Reconciled cancellation semantics, including effectless cards and attached battlefield-item effects.
-7. Formalized normal/gained/free action accounting.
-8. Formalized move versus place, corrected occupied-space placement selection, failed placement and swap semantics.
-9. Formalized corrected bonus-attack behavior as nested combat inside one Attack action.
-10. Formalized current `End the turn` and dormant-player rulings.
-11. Added generalized setup hooks for pre-game configuration/deck construction/placement.
-12. Indexed global rulings separately from normalized engine semantics.
-13. Created a severity-based ambiguity register so unresolved content-specific interactions cannot be silently guessed.
-
-### Output
-
-Primary documents are under [`mechanics/`](mechanics/) and [`rulings/`](rulings/):
-
-- `mechanics/event-model.md`;
-- `mechanics/choices-and-resume.md`;
-- `mechanics/effect-model.md`;
-- `mechanics/cancellation.md`;
-- `mechanics/action-accounting.md`;
-- `mechanics/movement-and-placement.md`;
-- `mechanics/bonus-attacks.md`;
-- `mechanics/end-turn-and-dormancy.md`;
-- `mechanics/information-visibility.md`;
-- `mechanics/setup-hooks.md`;
-- `rulings/global-rulings.md`;
-- `rulings/ambiguity-register.md`.
-
-The primitive taxonomy remains extensible. A future fighter may require an explicit custom mechanic, but it must declare the same trigger/choice/state/cancellation/provenance semantics rather than hiding behavior in implementation code.
+1. Built event/window/checkpoint semantics for turns, actions and combat.
+2. Defined deterministic pause/resume for player choices and reconnect.
+3. Separated public/private/committed-hidden/revealed information.
+4. Defined normalized effects with trigger, condition, choices, dependencies, ordered operations and provenance.
+5. Established an extensible primitive taxonomy.
+6. Reconciled cancellation, move/place, gained/free actions, bonus attacks, `End the turn`, dormant players and setup hooks.
+7. Indexed global rulings separately from normalized engine semantics.
+8. Added a severity-based ambiguity register.
 
 ### Gate
 
 - Every core timing window is ordered: **PASS**.
-- A rule exists for pausing resolution when another player must choose something: **PASS**.
-- Global errata/rulings have been reconciled with the current Core Rules: **PASS**.
-- Unknown interactions are explicitly marked; none are silently guessed: **PASS**.
+- Pausing/resuming for player input is deterministic: **PASS**.
+- Global errata/rulings are reconciled with current Core Rules: **PASS**.
+- Unknown interactions are explicit rather than guessed: **PASS**.
 
 See [`mechanics/phase-2-validation.md`](mechanics/phase-2-validation.md).
-
-Remaining P1 ambiguities in the register are explicitly `deferred-content`: they block only affected fighter/set content until Phase 3/4 supplies authoritative rules. There are no open P0 ambiguities in the current global framework.
-
-Passing Phase 2 does not make the published fighter roster `developer-ready`; it makes the global resolution model ready to receive authoritative set/fighter/card data.
 
 ---
 
 ## Phase 3 — Canonical set and release registry
 
-**Status:** planned.
+**Status:** **complete — gate passed 2026-07-26.**
 
-### Work
+Phase 3 establishes the exhaustive work queue for fighter/deck and battlefield research.
 
-For every officially released competitive-compatible set:
+### Completed work
 
-1. record canonical set ID, name, release/edition metadata and license status;
-2. link official product/rulebook/set-rule sources;
-3. enumerate fighters, battlefields and special components;
-4. capture set-level mechanics and setup changes;
-5. capture addenda and later errata as separate provenance records.
+1. Created [`sets/registry.yaml`](sets/registry.yaml) with canonical IDs, release/edition metadata, licensing/availability classification, fighters, battlefields, components, set mechanics and source provenance.
+2. Registered **25 released primary product records** through Stars & Stripes, while preserving historical single-fighter releases and product lineage.
+3. Registered gameplay supplements outside the primary-set model:
+   - TMNT Shredder & Krang Hero Decks;
+   - Nova High Battlefield Mat.
+4. Registered Hellboy as `announced/blocked` without importing unconfirmed community roster data.
+5. Added [`sets/mechanics-index.md`](sets/mechanics-index.md), mapping special rule families to authoritative official sources.
+6. Added [`sets/source-bibliography.md`](sets/source-bibliography.md) for current catalog, historical rulebooks, retired licensed content and freshness checks.
+7. Preserved edition/addendum provenance:
+   - Cobble & Fog Vault reprint/clarifications;
+   - Robin Hood vs. Bigfoot Vault return;
+   - Bruce Lee original solo lineage and 2025 return;
+   - Stars & Stripes White House Secret Passages addendum.
+8. Kept Adventures enemy/scenario logic deferred while registering its competitive-compatible heroes/battlefields.
 
-The registry must include standalone fighters and competitive heroes originating in Adventures products.
+### Freshness decisions
 
-### Explicit freshness cases
-
-- **Stars & Stripes:** track the separate Secret Passages addendum and any incomplete public deck databases.
-- **Hellboy:** remain `blocked/unreleased` until authoritative release material exists.
-- Revised/reprinted products must not silently overwrite older wording; preserve edition/source metadata.
+- **Stars & Stripes:** released; separate Secret Passages addendum is first-class authority. Complete cards still require Phase 4 physical/authoritative verification if public normalized databases lag.
+- **TMNT:** 2025 crowdfunding/release lineage with 2026 Restoration general availability; Turtles are competitive-compatible and Shredder/Krang Hero Decks are separate competitive content.
+- **Nova High:** official battlefield existence is verified; exact graph/equivalence is deferred to Phase 5.
+- **Hellboy:** official future four-character product is announced, but no final playable corpus is currently published; remains blocked.
 
 ### Gate
 
-No released competitive fighter or battlefield is absent from the registry, and every set-specific mechanic has at least one authoritative source.
+No known released competitive fighter or battlefield is absent from the registry, and every identified set-specific mechanic has an authoritative official entry point.
+
+**Gate result:** PASS. See [`sets/phase-3-validation.md`](sets/phase-3-validation.md).
+
+Passing Phase 3 does not make fighter/card or battlefield data `developer-ready`; it defines their exhaustive later-phase queues.
 
 ---
 
@@ -191,7 +165,7 @@ The representative sample can be expressed without ad-hoc undocumented engine be
 
 ### Work
 
-Expand the Phase 4A schema to every released competitive fighter.
+Expand the Phase 4A schema to every released competitive fighter in `sets/registry.yaml`.
 
 Use UmDb as the primary normalized deck index, but verify set-specific behavior and disputed wording against higher-authority sources. Never import `/decks/...` fan decks into the official corpus; published UmDb entries live under `/umdb/...`.
 
@@ -202,8 +176,8 @@ For every fighter:
 - expected card count reconciles with deck construction;
 - quantities sum correctly;
 - all card users are valid fighters;
-- every effect maps to a known mechanic primitive or an explicitly documented custom mechanic;
-- all resources referenced by cards are defined;
+- every effect maps to a known mechanic primitive or explicit custom mechanic;
+- all referenced resources are defined;
 - all known official fighter/card rulings are linked.
 
 ### Gate
@@ -222,17 +196,17 @@ Battlefields require more than images or names; the engine needs graph data.
 
 Capture:
 
-- spaces as stable node IDs;
+- stable space/node IDs;
 - zone membership;
 - undirected adjacency;
-- directional/one-way edges where applicable;
+- directional/one-way edges;
 - starting-space assignments;
 - special connections such as secret passages;
-- doors, high ground, portals, item locations or other battlefield components;
+- doors, high ground, battlefield items, conveyor or other map components;
 - large-fighter restrictions/edge markings where relevant;
 - setup rules and official rulings.
 
-UmDb's board catalog is an index, not sufficient proof of graph correctness. Graphs must be manually or independently cross-validated against authoritative battlefield material.
+UmDb's board catalog is an index, not proof of graph correctness. Graphs must be independently verified against authoritative battlefield material.
 
 ### Gate
 
@@ -247,11 +221,11 @@ Every supported battlefield has a deterministic graph representation that can an
 ### Work
 
 1. Run consistency checks across core rules, mechanics, fighter cards and battlefields.
-2. Build a living ambiguity register.
+2. Maintain the living ambiguity register.
 3. Resolve each ambiguity using the source hierarchy.
-4. Mark genuinely unresolved cases as implementation blockers rather than inventing behavior.
+4. Mark genuinely unresolved cases as blockers rather than inventing behavior.
 5. Verify that later errata/addenda supersede older wording without destroying provenance.
-6. Sample full turns and combats involving the stress-test fighters and special battlefields.
+6. Sample full turns and combats involving stress-test fighters and special battlefields.
 
 ### Gate
 
@@ -268,15 +242,15 @@ There are no unresolved **P0/P1 semantic ambiguities** affecting legal moves, hi
 Publish stable documentation schemas and engine semantics for:
 
 - `GameState` and immutable identifiers;
-- action/command legality;
+- legal client/server commands;
 - event/timing windows;
-- pending interactions and player choices;
+- pending interactions and choices;
 - effect operations and custom handlers;
 - fighter state/resources;
 - deck construction and card instances;
 - battlefield graph;
-- deterministic resolution and audit/event history;
-- persistence/reconnect requirements implied by hidden information and pending choices.
+- deterministic event/audit history;
+- persistence/reconnect implications.
 
 This phase documents **what the engine must represent**, not a premature language/framework architecture.
 
