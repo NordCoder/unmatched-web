@@ -1,0 +1,42 @@
+schema_version: 1
+id: invisible-man
+display_name: Invisible Man
+set_ids: [cobble-and-fog]
+status: blocked
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: invisible-man, display_name: Invisible Man, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+setup:
+  hooks:
+    - stage: after_hero_placement
+      note: Place three Fog tokens in separate spaces in Invisible Man's zone.
+  state_initialization: []
+ability:
+  id: fog
+  controller: owner
+  effects:
+    - {id: fog-defense, trigger: static, continuous: true, condition: {defender: invisible-man, on_token: fog}, operations: [{op: ADD_VALUE, target: invisible_man_defense, amount: 1}]}
+    - id: fog-step
+      trigger: movement_adjacency
+      continuous: true
+      note: Spaces containing Fog tokens are mutually adjacent for Invisible Man's movement only.
+resources:
+  - {id: fog, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true}
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/invisible-man.yaml, construction: fixed}
+rulings:
+  - id: fog-movement-only
+    summary: Fog-to-Fog adjacency is a movement permission for Invisible Man and does not make the spaces adjacent for attacks or generic adjacency tests.
+    source: https://www.the-unmatched.club/heroes/invisible-man
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/invisible-man}
+blocker:
+  reason: positioned_special_tokens_and_temporary_off_board_undefeated_state_not_in_shared_effect_model
+  report: ../../phase-4b/worker-a-report.md
