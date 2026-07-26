@@ -1,0 +1,42 @@
+schema_version: 1
+id: little-red-riding-hood
+display_name: Little Red Riding Hood
+set_ids: [little-red-vs-beowulf]
+status: blocked
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: little-red-riding-hood, display_name: Little Red Riding Hood, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: huntsman, display_name: Huntsman, role: sidekick, count: 1, attack_type: ranged, starting_health: 9, starts_on_board: true, summonable: false}
+setup:
+  hooks:
+    - stage: before_shuffle
+      note: Put the Basket reference card in the discard pile; it is not one of the 30 action cards.
+  state_initialization: []
+ability:
+  id: whats-that-in-my-basket
+  controller: owner
+  effects:
+    - id: basket-symbol
+      trigger: static
+      continuous: true
+      note: The current Basket item is the symbol on the top action card of the discard pile; a wild symbol counts as any one item chosen when required.
+resources:
+  - {id: basket-reference, kind: external_definition_pool, visibility: public, initial: 1}
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/little-red-riding-hood.yaml, construction: fixed}
+rulings:
+  - id: basket-reference-not-deck-card
+    summary: The Basket is a setup/reference component placed with the discard pile and does not increase the 30-card action-deck quantity.
+    source: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/little-red-beowulf-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/little-red}
+blocker:
+  reason: conditional_card_type_and_play_permission_not_represented_by_static_card_type
+  affected_card: what-big-ears-you-have
+  report: ../../phase-4b/worker-a-report.md
