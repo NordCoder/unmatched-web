@@ -27,13 +27,14 @@ persistent_state: []
 deck: {manifest: ../../cards/phase-4b/king-arthur.yaml, construction: fixed}
 rulings:
   - id: arthur-boost-cancellation
-    summary: Current rulings treat the ability BOOST as part of the attack resolution; when the opposing effect cancels it, the committed BOOST card is discarded without adding its BOOST value.
-    source: https://www.the-unmatched.club/heroes/king-arthur
+    summary: Current rulings treat the ability BOOST as part of the attack resolution; when the opposing effect cancels it, the committed BOOST card is discarded without adding its BOOST value. Excalibur has no printed effects to cancel, so an attempted effect cancellation does not cancel Arthur's ability BOOST.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/king-arthur}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
   reason: absolute_health_assignment_not_in_shared_effect_model
   affected_card: the-holy-grail
