@@ -23,8 +23,14 @@ ability:
   - id: showdown-choice
     trigger: after_attack
     condition: {combat_result: won}
-    choices: [{owner: controller, choose: unused_showdown_effect, options: [draw, attack_action, move]}]
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_showdown_choice}]
+    choices: [{owner: controller, choose: unused_showdown_effect, options: [draw, attack_action, move], capture: mode}]
+    branches:
+    - condition: {captured.mode: draw, state: showdown_draw_used, equals: false}
+      operations: [{op: DRAW, count: 1}, {op: SET_STATE, key: showdown_draw_used, value: true}]
+    - condition: {captured.mode: attack_action, state: showdown_attack_action_used, equals: false}
+      operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}, {op: SET_STATE, key: showdown_attack_action_used, value: true}]
+    - condition: {captured.mode: move, state: showdown_move_used, equals: false}
+      operations: [{op: MOVE, target: attacking_fighter, max_distance: 1}, {op: SET_STATE, key: showdown_move_used, value: true}]
 resources: []
 persistent_state:
 - {key: showdown_draw_used, type: boolean, reset: turn_start}
@@ -37,9 +43,14 @@ rulings:
 - id: free-attack-action
   summary: A free action to attack must be used immediately as the next action or it is lost.
   source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+- id: showdown-effect-once-per-turn
+  summary: Each of Showdown's three effects can be selected at most once per turn; after all three have been used, further combat wins that turn do not produce a Showdown choice.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
 - {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms all three Showdown branches and that the move branch moves the fighter that attacked.}
 - {authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
 normalization_notes:
+- Showdown branch effects and their once-per-turn state transitions are explicit; no hidden fighter-specific handler is needed for draw or movement.
 - Showdown's attack branch and card-granted free attacks use a restricted immediate action-credit composite pending shared semantics.
