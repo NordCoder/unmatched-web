@@ -23,7 +23,8 @@ Every specification area uses one of these states:
 | Competitive core rules | **verified — Phase 1 gate passed** | `rules/` |
 | Timing, choices, effects, rulings | **verified — Phase 2 gate passed** | `mechanics/`, `rulings/` |
 | Set/release registry and set-specific mechanics | **verified — Phase 3 gate passed** | `sets/` |
-| Fighters and decks | planned | `fighters/`, `cards/` |
+| Fighter/deck schema stress test | **verified — Phase 4A gate passed** | `fighters/phase-4a/`, `cards/phase-4a/` |
+| Complete fighter/deck corpus | planned — Phase 4B | `fighters/`, `cards/` |
 | Battlefields | planned | `battlefields/` |
 | Cross-validation and ambiguity closure | planned | validation reports / rulings |
 | Engine-facing contract | planned | stable schemas + mechanic taxonomy |
@@ -34,50 +35,34 @@ Every specification area uses one of these states:
 ```text
 docs/
 ├── rules/                  # Phase 1 complete
-│   ├── README.md
-│   ├── terminology.md
-│   ├── battlefield.md
-│   ├── setup.md
-│   ├── turn-structure.md
-│   ├── maneuver.md
-│   ├── scheme.md
-│   ├── combat.md
-│   ├── effect-resolution-baseline.md
-│   ├── defeat-and-game-end.md
-│   ├── multiplayer-deltas.md
-│   └── phase-1-validation.md
-│
-├── mechanics/              # Phase 2 complete
-│   ├── README.md
-│   ├── event-model.md
-│   ├── choices-and-resume.md
-│   ├── effect-model.md
-│   ├── cancellation.md
-│   ├── action-accounting.md
-│   ├── movement-and-placement.md
-│   ├── bonus-attacks.md
-│   ├── end-turn-and-dormancy.md
-│   ├── information-visibility.md
-│   ├── setup-hooks.md
-│   └── phase-2-validation.md
-│
+├── mechanics/              # Phase 2 complete; effect taxonomy extended by Phase 4A
 ├── sets/                   # Phase 3 complete
+├── fighters/               # Phase 4A complete; Phase 4B pending
 │   ├── README.md
-│   ├── registry.yaml
-│   ├── mechanics-index.md
-│   ├── source-bibliography.md
-│   └── phase-3-validation.md
+│   ├── schema.md
+│   ├── phase-4a-mechanics.md
+│   ├── phase-4a-validation.md
+│   └── phase-4a/
+│       ├── achilles.yaml
+│       ├── bloody-mary.yaml
+│       ├── sun-wukong.yaml
+│       ├── sherlock-holmes.yaml
+│       ├── dracula.yaml
+│       ├── raptors.yaml
+│       ├── wayward-sisters.yaml
+│       ├── geralt-of-rivia.yaml
+│       ├── yennefer-triss.yaml
+│       └── black-panther.yaml
 │
+├── cards/
+│   ├── README.md
+│   └── phase-4a/           # full normalized card manifests for the same 10 fighters
 ├── rulings/
 │   ├── global-rulings.md
 │   └── ambiguity-register.md
-│
 ├── sources/
 │   ├── source-policy.md
 │   └── source-registry.md
-│
-├── fighters/               # Phase 4
-├── cards/                  # Phase 4
 ├── battlefields/           # Phase 5
 ├── research-plan.md
 └── specification-readiness.md
@@ -85,16 +70,20 @@ docs/
 
 ## Current boundary
 
-Phases 1–3 now establish:
+Phases 1–4A now establish:
 
 - the competitive core rules;
 - deterministic timing/effect/choice semantics;
 - global rulings and ambiguity containment;
 - the exhaustive released product/content work queue;
-- fighter-to-release and battlefield-to-release membership;
-- authoritative entry points for known set-specific mechanics;
-- explicit handling of reprints, addenda, supplements and announced-but-blocked content.
+- authoritative set-mechanic entry points;
+- a verified fighter/deck manifest schema;
+- fixed and pre-game-constructed deck modeling;
+- multi-hero/selectable-hero/summonable-sidekick topology;
+- first-class alternate card zones and immutable card ownership;
+- external definitions such as bonus attacks and Wayward spells;
+- corpus-proven generic primitives for damage prevention/redirection, printed/BOOST value modification, operation prevention, card reordering, captured parent context and combat-card replacement.
 
-This still does **not** make the actual fighter roster `developer-ready`. Phase 4 must transcribe and validate fighter/deck content against the Phase 2 effect framework. Phase 5 must turn each supported battlefield into a verified graph.
+This still does **not** make the full fighter roster `developer-ready`: Phase 4B must apply the validated schema to every released competitive fighter in `sets/registry.yaml`. Phase 5 must turn each supported battlefield into a verified graph.
 
-The structure may evolve when the corpus demonstrates a real need. Do not introduce abstractions only to make the documentation look uniform.
+The structure may evolve when the full corpus demonstrates a real need. New abstractions must be justified by published gameplay semantics rather than introduced only for uniformity.
