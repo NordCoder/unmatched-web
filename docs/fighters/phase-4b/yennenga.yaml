@@ -27,13 +27,17 @@ persistent_state: []
 deck: {manifest: ../../cards/phase-4b/yennenga.yaml, construction: fixed}
 rulings:
   - id: volley-composite
-    summary: VOLLEY is a bonus attack after the parent combat using the published attacker/defender/value rules; it is not another Attack action.
-    source: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+    summary: VOLLEY is a bonus attack after the parent combat using the published attacker/defender/value rules; it is not another Attack action, and current rulings prevent it if either participant was defeated during the parent attack.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - id: archer-damage-allocation-cap
+    summary: Damage redirected from Yennenga may be divided among eligible Archers in her zone, but no Archer may be assigned more damage than its current remaining health.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/}
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/yennenga}
-  - {type: secondary_crosscheck, url: https://www.geektopiagames.com/unmatched/yennenga/}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
   reason: movement_path_capture_required_by_stallion_charge_not_in_shared_effect_model
   affected_card: stallion-charge
