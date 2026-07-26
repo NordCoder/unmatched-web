@@ -44,8 +44,8 @@ ability:
       choices:
         - {owner: controller, choose: castable_spell, max: 1}
       operations:
-        - {op: CAST_EXTERNAL_DEFINITION, pool: wayward-spells, definition: chosen_spell}
-        - {op: MOVE_CARD, from: cauldron, to: discard, selector: all_cards}
+        - {op: TRIGGER_COMPOSITE, kind: external_spell, definition: chosen_spell, ingredient_source: cauldron}
+        - {op: MOVE_CARD, from: cauldron, to: discard, selector: all_cards, overrides: [explicit_spell_cleanup_bypasses_bubbling_brew_replacement]}
 
 resources:
   - id: cauldron
