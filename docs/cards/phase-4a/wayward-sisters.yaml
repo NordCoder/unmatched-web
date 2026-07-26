@@ -18,9 +18,9 @@ cards:
         operations: [{op: MOVE_CARD, from_zone: discard, to_zone: cauldron, selector: chosen_card}]
       - trigger: after_combat
         condition: {combat_result: won}
-        operations: [{op: REVEAL, source: deck_top, selector: 1, capture: revealed_card}]
+        operations: [{op: LOOK_AT, source: deck_top, selector: 1, viewer: controller, capture: viewed_card}]
         choices: [{owner: controller, choose: destination, options: [hand, cauldron]}]
-        followup: [{op: MOVE_CARD, from_zone: deck_top, to_zone: chosen_destination, selector: captured.revealed_card}]
+        followup: [{op: MOVE_CARD, from_zone: deck_top, to_zone: chosen_destination, selector: captured.viewed_card}]
 
   - id: double-double
     name: Double, Double
@@ -231,6 +231,7 @@ sources:
   - https://www.the-unmatched.club/rules/the-wayward-sisters
 
 normalization_notes:
+  - All-Seeing Familiar uses LOOK_AT, not REVEAL; the inspected top card is not public before its destination later makes it visible by normal zone rules.
   - Ingredient symbols are card-definition tags, not separate token instances.
   - The cauldron is a real card zone governed by the fighter-level discard replacement.
   - Spells are external definitions, not cards and not deck instances.
