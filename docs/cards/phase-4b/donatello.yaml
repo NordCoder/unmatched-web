@@ -1,11 +1,7 @@
 schema_version: 1
 fighter_id: donatello
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
 - {id: deck, owner: self}
 - {id: hand, owner: self}
@@ -26,8 +22,8 @@ cards:
   - trigger: after_combat
     condition: {combat_result: won}
     optional: true
-    choices: [{owner: controller, choose: card_in_hand}]
-    operations: [{op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: chosen_card, position: bottom}]
+    choices: [{owner: controller, choose: card_in_discard}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: chosen_card, position: bottom}]
 - id: turtle-power
   name: Turtle Power!
   quantity: 2
@@ -54,13 +50,11 @@ cards:
   effects:
   - trigger: during_combat
     choices: [{owner: controller, choose: attack_or_versatile_cards_in_discard, min: 0, max: 4, capture: chosen_cards}]
-    operations:
-    - {op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}
-    - {op: ADD_VALUE, target: this_card, amount_rule: count_captured_chosen_cards}
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}, {op: ADD_VALUE, target: this_card, amount_rule: count_captured_chosen_cards}]
   - trigger: static
     continuous: true
     condition: {this_card_in_zone: inventions}
-    operations: [{op: ADD_VALUE, target: each_friendly_attack, amount: 1}]
+    operations: [{op: ADD_VALUE, target: controller_attack_cards, amount: 1}]
 - id: quick-strike
   name: Quick Strike
   quantity: 3
@@ -96,9 +90,7 @@ cards:
   tags: []
   effects:
   - trigger: during_combat
-    operations:
-    - {op: DISCARD, from: deck, selector: bottom, count: 1, capture: discarded_card}
-    - {op: ADD_VALUE, target: this_card, amount_from: captured.discarded_card.boost_or_0}
+    operations: [{op: DISCARD, from: deck, selector: bottom, count: 1, capture: discarded_card}, {op: ADD_VALUE, target: this_card, amount_from: captured.discarded_card.boost_or_0}]
 - id: shift-focus
   name: Shift Focus
   quantity: 3
@@ -111,7 +103,7 @@ cards:
   effects:
   - trigger: after_combat
     choices: [{owner: controller, choose: another_fighter_in_donatello_zone}]
-    operations: [{op: MOVE, target: chosen_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]
+    operations: [{op: MOVE, target: chosen_fighter, max_distance: 3, overrides: [may_move_through_other_fighters]}]
 - {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [donatello], type: defense, printed_value: 5, boost: 1, tags: [], effects: []}
 - id: bo-staff
   name: Bo Staff
@@ -124,8 +116,8 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    condition: {opposing_combat_fighter_adjacent_to_donatello: true}
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: DRAW, count: 1}]
+    choices: [{owner: controller, choose: opposing_fighter_adjacent_to_donatello, capture: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 1}, {op: DRAW, count: 1}]
 - id: self-defense-grid
   name: Self Defense Grid
   quantity: 1
@@ -138,15 +130,13 @@ cards:
   effects:
   - trigger: after_combat
     choices: [{owner: controller, choose: defense_or_versatile_cards_in_discard, min: 0, max: 4, capture: chosen_cards}]
-    operations:
-    - {op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}
-    - {op: RECOVER, target: donatello, amount_rule: count_captured_chosen_cards}
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}, {op: RECOVER, target: donatello, amount_rule: count_captured_chosen_cards}]
   - trigger: static
     continuous: true
     condition: {this_card_in_zone: inventions}
-    operations: [{op: ADD_VALUE, target: each_friendly_defense, amount: 1}]
+    operations: [{op: ADD_VALUE, target: controller_defense_cards, amount: 1}]
 - id: party-wagon
-  name: Party Wagon
+  name: Party Wagon!
   quantity: 2
   inclusion: fixed
   usable_by: [donatello]
@@ -156,10 +146,10 @@ cards:
   tags: []
   effects:
   - trigger: scheme
-    choices: [{owner: controller, choose: friendly_fighter}]
-    operations:
-    - {op: MOVE, target: chosen_fighter, max_distance: 5, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}
-    - {op: DEAL_EFFECT_DAMAGE, target: controller_chosen_captured_opposing_fighter, amount: 2, condition: {captured_opposing_count_gt: 0}}
+    choices: [{owner: controller, choose: friendly_fighter, capture: mover}]
+    operations: [{op: MOVE, target: captured.mover, max_distance: 5, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}]
+    choices_after_move: [{owner: controller, choose: captured_opposing_fighter_moved_through, required_if_available: true, capture: target}]
+    followup: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 2, condition: {captured_opposing_count_gt: 0}}]
 - id: smoke-bomb
   name: Smoke Bomb
   quantity: 1
@@ -172,13 +162,10 @@ cards:
   effects:
   - trigger: scheme
     choices: [{owner: controller, choose: scheme_cards_in_discard, min: 0, max: 4, capture: chosen_cards}]
-    operations:
-    - {op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}
-    - {op: GAIN_ACTION, count_rule: count_captured_chosen_cards}
-  - trigger: static
-    continuous: true
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: captured.chosen_cards}, {op: GAIN_ACTION, count_rule: count_captured_chosen_cards}]
+  - trigger: own_scheme_played
     condition: {this_card_in_zone: inventions}
-    operations: [{op: GAIN_ACTION, count: 1, scope: whenever_controller_plays_scheme}]
+    operations: [{op: GAIN_ACTION, count: 1}]
 - id: donatello-does-machines
   name: Donatello Does Machines
   quantity: 2
@@ -191,9 +178,7 @@ cards:
   effects:
   - trigger: scheme
     operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_each_friendly_player_optional_discard_recovery
-      selector: one_attack_versatile_or_defense_card
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_each_friendly_player_optional_discard_recovery, selector: one_attack_versatile_or_defense_card}
     - {op: DRAW, count: 1}
 - id: future-of-ninjutsu
   name: The Future of Ninjutsu
@@ -206,40 +191,24 @@ cards:
   tags: []
   effects:
   - trigger: scheme
-    choices: [{owner: controller, choose: any_player_deck}]
-    operations: [{op: LOOK_AT, source: chosen_deck_top, selector: 1, viewer: controller, capture: viewed_card}]
+    choices: [{owner: controller, choose: any_player_deck, capture: chosen_deck}]
+    operations: [{op: LOOK_AT, source: captured.chosen_deck.top, selector: 1, viewer: controller, capture: viewed_card}]
     choices_after_lookup: [{owner: controller, choose: disposition, options: [leave_on_top, move_to_bottom]}]
     followup:
-    - {op: MOVE_CARD, from_zone: chosen_deck_top, to_zone: chosen_deck, selector: captured.viewed_card, position: bottom, condition: {chosen_disposition: move_to_bottom}}
+    - {op: MOVE_CARD, from_zone: captured.chosen_deck.top, to_zone: captured.chosen_deck, selector: captured.viewed_card, position: bottom, condition: {chosen_disposition: move_to_bottom}}
     - {op: DRAW, count: 1}
     - {op: GAIN_ACTION, count: 1}
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 14
-  result: PASS
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 14, result: PASS}
 sources:
-- authority: official_set
-  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
-  checked_at: '2026-07-26'
-  note: Official 30-card allocation and authoritative text for Electro Grenade, Self Defense Grid and Smoke Bomb plus Invention persistence rules.
+- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-26', note: Official 30-card allocation and authoritative text for Electro Grenade, Self Defense Grid and Smoke Bomb plus Invention persistence rules.}
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
-- authority: reference
-  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
-  checked_at: '2026-07-26'
-  note: Physical component cross-check.
-- authority: reference
-  url: https://www.unmatchedarena.com/heroes/donatello
-  checked_at: '2026-07-26'
-  note: Complete current action-card transcription cross-checked against official Invention text.
-- authority: reference
-  url: https://www.the-unmatched.club/tools/tracker?h=donatello
-  checked_at: '2026-07-26'
-  note: Independent names/quantities cross-check.
+- {authority: reference, url: https://www.youtube.com/watch?v=fRie8VT5Tp8, checked_at: '2026-07-26', note: Physical component cross-check.}
+- {authority: reference, url: https://www.unmatchedarena.com/heroes/donatello, checked_at: '2026-07-26', note: Complete current action-card transcription cross-checked against official Invention text.}
+- {authority: reference, url: https://www.the-unmatched.club/tools/tracker?h=donatello, checked_at: '2026-07-26', note: Independent names/quantities cross-check.}
 normalization_notes:
 - Official spelling Electro Grenade overrides transcript variants.
-- Played Inventions move to the public inventions zone even when their played effect is canceled; discarded Inventions do not.
-- Invention static bonuses are represented as ordinary ongoing ADD_VALUE/action effects with source lifetime tied to the inventions zone.
+- Thinking Ahead moves a card from discard to the bottom of the deck; the semantic audit corrected an earlier hand-zone transcription error.
+- Played Inventions tuck even when their played effect is canceled; discarded Inventions do not.
+- Invention bonuses are source-lifetime effects tied to the public inventions zone.
 - No unmatched.cards/decks fan namespace is used.
