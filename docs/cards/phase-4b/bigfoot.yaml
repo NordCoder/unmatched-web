@@ -21,5 +21,7 @@ external_definitions:
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
   - https://unmatched.cards/umdb/decks/bigfoot
-  - https://www.geektopiagames.com/unmatched/big-foot/
-normalization_notes: []
+  - https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+normalization_notes:
+  - Card quantities, users, values and BOOST values were rechecked against the current published UmDb namespace; fan balance-patch variants were excluded.
