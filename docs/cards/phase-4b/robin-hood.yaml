@@ -5,23 +5,30 @@ construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
   - {id: a-hunters-eye, name: "A Hunter's Eye", quantity: 3, usable_by: [robin-hood], type: attack, printed_value: 5, boost: 4, effects: []}
-  - {id: steal-from-the-rich, name: Steal from the Rich, quantity: 3, usable_by: [robin-hood], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 1}, {op: REQUEST_CHOICE, definition: opponent_may_discard_one_else_owner_draws_one}]}]}
+  - {id: steal-from-the-rich, name: Steal from the Rich, quantity: 3, usable_by: [robin-hood], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 1}, {op: REQUEST_CHOICE, definition: steal_from_rich_opponent_response}]}]}
   - {id: disarming-shot, name: Disarming Shot, quantity: 2, usable_by: [robin-hood], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, operations: [{op: DRAW, count: combat_damage_dealt_to_opposing_fighter}]}]}
   - {id: piercing-shot, name: Piercing Shot, quantity: 2, usable_by: [robin-hood], type: attack, printed_value: 2, boost: 3, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
   - {id: highway-robbery, name: Highway Robbery, quantity: 4, usable_by: [outlaw], type: attack, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]}]}
   - {id: defenders-of-sherwood, name: Defenders of Sherwood, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: RETURN_FIGHTER, target: one_defeated_outlaw_if_any, destination: any_space_in_robin_hood_zone, health_rule: source_defined_one_hit_sidekick}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
   - {id: wily-fighting, name: Wily Fighting, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
   - {id: snark, name: Snark, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {own_combat_fighter_adjacent_to_opposing_combat_fighter: true}, operations: [{op: DRAW, count: 1}]}]}
   - {id: ambush, name: Ambush, quantity: 2, usable_by: any, type: attack, printed_value: 2, boost: 3, effects: [{trigger: during_combat, operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 1}, {op: ADD_VALUE, target: this_card, amount: discarded_card_boost}]}]}
 
 external_definitions:
-  - {id: opponent-may-discard-one-else-owner-draws-one, kind: choice_dependency, visibility: opponent_private_choice_then_public_result}
+  - id: steal_from_rich_opponent_response
+    kind: sequential_choice_dependency
+    steps:
+      - {controller: owner, choose: opponent, bind: chosen_opponent}
+      - {controller: chosen_opponent, optional: true, choose: one_card_from_own_hand_to_discard}
+      - {if_no_card_discarded: {op: DRAW, player: owner, count: 1}}
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
   - https://unmatched.cards/umdb/decks/robin-hood
   - https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/
   - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 normalization_notes:
+  - Steal from the Rich explicitly preserves the multiplayer opponent choice and the chosen opponent's private discard-or-decline decision.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Card quantities, users, values and BOOST values were rechecked against the current published UmDb namespace; fan balance-patch variants were excluded.
