@@ -1,0 +1,182 @@
+schema_version: 1
+fighter_id: daredevil
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 22
+  game_deck_count: 22
+cards:
+- id: through-adversity
+  name: Through Adversity
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE
+      target: daredevil
+      distance: 4
+      overrides:
+      - may_move_through_opposing_fighters
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_opposing_fighter_moved_through
+      amount: 1
+- id: man-without-fear
+  name: Man Without Fear
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: own_deck_top
+      count: 1
+      blind: true
+- id: son-of-a-boxer
+  name: Son of a Boxer
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: lost
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: fighter_adjacent_to_daredevil
+      amount: 2
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: defense
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: take-a-knee
+  name: Take a Knee
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DISCARD
+      from_zone: deck_top
+      selector: 1
+      capture: discarded_card
+    - op: RECOVER
+      target: daredevil
+      amount_rule: captured.discarded_card.boost_or_0
+- id: grappling-hook
+  name: Grappling Hook
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: daredevil
+      distance: 2
+- id: breather
+  name: Breather
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: hand
+      selector:
+        type_in:
+        - attack
+        - defense
+        - versatile
+- id: devil-of-hells-kitchen
+  name: Devil of Hell's Kitchen
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - daredevil
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      own_deck_empty: true
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 8
+  - trigger: after_combat
+    operations:
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: deck
+      selector: this_card
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: deck
+      selector:
+        top: 4
+    - op: SHUFFLE
+      zone: deck
+external_definitions: []
+validation:
+  available_pool_count: 22
+  game_deck_count: 22
+  known_quantity_sum: 22
+  quantity_reconciles: true
+  unique_card_definitions: 8
+sources:
+- https://unmatched.cards/umdb/decks/daredevil
+- https://unmatched.cards/card-counter/daredevil
+- https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+normalization_notes:
+- Published fixed deck size is 22, not 30.

@@ -1,0 +1,254 @@
+schema_version: 1
+fighter_id: t-rex
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: commanding-impact
+  name: Commanding Impact
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: attack
+  printed_value: 5
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DRAW
+      count: 1
+- id: reckless-lunge
+  name: Reckless Lunge
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: attack
+  printed_value: 3
+  boost: 4
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: opposing_combat_fighter
+      amount: 3
+    - op: DEAL_EFFECT_DAMAGE
+      target: t-rex
+      amount: 3
+- id: 15-000-pounds-of-muscle
+  name: 15,000 Pounds of Muscle
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: IGNORE_VALUE
+      target: opposing_combat_card
+  - trigger: after_combat
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: t-rex
+      amount: 2
+- id: when-dinosaurs-ruled-the-earth
+  name: When Dinosaurs Ruled the Earth
+  quantity: 4
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+    - op: DEAL_EFFECT_DAMAGE
+      target: t-rex
+      amount: 2
+- id: terrifying-roar
+  name: Terrifying Roar
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: PREVENT_OPERATION
+      target_operation:
+        op: MOVE
+        scope: all_fighters_rest_of_turn
+    - op: PREVENT_OPERATION
+      target_operation:
+        op: PLACE
+        scope: all_fighters_rest_of_turn
+- id: momentous-shift
+  name: Momentous Shift
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      own_fighter_started_turn_in_different_space: true
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 5
+- id: thrash
+  name: Thrash
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_opposing_fighter_in_t-rex_zone
+      amount: 1
+- id: youre-just-making-her-angry
+  name: You're Just Making Her Angry
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: defense
+  printed_value: 1
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: MOVE_CARD
+      from_zone: combat_cleanup_source
+      to_zone: hand
+      selector: this_card
+- id: closer-than-she-appears
+  name: Closer Than She Appears
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE
+      target: t-rex
+      distance: 1
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+- id: 65-million-years-of-gut-instinct
+  name: 65 Million Years of Gut Instinct
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: hand
+      selector:
+        exclude_definition: 65-million-years-of-gut-instinct
+- id: ripples-in-the-water
+  name: Ripples in the Water
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - t-rex
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: PLACE
+      target: t-rex
+      destination_rule: any_space_in_t-rex-zone
+    - op: DISCARD
+      controller: each_opponent_with_fighter_adjacent_to_t-rex
+      from_zone: hand
+      selector: random
+      count: 1
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 11
+sources:
+- https://unmatched.cards/umdb/decks/t-rex
+- https://unmatched.cards/card-counter/t-rex
+- https://www.unmatchedarena.com/heroes/t-rex
+- https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+normalization_notes:
+- Deck metadata is verified independently of the unresolved large-fighter runtime geometry.

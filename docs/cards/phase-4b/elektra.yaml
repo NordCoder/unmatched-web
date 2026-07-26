@@ -1,0 +1,222 @@
+schema_version: 1
+fighter_id: elektra
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 20
+  game_deck_count: 20
+cards:
+- id: mystic-assassin
+  name: Mystic Assassin
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: attack
+  printed_value: 6
+  boost: 1
+  tags:
+  - resurrected-clause
+  effects:
+  - trigger: after_combat
+    condition:
+      resurrection_used: false
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: elektra
+      amount: 3
+  normalization_note: Post-resurrection version omits the self-damage.
+- id: the-fist
+  name: The Fist
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - the-hand
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: own_attacking_fighter
+      amount: 1
+      cost_semantics: true
+    - op: MOVE_CARD
+      from_zone: combat_cleanup_source
+      to_zone: hand
+      selector: this_card
+    - op: GAIN_ACTION
+      count: 1
+- id: hands-of-red
+  name: Hands of Red
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: RETURN_FIGHTER
+      target: defeated_the_hand
+      destination_rule: space_in_elektra_zone
+      health_rule: set_to_1
+- id: intercept
+  name: Intercept
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: defense
+  printed_value: 3
+  boost: 4
+  tags:
+  - resurrected-clause
+  effects:
+  - trigger: during_combat
+    condition:
+      resurrection_used: true
+    optional: true
+    operations:
+    - op: REVEAL
+      source: hand
+      selector:
+        definition_id: sai
+    - op: SET_VALUE
+      target: this_card
+      value: 5
+- id: snakeroot-clan
+  name: Snakeroot Clan
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: defense
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    optional: true
+    operations:
+    - op: SWAP
+      a: elektra
+      b: chosen_the_hand
+    - op: SET_STATE
+      key: combat.defender
+      value: chosen_the_hand
+- id: ninjitsu
+  name: Ninjitsu
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: PLACE
+      target: own_combat_fighter
+      destination: any_space
+- id: whirlwind
+  name: Whirlwind
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags:
+  - resurrected-clause
+  effects:
+  - trigger: after_combat
+    condition:
+      resurrection_used: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_opposing_fighter_adjacent_to_elektra
+      amount: 1
+- id: cloaked-in-shadow
+  name: Cloaked in Shadow
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags:
+  - resurrected-clause
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+  - trigger: after_combat
+    condition:
+      resurrection_used: true
+    operations:
+    - op: MOVE
+      target: elektra
+      distance: 3
+- id: mesmerize
+  name: Mesmerize
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags:
+  - resurrected-clause
+  effects:
+  - trigger: scheme
+    operations:
+    - op: LOOK_AT
+      source: opponent.hand
+      selector: all
+      viewer: controller
+    - op: GAIN_ACTION
+      count: 1
+    - op: DISCARD
+      controller: opponent
+      from_zone: hand
+      selector: chosen_by_controller
+      count: 1
+      condition:
+        resurrection_used: true
+- id: sai
+  name: Sai
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - elektra
+  type: versatile
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects: []
+external_definitions: []
+validation:
+  available_pool_count: 20
+  game_deck_count: 20
+  known_quantity_sum: 20
+  quantity_reconciles: true
+  unique_card_definitions: 10
+sources:
+- https://unmatched.cards/umdb/decks/elektra
+- https://unmatched.cards/card-counter/elektra
+- https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+normalization_notes:
+- Published fixed deck size is 20. RESURRECTED clauses are gated by fighter persistent state.

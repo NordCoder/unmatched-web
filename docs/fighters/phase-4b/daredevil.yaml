@@ -1,0 +1,52 @@
+schema_version: 1
+id: daredevil
+display_name: Daredevil
+set_ids:
+- marvel-hells-kitchen
+status: verified
+movement: 3
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: daredevil
+    display_name: Daredevil
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 17
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: blind-boost
+  controller: owner
+  effects:
+  - id: low-hand-blind-boost
+    trigger: during_combat
+    optional: true
+    condition:
+      hand_size_lte: 2
+    operations:
+    - op: BOOST
+      target: own_combat_card
+      source: own_deck_top
+      count: 1
+      blind: true
+resources: []
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/daredevil.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/daredevil
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/daredevil
+normalization_notes:
+- Blind BOOST is not a draw and therefore does not itself invoke exhaustion.

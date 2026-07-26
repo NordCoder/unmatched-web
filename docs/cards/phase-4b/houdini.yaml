@@ -1,0 +1,318 @@
+schema_version: 1
+fighter_id: houdini
+status: blocked
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: a-magician-never-reveals-his-secrets
+  name: A Magician Never Reveals His Secrets
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - houdini
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: DRAW
+      count: 2
+    - op: GAIN_ACTION
+      count: 1
+  - trigger: opponent_would_look_at_hand
+    optional: true
+    operations:
+    - op: REVEAL
+      source: hand
+      selector: this_card
+    - op: PREVENT_OPERATION
+      target_operation:
+        op: LOOK_AT
+        source: own_hand
+  evidence_status: verified
+- id: all-part-of-the-show
+  name: All Part of the Show
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      own_combat_fighter_would_be_defeated: true
+    operations:
+    - op: RETURN_FIGHTER
+      target: own_combat_fighter
+      destination: any_space
+      health_rule: set_to_4
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: an-illusion-of-my-own-design
+  name: An Illusion of My Own Design
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - houdini
+  type: null
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    controller: opponent
+    optional: true
+    operations:
+    - op: BOOST
+      target: opposing_combat_card
+      source: opponent_hand
+      count: 1
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: and-the-beautiful-bess
+  name: And the Beautiful Bess!
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bess
+  type: null
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects: []
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: flourish
+  name: Flourish
+  quantity: 4
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects: []
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: for-my-next-trick
+  name: For My Next Trick
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: chosen_friendly_fighter
+      distance: 1
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: grand-escape
+  name: Grand Escape
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - houdini
+  type: null
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: PLACE
+      target: own_combat_fighter
+      destination: any_space
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: misdirection
+  name: Misdirection
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: set-the-stage
+  name: Set the Stage
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bess
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: DRAW
+      count: 3
+    - op: MOVE_CARD
+      from_zone: hand
+      to_zone: deck_top
+      selector: chosen_card
+  evidence_status: verified
+- id: sleight-of-hand
+  name: Sleight of Hand
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 1
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    optional: true
+    operations:
+    - op: MOVE_CARD
+      from_zone: combat
+      to_zone: hand
+      selector: this_card
+    - op: REPLACE_COMBAT_CARD
+      side: own
+      card: chosen_legal_replacement
+      rule: resolve_replacement_normally
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: smoke-and-mirrors
+  name: Smoke and Mirrors
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    optional: true
+    operations:
+    - op: SWAP
+      a: houdini
+      b: bess
+    - op: SET_STATE
+      key: combat.own_participant
+      value: other_fighter
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: the-big-reveal
+  name: The Big Reveal
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - houdini
+  type: null
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    operations:
+    - op: MOVE_CARD
+      from_zone: boost_disposition
+      to_zone: hand
+      selector: one_card_used_to_boost_this_card
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+- id: vanishing-act
+  name: Vanishing Act
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: chosen_combat_fighter
+      distance: 3
+      overrides:
+      - may_move_through_opposing_fighters
+  evidence_status: partial
+  evidence_gap: Combat-card type is not populated unless independently cross-checked; BOOSTED WITH clauses require a generic
+    trigger event.
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 13
+sources:
+- https://unmatched.cards/card-counter/harry-houdini
+- https://unmatched.cards/umdb/decks/harry-houdini
+- https://restorationgames.com/shop/unmatched-houdini-genie/
+normalization_notes:
+- All 13 published definitions and quantities reconcile to 30. BOOSTED WITH text is intentionally not modeled as an ad-hoc
+  Houdini operation.
+blockers:
+- id: semantic-extension-boost-source-trigger
+  reason: Several cards trigger when that card is used as a BOOST source; current effect vocabulary has BOOST but no generic
+    event for effects belonging to the consumed BOOST card.
+- id: combat-card-type-crosscheck-gap
+  reason: The allowed current card-counter exposes type as an image; combat-card type fields are left null rather than inferred
+    from fan copies.

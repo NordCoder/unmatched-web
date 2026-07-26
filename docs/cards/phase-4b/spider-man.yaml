@@ -1,0 +1,104 @@
+schema_version: 1
+fighter_id: spider-man
+status: blocked
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: web-shooters
+  name: Web Shooters
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - spider-man
+  type: null
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: PREVENT_DAMAGE
+      target: spider-man
+      scope:
+        maximum_combat_damage_this_combat: 2
+  evidence_status: verified
+  evidence_gap: Card type image was not text-extracted from the allowed published source.
+- id: snark
+  name: Snark
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - spider-man
+  type: null
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      spider_man_adjacent_to_opposing_fighter: true
+    operations:
+    - op: DRAW
+      count: 1
+  evidence_status: verified
+  evidence_gap: Card type was not independently retrieved.
+- id: momentous-shift
+  name: Momentous Shift
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - spider-man
+  type: null
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      spider_man_started_turn_in_different_space: true
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 5
+  evidence_status: verified
+  evidence_gap: Card type was not independently retrieved.
+- id: thwip
+  name: Thwip!
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - spider-man
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: PLACE
+      target: spider-man
+      destination_rule: any_space_in_spider-man-zone
+  evidence_status: verified
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 11
+  quantity_reconciles: false
+  unique_card_definitions: 4
+sources:
+- https://unmatched.cards/umdb/cards/web-shooters
+- https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
+- https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
+normalization_notes:
+- Only independently retrievable published records are included. Search results that pointed to unmatched.cards/decks/...
+  community Spider-Man decks were explicitly rejected.
+blockers:
+- id: full-published-card-index-gap
+  reason: Allowed current sources did not expose the full official Spider-Man 30-card definition list in machine-readable/static
+    form during this pass; 11 of 30 physical cards are represented by independently verified definitions and the remainder
+    are intentionally not inferred from fan decks.

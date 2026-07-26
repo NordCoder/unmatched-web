@@ -1,0 +1,240 @@
+schema_version: 1
+fighter_id: genie
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: careful-what-you-wish-for
+  name: Careful What You Wish For
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: lost
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: adjacent_opposing_fighter
+      amount: 1
+- id: your-wish-is-my-command
+  name: Your Wish Is My Command
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    optional: true
+    operations:
+    - op: DISCARD
+      from_zone: hand
+      selector:
+        count: 2
+    - op: GAIN_ACTION
+      count: 1
+- id: imprisoned-wrath
+  name: Imprisoned Wrath
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: DISCARD
+      from_zone: hand
+      selector:
+        count: 2
+    - op: DEAL_EFFECT_DAMAGE
+      target: adjacent_opposing_fighter
+      amount: 2
+- id: i-am-freed
+  name: I Am Freed
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: PLACE
+      target: genie
+      destination: any_empty_space
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_adjacent_fighter
+      amount: 1
+- id: wishing-for-more-wishes
+  name: Wishing for More Wishes
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DRAW
+      controller: opponent
+      count: 1
+    - op: DRAW
+      count: 3
+- id: ive-made-sultans-out-of-less
+  name: I've Made Sultans Out of Less
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: LOOK_AT
+      source: opponent.hand
+      selector: all
+      viewer: controller
+    - op: DISCARD
+      controller: opponent
+      from_zone: hand
+      selector: chosen_by_controller
+      count: 1
+- id: i-grant-you-death
+  name: I Grant You... Death
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: adjacent_fighter
+      amount: 1
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: this-is-no-parlor-trick
+  name: This Is No Parlor Trick
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: versatile
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: SET_VALUE
+      target: opposing_combat_card
+      value_rule: opposing_combat_card.boost_or_0
+- id: prisoners-torment
+  name: Prisoner's Torment
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: defense
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DRAW
+      count_rule: combat_damage_taken
+- id: back-in-the-lamp
+  name: Back in the Lamp
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: defense
+  printed_value: 0
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: RECOVER
+      target: genie
+      amount: 4
+- id: three-wishes
+  name: Three Wishes
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - genie
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: GAIN_ACTION
+      count: 1
+    - op: REQUEST_CHOICE
+      definition:
+        choose_one:
+        - draw_5
+        - lock_own_card_values_to_4_for_turn
+        - each_opponent_discards_2
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 12
+sources:
+- https://unmatched.cards/card-counter/the-genie
+- https://unmatched.cards/umdb/decks/the-genie
+- https://www.unmatchedarena.com/heroes/the-genie
+- https://restorationgames.com/shop/unmatched-houdini-genie/

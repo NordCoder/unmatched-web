@@ -1,0 +1,199 @@
+schema_version: 1
+fighter_id: bullseye
+status: blocked
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: worlds-greatest-assassin
+  name: World's Greatest Assassin
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - trigger: immediately
+    condition:
+      won_combat_earlier_this_turn: true
+    operations:
+    - op: IGNORE_VALUE
+      target: opposing_combat_card
+  evidence_status: verified
+- id: i-never-miss
+  name: I Never Miss
+  quantity: 4
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: for-my-next-trick
+  name: For My Next Trick
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: i-planned-to-be-here
+  name: I Planned To Be Here
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: ricochet
+  name: Ricochet
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: master-strategist
+  name: Master Strategist
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: right-between-the-eyes
+  name: Right Between The Eyes
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: im-better-and-ill-prove-it
+  name: I'm Better And I'll Prove It
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: arrogant-but-effective
+  name: Arrogant But Effective
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: feint
+  name: Feint
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: defense
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+  evidence_status: verified
+- id: tactical-retreat
+  name: Tactical Retreat
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+- id: study-the-target
+  name: Study The Target
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - bullseye
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Published quantity is indexed, but per-card type/value/BOOST/effect metadata was not independently available
+    from an allowed published source during this pass.
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 12
+sources:
+- https://unmatched.cards/umdb/decks/bullseye
+- https://unmatched.cards/card-counter/bullseye
+- https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+normalization_notes:
+- The 12-definition quantity index reconciles to 30. No community /decks/ records were used to fill missing printed metadata.
+blockers:
+- id: published-card-metadata-gap
+  reason: Full per-card printed metadata for 10 of 12 definitions was not independently retrievable from allowed current published
+    sources.

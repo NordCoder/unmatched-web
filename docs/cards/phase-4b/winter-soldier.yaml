@@ -1,0 +1,258 @@
+schema_version: 1
+fighter_id: winter-soldier
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: without-remorse
+  name: Without Remorse
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: attack
+  printed_value: 6
+  boost: 2
+  tags:
+  - brainwashed
+  effects:
+  - trigger: after_combat
+    tags:
+    - brainwashed
+    operations:
+    - op: DRAW
+      controller: opponent
+      count: 1
+- id: programmed-to-kill
+  name: Programmed to Kill
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags:
+  - brainwashed
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    tags:
+    - brainwashed
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: winter-soldier
+      amount: 2
+- id: bionic-arm
+  name: Bionic Arm
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: attack
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      winter_soldier_adjacent_to_opposing_fighter: true
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 6
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      controller: opponent
+      target: each_opponent_fighter
+      distance: 5
+- id: marksman
+  name: Marksman
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: attack
+  printed_value: 1
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: ADD_VALUE
+      target: this_card
+      amount_rule: spaces_between_fighters_on_shortest_path
+- id: reflex-memories
+  name: Reflex Memories
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: versatile
+  printed_value: 5
+  boost: 2
+  tags:
+  - brainwashed
+  effects:
+  - trigger: after_combat
+    tags:
+    - brainwashed
+    operations:
+    - op: DISCARD
+      from_zone: hand
+      selector: random
+      count: 2
+    - op: DRAW
+      count: 2
+- id: wily-fighting
+  name: Wily Fighting
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_opposing_fighter_adjacent_to_own_combat_fighter
+      amount: 1
+- id: born-in-the-barracks
+  name: Born in the Barracks
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: RECOVER
+      target: winter-soldier
+      amount: 2
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: reprogram
+  name: Reprogram
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: deck
+      selector:
+        count: 3
+    - op: SHUFFLE
+      zone: deck
+- id: complete-the-mission
+  name: Complete the Mission
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: defense
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+  - trigger: after_combat
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: opposing_combat_fighter
+      amount_rule: combat_damage_taken
+- id: a-boy-named-bucky
+  name: A Boy Named Bucky
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags:
+  - brainwashed-control
+  effects:
+  - trigger: scheme
+    operations:
+    - op: SET_STATE
+      key: ignore_brainwashed_effects
+      value: true
+    - op: GAIN_ACTION
+      count: 1
+- id: manipulation
+  name: Manipulation
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - winter-soldier
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags:
+  - brainwashed
+  effects:
+  - trigger: scheme
+    tags:
+    - brainwashed
+    operations:
+    - op: DRAW
+      count_rule: until_own_hand_size_5
+    - op: DRAW
+      controller: each_opponent
+      count_rule: may_draw_until_hand_size_5
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 12
+sources:
+- https://unmatched.cards/umdb/decks/winter-soldier
+- https://unmatched.cards/umdb/cards/wily-fighting
+- https://unmatched.cards/umdb/cards/feint
+- https://www.unmatchedarena.com/heroes/winter-soldier
+- https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+normalization_notes:
+- Full printed metadata was cross-checked against a current secondary deck index; UmDb card records were used where directly
+  retrievable. BRAINWASHED clauses are card tags, not a new card zone.

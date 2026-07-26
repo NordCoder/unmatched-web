@@ -1,0 +1,234 @@
+schema_version: 1
+fighter_id: moon-knight
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: im-not-real
+  name: I'm Not Real
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: CHANGE_STATE
+      key: active_identity
+      transition: advance_to_next_identity
+- id: thats-why-i-always-win
+  name: That's Why I Always Win
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: hand
+      count: 1
+- id: good-enough-for-us
+  name: Good Enough For Us
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: DRAW
+      count: 2
+    - op: DEAL_EFFECT_DAMAGE
+      target: own_combat_fighter
+      amount: 2
+- id: thats-the-part-i-like
+  name: That's the Part I Like
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: LOOK_AT
+      source: opponent.deck_top
+      selector: 3
+      viewer: controller
+      capture: looked_cards
+    - op: DISCARD
+      controller: opponent
+      from_zone: opponent.deck_top
+      selector: one_of_captured
+    - op: REORDER
+      zone: opponent.deck_top
+      selector: remaining_two
+      order: chosen
+- id: fist-of-khonshu
+  name: Fist of Khonshu
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: MOVE
+      target: opposing_combat_fighter
+      distance: 4
+- id: past-and-present-intermingle
+  name: Past and Present Intermingle
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: ADD_VALUE
+      target: this_card
+      amount_rule: top_discard_card.boost_or_0
+- id: a-totally-sane-thing-to-do
+  name: A Totally Sane Thing to Do
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    optional: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: both_combat_fighters
+      amount: 2
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: let-your-insanity-guide-you
+  name: Let Your Insanity Guide You
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DISCARD
+      from_zone: deck_top
+      selector: 1
+      capture: discarded
+    - op: DRAW
+      count_rule: captured.discarded.boost_or_0
+- id: were-all-in-this-together
+  name: We're All in This Together
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: defense
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DRAW
+      count: 1
+- id: madness-will-keep-you-alive
+  name: Madness Will Keep You Alive
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: RECOVER
+      target: moon-knight
+      amount: 2
+    - op: GAIN_ACTION
+      count: 1
+      condition:
+        started_turn_in_different_space: true
+- id: travelers-of-the-night
+  name: Travelers of the Night
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE
+      target: moon-knight
+      distance: 4
+      overrides:
+      - may_move_through_opposing_fighters
+    - op: GAIN_ACTION
+      count: 1
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 12
+sources:
+- https://unmatched.cards/umdb/decks/moon-knight
+- https://www.unmatchedarena.com/heroes/moon-knight
+- https://restorationgames.com/shop/marvel-redemption-row/
+normalization_notes:
+- Card types were cross-checked against the current secondary deck index; values, BOOSTs, quantities and effects are from
+  the published deck corpus.

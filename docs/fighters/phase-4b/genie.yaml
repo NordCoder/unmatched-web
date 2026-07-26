@@ -1,0 +1,50 @@
+schema_version: 1
+id: genie
+display_name: The Genie
+set_ids:
+- houdini-vs-genie
+status: verified
+movement: 3
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: genie
+    display_name: The Genie
+    role: hero
+    count: 1
+    attack_type: ranged
+    starting_health: 16
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: three-wishes-in-spirit
+  controller: owner
+  effects:
+  - id: discard-for-action
+    trigger: turn_start
+    optional: true
+    costs:
+    - op: DISCARD
+      from_zone: hand
+      selector: chosen_card
+      count: 1
+    operations:
+    - op: GAIN_ACTION
+      count: 1
+resources: []
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/genie.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/unmatched-houdini-genie/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/the-genie
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/the-genie

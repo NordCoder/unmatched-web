@@ -1,0 +1,58 @@
+schema_version: 1
+id: she-hulk
+display_name: She-Hulk
+set_ids:
+- marvel-brains-and-brawn
+status: verified
+movement: 2
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: she-hulk
+    display_name: She-Hulk
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 20
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: just-throw-something
+  controller: owner
+  effects:
+  - id: discard-for-effect-damage
+    trigger: turn_start
+    optional: true
+    choices:
+    - owner: controller
+      choose: card_in_hand
+    - owner: controller
+      choose: fighter_in_she-hulk-zone
+    costs:
+    - op: DISCARD
+      from_zone: hand
+      selector: chosen_card
+      count: 1
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: chosen_fighter
+      amount_rule: chosen_card.boost_base
+resources: []
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/she-hulk.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/she-hulk
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/she-hulk
+- type: official_rulebook
+  url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf

@@ -1,0 +1,59 @@
+schema_version: 1
+id: houdini
+display_name: Harry Houdini
+set_ids:
+- houdini-vs-genie
+status: verified
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: houdini
+    display_name: Houdini
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 14
+    starts_on_board: true
+    summonable: false
+  - id: bess
+    display_name: Bess
+    role: sidekick
+    count: 1
+    attack_type: melee
+    starting_health: 5
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: master-escape-artist
+  controller: owner
+  effects:
+  - id: boosted-maneuver-teleport
+    trigger: maneuver_after_boost
+    optional: true
+    condition:
+      boosted_fighter: houdini
+    operations:
+    - op: PLACE
+      target: houdini
+      destination: any_space
+      replacement_for: maneuver_movement
+resources: []
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/houdini.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/unmatched-houdini-genie/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/harry-houdini
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/houdini
+normalization_notes:
+- When Bess is the fighter moved by a maneuver, the special placement ability does not apply.

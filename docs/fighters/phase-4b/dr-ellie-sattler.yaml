@@ -1,0 +1,73 @@
+schema_version: 1
+id: dr-ellie-sattler
+display_name: Dr. Ellie Sattler
+set_ids:
+- jurassic-park-sattler-vs-trex
+status: verified
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: dr-ellie-sattler
+    display_name: Dr. Ellie Sattler
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 13
+    starts_on_board: true
+    summonable: false
+  - id: dr-ian-malcolm
+    display_name: Dr. Ian Malcolm
+    role: sidekick
+    count: 1
+    attack_type: melee
+    starting_health: 7
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: insight
+  controller: owner
+  effects:
+  - id: place-insight-after-move
+    trigger: fighter_moved_to_new_space
+    condition:
+      fighter_in:
+      - dr-ellie-sattler
+      - dr-ian-malcolm
+      insight_supply_gt: 0
+    operations:
+    - op: SPEND_RESOURCE
+      resource: insight-supply
+      amount: 1
+    - op: SET_STATE
+      key: insight_token_locations
+      value: add_token_at_moved_fighter_space
+resources:
+- id: insight-supply
+  kind: token_pool
+  visibility: public
+  initial: 5
+persistent_state:
+- key: insight_token_locations
+  type: space_ref
+  reset: never
+deck:
+  manifest: ../../cards/phase-4b/dr-ellie-sattler.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/dr-ellie-sattler
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/dr-ellie-sattler
+- type: official_set_component
+  url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+normalization_notes:
+- Insight triggers on movement to a new space, not PLACE.
+- Multiple insight tokens may share a space; removed tokens return to supply.

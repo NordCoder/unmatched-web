@@ -1,0 +1,90 @@
+schema_version: 1
+id: moon-knight
+display_name: Moon Knight
+set_ids:
+- marvel-redemption-row
+status: verified
+movement: 3
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: moon-knight
+    display_name: Moon Knight
+    role: hero
+    count: 1
+    attack_type: melee
+    starting_health: 16
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization:
+  - key: active_identity
+    value: moon-knight
+ability:
+  id: multiple-personalities
+  controller: owner
+  effects:
+  - id: moon-knight-start-move
+    trigger: turn_start
+    condition:
+      active_identity: moon-knight
+    operations:
+    - op: MOVE
+      target: moon-knight
+      distance: 2
+  - id: khonshu-attack-bonus
+    trigger: static
+    continuous: true
+    condition:
+      active_identity: khonshu
+      combat_role: attacker
+    operations:
+    - op: ADD_VALUE
+      target: own_attack
+      amount: 2
+  - id: khonshu-effect-damage-immunity
+    trigger: before_damage_applied
+    continuous: true
+    condition:
+      active_identity: khonshu
+      damage_type: effect
+    operations:
+    - op: PREVENT_DAMAGE
+      target: moon-knight
+      scope: all_effect_damage
+  - id: mr-knight-defense-bonus
+    trigger: static
+    continuous: true
+    condition:
+      active_identity: mr-knight
+      combat_role: defender
+    operations:
+    - op: ADD_VALUE
+      target: own_defense
+      amount: 1
+  - id: identity-cycle
+    trigger: turn_end
+    operations:
+    - op: CHANGE_STATE
+      key: active_identity
+      transition: moon-knight->khonshu->mr-knight->moon-knight
+resources: []
+persistent_state:
+- key: active_identity
+  type: enum
+  reset: never
+deck:
+  manifest: ../../cards/phase-4b/moon-knight.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/marvel-redemption-row/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/moon-knight
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/moon-knight
+normalization_notes:
+- All three identities share one fighter piece and one health track.

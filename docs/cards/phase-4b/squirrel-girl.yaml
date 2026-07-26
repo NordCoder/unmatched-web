@@ -1,0 +1,256 @@
+schema_version: 1
+fighter_id: squirrel-girl
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: fuzzball-special
+  name: Fuzzball Special
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: each_squirrel
+      distance: 3
+- id: bite-of-steel
+  name: Bite of Steel
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - squirrel
+  type: attack
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      squirrels_in_opposing_fighter_zone_gte: 4
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 5
+- id: kick-butts
+  name: Kick Butts
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: attack
+  printed_value: 1
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: ADD_VALUE
+      target: this_card
+      amount_rule: count_squirrels_adjacent_to_opposing_fighter
+- id: unbeatable-squirrel-girl
+  name: Unbeatable Squirrel Girl
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: versatile
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    condition:
+      squirrels_adjacent_to_opposing_fighter_gte: 4
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+    - op: IGNORE_VALUE
+      target: opposing_combat_card
+- id: squirmish
+  name: Squirmish
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: versatile
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: SUMMON
+      pool: squirrel
+      destination: squirrel-girl.current_space
+    - op: PLACE
+      target: squirrel-girl
+      destination_rule: any_space_in_squirrel-girl-zone
+- id: get-em-tippy-toe
+  name: Get 'Em Tippy-Toe!
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: SUMMON
+      pool: squirrel
+      count: 2
+      destination: chosen_space
+- id: dash
+  name: Dash
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: own_combat_fighter
+      distance: 3
+- id: call-of-the-mild
+  name: Call of the Mild
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      squirrels_in_own_fighter_zone_gte: 4
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 4
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DRAW
+      count: 2
+- id: feint
+  name: Feint
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: squirgility
+  name: Squirgility
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: defense
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: squirrel-girl
+      distance: 3
+      overrides:
+      - may_move_through_sidekicks
+      - spaces_containing_sidekicks_cost_zero_movement
+- id: eat-nuts
+  name: Eat Nuts
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: RECOVER
+      target: squirrel-girl
+      amount: 2
+    - op: SUMMON
+      pool: squirrel
+      destination_rule: adjacent_to_squirrel-girl
+- id: horde-of-squirrels
+  name: Horde of Squirrels
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: fighter_in_space_adjacent_to_space_with_at_least_4_squirrels
+      amount: 2
+- id: nutwork-of-spies
+  name: Nutwork of Spies
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - squirrel-girl
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: LOOK_AT
+      source: opponent.hand
+      selector: all
+      viewer: controller
+    - op: DISCARD
+      controller: opponent
+      from_zone: hand
+      selector: chosen_by_controller
+      count_rule: 2_if_opponent_fighter_adjacent_to_4_squirrels_else_1
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 13
+sources:
+- https://unmatched.cards/umdb/decks/squirrel-girl
+- https://www.unmatchedarena.com/heroes/squirrel-girl
+- https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+normalization_notes:
+- Deck metadata is verified independently of unresolved small-fighter shared-occupancy semantics.

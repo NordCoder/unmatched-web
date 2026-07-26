@@ -1,0 +1,391 @@
+schema_version: 1
+fighter_id: black-widow
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 31
+  game_deck_count: 31
+cards:
+- id: widows-kiss
+  name: Widow's Kiss
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: PREVENT_OPERATION
+      target_operation:
+        fighter: opposing_combat_fighter
+        op: MOVE
+        scope: rest_of_turn
+    - op: PREVENT_OPERATION
+      target_operation:
+        fighter: opposing_combat_fighter
+        op: PLACE
+        scope: rest_of_turn
+- id: widows-sting
+  name: Widow's Sting
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: attack
+  printed_value: 5
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: black-widow
+      distance: 3
+- id: widows-bite
+  name: Widow's Bite
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DISCARD
+      controller: opponent
+      from_zone: hand
+      selector: chosen_by_opponent
+      count: 1
+- id: acting-director-of-s-h-i-e-l-d
+  name: Acting Director of S.H.I.E.L.D.
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - maria-hill
+  type: versatile
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: each_friendly_fighter
+      distance: 3
+      overrides:
+      - may_move_through_opposing_fighters
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: deck
+      selector:
+        type: scheme
+        count: 1
+    - op: SHUFFLE
+      zone: deck
+- id: caught-in-a-web
+  name: Caught in a Web
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card.after_combat_only
+- id: double-identity
+  name: Double Identity
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    optional: true
+    operations:
+    - op: SWAP
+      a: black-widow
+      b: maria-hill
+    - op: SET_STATE
+      key: combat.defender
+      value: other_fighter
+- id: fake-out
+  name: Fake Out
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 1
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: lost
+    operations:
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+- id: widows-line
+  name: Widow's Line
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: MOVE
+      target: opposing_combat_fighter
+      distance: 2
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: defense
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: life-model-decoy
+  name: Life Model Decoy
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - maria-hill
+  type: defense
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      maria_hill_was_defeated: true
+    operations:
+    - op: RETURN_FIGHTER
+      target: maria-hill
+      destination_rule: adjacent_to_black-widow
+      health_rule: set_to_3
+- id: the-budapest-gambit
+  name: The Budapest Gambit
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags:
+  - mission
+  effects:
+  - trigger: scheme
+    condition:
+      other_hand_cards_lte: 2
+    operations:
+    - op: DRAW
+      count: 5
+    - op: DISCARD
+      controller: each_opponent
+      from_zone: hand
+      selector: random
+      count: 1
+    - op: REVEAL
+      source: deck_top
+      selector: sequential_until_first_mission_or_deck_exhausted
+      capture: revealed_for_mission
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: hand
+      selector: first_mission_if_any
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: deck
+      selector: all_nonmission_revealed
+    - op: SHUFFLE
+      zone: deck
+      condition:
+        nonmission_revealed_count_gt: 0
+- id: the-firenze-agenda
+  name: The Firenze Agenda
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags:
+  - mission
+  effects:
+  - trigger: scheme
+    condition:
+      black_widow_adjacent_to_opposing_hero: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_opposing_fighter_in_black-widow-zone
+      amount: 2
+    - op: REVEAL
+      source: deck_top
+      selector: sequential_until_first_mission_or_deck_exhausted
+      capture: revealed_for_mission
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: hand
+      selector: first_mission_if_any
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: deck
+      selector: all_nonmission_revealed
+    - op: SHUFFLE
+      zone: deck
+      condition:
+        nonmission_revealed_count_gt: 0
+- id: the-kinshasa-directive
+  name: The Kinshasa Directive
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags:
+  - mission
+  effects:
+  - trigger: scheme
+    condition:
+      black_widow_in_own_starting_space: true
+    operations:
+    - op: DISCARD
+      controller: chosen_opponent
+      from_zone: hand
+      selector: chosen_by_opponent
+      count: 2
+    - op: REVEAL
+      source: deck_top
+      selector: sequential_until_first_mission_or_deck_exhausted
+      capture: revealed_for_mission
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: hand
+      selector: first_mission_if_any
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: deck
+      selector: all_nonmission_revealed
+    - op: SHUFFLE
+      zone: deck
+      condition:
+        nonmission_revealed_count_gt: 0
+- id: the-madripoor-sanction
+  name: The Madripoor Sanction
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags:
+  - mission
+  effects:
+  - trigger: scheme
+    condition:
+      black_widow_in_opponent_starting_space: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_fighter_of_starting_space_owner
+      amount: 2
+    - op: REVEAL
+      source: deck_top
+      selector: sequential_until_first_mission_or_deck_exhausted
+      capture: revealed_for_mission
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: hand
+      selector: first_mission_if_any
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: deck
+      selector: all_nonmission_revealed
+    - op: SHUFFLE
+      zone: deck
+      condition:
+        nonmission_revealed_count_gt: 0
+- id: the-moscow-protocol
+  name: The Moscow Protocol
+  quantity: 1
+  inclusion: fixed
+  usable_by:
+  - black-widow
+  type: scheme
+  printed_value: null
+  boost: 4
+  tags:
+  - mission
+  effects:
+  - trigger: scheme
+    condition:
+      opposing_fighter_took_damage_this_turn: true
+    operations:
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+    - op: REVEAL
+      source: deck_top
+      selector: sequential_until_first_mission_or_deck_exhausted
+      capture: revealed_for_mission
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: hand
+      selector: first_mission_if_any
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: deck
+      selector: all_nonmission_revealed
+    - op: SHUFFLE
+      zone: deck
+      condition:
+        nonmission_revealed_count_gt: 0
+external_definitions: []
+validation:
+  available_pool_count: 31
+  game_deck_count: 31
+  known_quantity_sum: 31
+  quantity_reconciles: true
+  unique_card_definitions: 15
+sources:
+- https://unmatched.cards/umdb/decks/black-widow
+- https://www.the-unmatched.club/rules/black-widow
+- https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+normalization_notes:
+- Published pool count is 31; setup removes Moscow Protocol into the starting hand before shuffling the other 30.
+- Mission acquisition preserves card ownership and uses only deck/revealed/hand zones; it is not a special ownership transfer
+  zone.

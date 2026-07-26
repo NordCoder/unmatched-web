@@ -1,0 +1,53 @@
+schema_version: 1
+id: bullseye
+display_name: Bullseye
+set_ids:
+- marvel-hells-kitchen
+status: verified
+movement: 2
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - id: bullseye
+    display_name: Bullseye
+    role: hero
+    count: 1
+    attack_type: ranged
+    starting_health: 14
+    starts_on_board: true
+    summonable: false
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: worlds-greatest-assassin
+  controller: owner
+  effects:
+  - id: extended-attack-range
+    trigger: static
+    continuous: true
+    operations:
+    - op: SET_STATE
+      key: attack_range_rule
+      value:
+        max_space_distance: 5
+        ignore_zones: true
+resources: []
+persistent_state:
+- key: attack_range_rule
+  type: enum
+  reset: never
+deck:
+  manifest: ../../cards/phase-4b/bullseye.yaml
+  construction: fixed
+rulings: []
+sources:
+- type: official_product
+  url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+- type: published_database
+  url: https://unmatched.cards/umdb/decks/bullseye
+- type: current_rulings_index
+  url: https://www.the-unmatched.club/heroes/bullseye
+normalization_notes:
+- Attack legality is based on space distance up to 5, ignoring zones.

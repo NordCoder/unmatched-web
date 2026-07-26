@@ -1,0 +1,216 @@
+schema_version: 1
+fighter_id: dr-ellie-sattler
+status: blocked
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: you-never-had-control-thats-the-illusion
+  name: You Never Had Control, That's the Illusion
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - dr-ellie-sattler
+  type: null
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: ADD_VALUE
+      target: this_card
+      amount_rule: count_insight_tokens_on_board
+    - op: SET_STATE
+      key: insight_token_locations
+      value: remove_all_and_return_to_supply
+  evidence_status: verified
+- id: hey-hey-hey
+  name: Hey! Hey! Hey!
+  quantity: 1
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: must-go-faster
+  name: Must Go Faster
+  quantity: 1
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: violently-if-necessary
+  name: Violently, If Necessary
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: feint
+  name: Feint
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+  evidence_status: verified
+- id: chaotician
+  name: Chaotician
+  quantity: 1
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: life-finds-a-way
+  name: Life Finds a Way
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: woman-inherits-the-earth
+  name: Woman Inherits the Earth
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: regroup
+  name: Regroup
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: sexism-in-survival-situations
+  name: Sexism in Survival Situations
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: i-think-were-back-in-business
+  name: I Think We're Back in Business
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: the-concept-of-attraction
+  name: The Concept of Attraction
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: lock-the-doors
+  name: Lock the Doors!
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+- id: the-future-ex-mrs-malcolm
+  name: The Future Ex-Mrs. Malcolm
+  quantity: 1
+  inclusion: fixed
+  usable_by: any
+  type: null
+  printed_value: null
+  boost: null
+  tags: []
+  effects: []
+  evidence_status: blocked
+  evidence_gap: Quantity/name index is known, but type/value/BOOST/effect fields were not independently retrieved from an
+    allowed published source; fan translations/reskins were explicitly excluded.
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 14
+sources:
+- https://unmatched.cards/umdb/cards/you-never-had-control-thats-the-illusion
+- https://unmatched.cards/umdb/cards/feint
+- https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+normalization_notes:
+- The 14-definition quantity index reconciles to 30; only independently retrieved published card metadata is populated.
+blockers:
+- id: published-card-metadata-gap
+  reason: Complete allowed-source per-card metadata was not recoverable in this pass; matching /decks/ fan translations and
+    reskins were rejected.

@@ -1,0 +1,260 @@
+schema_version: 1
+fighter_id: doctor-strange
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: bolts-of-balthakk
+  name: Bolts of Balthakk
+  quantity: 4
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: own_deck_top
+      count: 1
+      blind: true
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: GAIN_ACTION
+      count: 1
+- id: seven-suns-of-cinnibus
+  name: Seven Suns of Cinnibus
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    operations:
+    - op: BOOST
+      target: this_card
+      source: own_deck_top
+      count: 1
+      blind: true
+    - op: BOOST
+      target: this_card
+      source: own_deck_top
+      count: 1
+      blind: true
+  - trigger: during_combat
+    condition:
+      this_card_value_gt: 7
+    operations:
+    - op: IGNORE_VALUE
+      target: this_card
+- id: the-rings-of-raggadorr
+  name: The Rings of Raggadorr
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: RECOVER
+      target: own_combat_fighter_and_each_adjacent_friendly_fighter
+      amount_rule: combat_damage_dealt
+- id: the-winds-of-watoomb
+  name: The Winds of Watoomb
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: versatile
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: PLACE
+      controller: opponent
+      target: doctor-strange
+      destination_rule: a_starting_space
+    - op: PLACE
+      target: opposing_combat_fighter
+      destination_rule: different_starting_space
+    - op: SHUFFLE
+      controller: all_players
+      zone: deck
+- id: steadfast-disciple
+  name: Steadfast Disciple
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - wong
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      wong_adjacent_to_opposing_fighter: true
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: adjacent_opposing_fighter
+      amount: 1
+    - op: DRAW
+      count: 1
+- id: cloak-of-levitation
+  name: Cloak of Levitation
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      doctor_strange_adjacent_to_opposing_fighter: true
+    operations:
+    - op: IGNORE_VALUE
+      target: opposing_combat_card
+- id: master-of-kamar-taj
+  name: Master of Kamar-Taj
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    condition:
+      doctor_strange_adjacent_to_wong: true
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 4
+- id: feint
+  name: Feint
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+- id: the-mists-of-munnopor
+  name: The Mists of Munnopor
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: defense
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: DISCARD
+      controller: opponent
+      from_zone: combat
+      selector: opposing_combat_card
+    - op: REVEAL
+      source: opponent.deck_top
+      selector: sequential_until_playable_attack_or_versatile
+      capture: revealed
+    - op: REPLACE_COMBAT_CARD
+      side: opponent
+      card: first_playable_revealed
+      rule: resolve_normally
+    - op: MOVE_CARD
+      from_zone: revealed
+      to_zone: opponent.deck_bottom
+      selector: other_revealed
+      order: random
+- id: eye-of-agamotto
+  name: Eye of Agamotto
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE_CARD
+      from_zone: hand
+      to_zone: deck
+      selector: all
+    - op: SHUFFLE
+      zone: deck
+    - op: DRAW
+      count: 5
+    - op: GAIN_ACTION
+      count: 1
+- id: no-really-im-a-doctor
+  name: No Really, I'm a Doctor
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - doctor-strange
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: REVEAL
+      source: hand
+      selector: chosen_card
+      capture: revealed
+    - op: MOVE_CARD
+      from_zone: hand
+      to_zone: deck_top
+      selector: captured.revealed
+    - op: RECOVER
+      target: doctor-strange_or_adjacent_friendly_fighter
+      amount_rule: captured.revealed.boost_or_0
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 11
+sources:
+- https://unmatched.cards/umdb/decks/doctor_strange
+- https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
+- https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
+normalization_notes:
+- BLIND BOOST operations use deck-top reveal/discard semantics and are not DRAW operations.

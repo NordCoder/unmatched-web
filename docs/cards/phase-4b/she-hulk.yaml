@@ -1,0 +1,264 @@
+schema_version: 1
+fighter_id: she-hulk
+status: verified
+construction:
+  kind: fixed
+  available_pool_count: 30
+  game_deck_count: 30
+cards:
+- id: the-savage-she-hulk
+  name: The Savage She-Hulk
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - trigger: during_combat
+    optional: true
+    condition:
+      actions_remaining_gte: 1
+    operations:
+    - op: CHANGE_STATE
+      key: actions_remaining
+      delta: -1
+    - op: SET_VALUE
+      target: this_card
+      value: 9
+- id: green-energy
+  name: Green Energy
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    operations:
+    - op: DEAL_EFFECT_DAMAGE
+      target: each_fighter_adjacent_to_she-hulk
+      amount: 1
+- id: omega-level-threat
+  name: Omega-Level Threat
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: attack
+  printed_value: 5
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_damage_dealt_gte: 2
+    operations:
+    - op: DISCARD
+      controller: opponent
+      from_zone: hand
+      selector: random
+      count: 2
+- id: cease-and-desist
+  name: Cease and Desist
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: versatile
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - trigger: immediately
+    operations:
+    - op: CANCEL_EFFECTS
+      target_scope: opposing_combat_card
+  - trigger: during_combat
+    condition:
+      combat_role: attacker
+    operations:
+    - op: SET_VALUE
+      target: this_card
+      value: 4
+- id: legalese
+  name: Legalese
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: REQUEST_CHOICE
+      definition:
+        choice_owner_rule: opponent_if_controller_won_else_controller
+        options:
+        - both_draw_1
+        - both_discard_1
+- id: nerve-cluster-strike
+  name: Nerve Cluster Strike
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - trigger: immediately
+    condition:
+      she_hulk_adjacent_to_opposing_fighter: true
+    operations:
+    - op: PREVENT_OPERATION
+      target_operation:
+        fighter: opposing_combat_fighter
+        op: MOVE
+        scope: rest_of_turn
+    - op: PREVENT_OPERATION
+      target_operation:
+        fighter: opposing_combat_fighter
+        op: PLACE
+        scope: rest_of_turn
+- id: sensational
+  name: Sensational
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: versatile
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    condition:
+      combat_result: won
+    optional: true
+    operations:
+    - op: MOVE_CARD
+      from_zone: discard
+      to_zone: deck
+      selector:
+        count: 1
+    - op: SHUFFLE
+      zone: deck
+- id: lady-justice
+  name: Lady Justice
+  quantity: 3
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: defense
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - trigger: during_combat
+    operations:
+    - op: DISCARD
+      controller: opponent
+      from_zone: deck_top
+      selector: 1
+      capture: discarded
+    - op: ADD_VALUE
+      target: this_card
+      amount_rule: 2 * captured.discarded.boost_or_0
+- id: the-defense-rests
+  name: The Defense Rests
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: defense
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - trigger: after_combat
+    operations:
+    - op: DRAW
+      count_rule: combat_damage_taken
+- id: double-jeopardy
+  name: Double Jeopardy
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: DRAW
+      count: 2
+    - op: RECOVER
+      target: she-hulk
+      amount: 2
+- id: jennifer-walters-esq
+  name: Jennifer Walters, Esq.
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: scheme
+  printed_value: null
+  boost: 1
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: PLACE
+      target: she-hulk
+      destination_rule: a_starting_space
+    - op: DRAW
+      count: 1
+    - op: GAIN_ACTION
+      count: 1
+- id: leap-toward
+  name: Leap Toward
+  quantity: 2
+  inclusion: fixed
+  usable_by:
+  - she-hulk
+  type: scheme
+  printed_value: null
+  boost: 1
+  tags: []
+  effects:
+  - trigger: scheme
+    operations:
+    - op: MOVE
+      target: she-hulk
+      distance: 4
+      overrides:
+      - may_move_through_opposing_fighters
+    - op: GAIN_ACTION
+      count: 1
+      condition:
+        she_hulk_adjacent_to_opposing_fighter_after_move: true
+external_definitions: []
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  known_quantity_sum: 30
+  quantity_reconciles: true
+  unique_card_definitions: 12
+sources:
+- https://unmatched.cards/umdb/decks/she_hulk
+- https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
+- https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
