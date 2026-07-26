@@ -43,12 +43,10 @@ cards:
   effects:
   - trigger: during_combat
     optional: true
+    repeatable:
+      max_times: 2
+      recheck_legality_each_time: true
     operations:
-    - op: BOOST
-      target: this_card
-      source: own_deck_top
-      count: 1
-      blind: true
     - op: BOOST
       target: this_card
       source: own_deck_top
@@ -258,3 +256,4 @@ sources:
 - https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
 normalization_notes:
 - BLIND BOOST operations use deck-top reveal/discard semantics and are not DRAW operations.
+- Audit correction: Seven Suns of Cinnibus allows zero, one, or two BLIND BOOST resolutions; the two opportunities are not an all-or-nothing pair.
