@@ -28,8 +28,9 @@ rulings:
     summary: Several cards intentionally depend on real-world player names, physical card/sleeve state, clothing, food/drink, spoken/noise actions or writing on the physical card. They are preserved as published semantics, not converted into ordinary digital predicates.
     source: https://unmatched.cards/umdb/decks/deadpool
 sources:
+  - {type: official_release, url: https://mondoshop.com/blogs/news/april-pools-day}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/deadpool}
-  - {type: release_crosscheck, url: https://boardgamegeek.com/boardgameversion/557976/english-edition}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
 blocker:
   reason: external_world_predicates_mutable_physical_components_and_dynamic_attack_mode_are_outside_shared_effect_model
   report: ../../phase-4b/worker-a-report.md
