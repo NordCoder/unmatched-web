@@ -1,0 +1,60 @@
+schema_version: 1
+id: shakespeare
+display_name: William Shakespeare
+set_ids: [slings-and-arrows]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: shakespeare, display_name: William Shakespeare, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: actor, display_name: Actor, role: sidekick, count: 3, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: true}
+
+setup:
+  hooks:
+    - stage: character_configuration
+      operations: [{op: CREATE_CARD_ZONE, zone: line, visibility: public, controller: owner, ordered: true}]
+  state_initialization: []
+
+ability:
+  id: iambic-pentameter
+  controller: owner
+  effects:
+    - id: add-played-combat-card-to-line
+      trigger: combat_cleanup
+      operations: [{op: TRIGGER_COMPOSITE, kind: ordered_card_sequence_append, zone: line, card: own_played_combat_card}]
+    - id: evaluate-line-syllables
+      trigger: after_card_enters_line
+      operations: [{op: TRIGGER_COMPOSITE, kind: thresholded_ordered_sequence_completion, zone: line, metric: syllables, exact_threshold: 10}]
+
+resources:
+  - id: line
+    kind: card_zone
+    visibility: public
+    initial: empty
+    ordered: true
+    ownership_rule: Played Shakespeare action-card instances retain owner and remain ordered left-to-right until the line clears.
+
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/shakespeare.yaml
+  construction: fixed
+
+rulings:
+  - id: line-completion-not-card-effect-cancellation
+    summary: A completion effect resolves when exactly ten syllables are reached even if the last card's ordinary effects were canceled; no other effects are re-resolved from cards already in the line.
+    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+  - id: line-is-ordered-persistent-zone
+    summary: Played attack/defense cards are kept face-up in play order; BOOST/discard-effect cards go to ordinary discard. A line over ten clears without completion.
+    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+
+sources:
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/william-shakespeare}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/shakespeare}
+
+normalization_notes:
+  - The line uses proposed reusable ordered-sequence semantics documented in the Worker C report; no Shakespeare-named engine primitive is introduced.
