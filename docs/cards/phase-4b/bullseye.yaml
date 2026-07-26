@@ -142,7 +142,9 @@ cards:
     tags: []
     effects:
       - trigger: after_combat
-        operations: [{op: SET_STATE, key: combat_result.winner, value: controller}]
+        operations:
+          - {op: SET_STATE, key: combat_result.winner, value: controller}
+          - {op: MOVE, target: bullseye, max_distance: 2}
 
   - id: feint
     name: Feint
@@ -210,7 +212,8 @@ sources:
 normalization_notes:
   - The 12-definition quantity index reconciles to 30. Current UmDb type statistics reconcile to 11 physical attack cards, 14 versatile cards, 3 defense cards, and 2 scheme cards.
   - Feint is versatile in Bullseye's deck; Tactical Retreat is the single defense definition.
-  - A secondary strategy article incorrectly reports four Arrogant But Effective copies. The current UmDb/component evidence and the 30-card quantity reconciliation support the three-copy published deck record used here.
+  - A secondary strategy article incorrectly reports four Arrogant But Effective copies. Current component imagery visibly marks the published card x3, and the 30-card quantity reconciliation agrees.
+  - Arrogant But Effective changes the combat winner at its after-combat timing and then moves Bullseye up to 2 spaces; the movement is not omitted from normalization.
   - Ricochet's type, value, quantity, and effect are independently cross-checked; only its BOOST value remains intentionally unfilled.
   - No community /decks/ record was used.
 
