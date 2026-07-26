@@ -1,0 +1,30 @@
+schema_version: 1
+id: angel
+display_name: Angel
+set_ids: [buffy-the-vampire-slayer]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: angel, display_name: Angel, role: hero, count: 1, attack_type: melee, starting_health: 16, starts_on_board: true, summonable: false}
+    - {id: faith, display_name: Faith, role: sidekick, count: 1, attack_type: melee, starting_health: 8, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: brooding-redemption
+  controller: owner
+  effects:
+    - id: losing-attack-draw
+      trigger: after_combat
+      condition: {own_combat_fighter_in: [angel, faith], role: attacker, combat_result: lost}
+      operations: [{op: DRAW, count: 1}]
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/angel.yaml, construction: fixed}
+rulings: []
+sources:
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/angel}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/angel}
