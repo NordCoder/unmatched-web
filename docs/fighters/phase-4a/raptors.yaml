@@ -1,0 +1,65 @@
+schema_version: 1
+id: raptors
+display_name: Raptors
+set_ids: [jurassic-park-ingen-vs-raptors]
+status: verified
+movement: 3
+
+topology:
+  type: multiple_heroes
+  loss_rule: all_heroes_defeated
+  fighters:
+    - id: raptor
+      display_name: Raptor
+      role: hero
+      count: 3
+      attack_type: melee
+      starting_health: 7
+      starts_on_board: true
+      summonable: false
+      runtime_identity: Each of the three Raptor pieces requires a distinct instance ID and health track.
+
+setup:
+  hooks: []
+  state_initialization: []
+
+ability:
+  id: pack-hunter
+  controller: owner
+  effects:
+    - id: adjacent-pack-attack-modifier
+      trigger: static
+      continuous: true
+      condition: {attacker_is: raptor}
+      operations:
+        - op: ADD_VALUE
+          target: current_raptor_attack
+          amount_rule: count_other_friendly_raptors_adjacent_to_defender
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4a/raptors.yaml
+  construction: fixed
+
+rulings:
+  - id: raptors-multiple-hero-targeting
+    summary: When a generic effect affects "your hero" for a multi-hero character, the controller chooses the affected hero unless the effect identifies a specific hero by circumstance/source. This must not apply the effect to all Raptors automatically.
+    source: https://www.the-unmatched.club/rules/raptors
+  - id: raptors-no-placement-revival
+    summary: Effects such as Decoy or Coordinated Attack Pattern that place an undefeated Raptor cannot revive a defeated Raptor.
+    source: https://www.the-unmatched.club/rules/raptors
+  - id: raptors-pack-count
+    summary: The attacking Raptor is excluded from the "other Raptors adjacent to defender" count.
+    source: https://www.the-unmatched.club/rules/raptors
+
+sources:
+  - type: official_product
+    url: https://restorationgames.com/shop/jurassic-park-ingen-vs-raptors-unmatched/
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/raptors
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/raptors
