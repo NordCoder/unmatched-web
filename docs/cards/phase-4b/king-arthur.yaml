@@ -17,7 +17,7 @@ cards:
   - {id: restless-spirits, name: Restless Spirits, quantity: 1, usable_by: [merlin], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: space_in_merlin_zone}, {choose: adjacent_space}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_chosen_spaces, amount: 2}]}, {trigger: after_effect, condition: {fighter_defeated_by_this_effect: true}, operations: [{op: DRAW, count: 1}]}]}
   - {id: swift-strike, name: Swift Strike, quantity: 2, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 4}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
   - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
   - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
 
@@ -31,4 +31,5 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - The Holy Grail is intentionally not approximated with RECOVER because its published effect assigns an exact health value.
+  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Published UmDb is authoritative for Feint and Regroup BOOST 1; secondary/fan transcriptions with different BOOST values were rejected.
