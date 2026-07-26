@@ -1,0 +1,89 @@
+schema_version: 1
+id: wayward-sisters
+display_name: The Wayward Sisters
+set_ids: [slings-and-arrows]
+status: verified
+movement: 2
+
+topology:
+  type: multiple_heroes
+  loss_rule: all_heroes_defeated
+  fighters:
+    - id: wayward-sister
+      display_name: Wayward Sister
+      role: hero
+      count: 3
+      attack_type: melee
+      starting_health: 6
+      starts_on_board: true
+      summonable: false
+      runtime_identity: Each Sister has a distinct miniature, instance ID and health dial.
+
+setup:
+  hooks:
+    - stage: character_configuration
+      operations:
+        - {op: CREATE_CARD_ZONE, zone: cauldron, visibility: public, controller: owner}
+  state_initialization: []
+
+ability:
+  id: bubbling-brew
+  controller: owner
+  effects:
+    - id: redirect-own-discard-to-cauldron
+      trigger: replacement
+      continuous: true
+      replacement_for: own_action_card_would_enter_discard
+      operations:
+        - {op: MOVE_CARD, from: source_zone, to: cauldron, selector: affected_card}
+      note: Applies when a card would be discarded because it was played, used to BOOST, or discarded by an effect.
+    - id: after-attack-spell-opportunity
+      trigger: after_attack
+      optional: true
+      condition: {at_least_one_spell_castable_from_cauldron: true}
+      choices:
+        - {owner: controller, choose: castable_spell, max: 1}
+      operations:
+        - {op: CAST_EXTERNAL_DEFINITION, pool: wayward-spells, definition: chosen_spell}
+        - {op: MOVE_CARD, from: cauldron, to: discard, selector: all_cards}
+
+resources:
+  - id: cauldron
+    kind: card_zone
+    visibility: public
+    initial: empty
+    ownership_rule: Cards retain their original owner; ordinary Wayward cards are owner-controlled while in the zone.
+  - id: wayward-spells
+    kind: external_definition_pool
+    visibility: public
+    initial: four_spell_definitions
+
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4a/wayward-sisters.yaml
+  construction: fixed
+
+rulings:
+  - id: sisters-your-hero-selection
+    summary: Generic effects on "your hero" affect one Sister chosen by the controller, not all three, unless a source identifies a specific Sister.
+    source: https://www.the-unmatched.club/rules/the-wayward-sisters
+  - id: sisters-attacking-card-can-be-ingredient
+    summary: The action card used for the just-completed attack can enter the cauldron in time to satisfy the post-attack spell check.
+    source: https://www.the-unmatched.club/rules/the-wayward-sisters
+  - id: sisters-discard-replacement-broad
+    summary: The cauldron replacement applies to cards that would reach discard from play, BOOST use, or discard effects.
+    source: https://www.the-unmatched.club/rules/the-wayward-sisters
+  - id: sisters-something-wicked-no-ingredients
+    summary: The card-specific double-spell procedure can cast its specified spells without satisfying ordinary ingredient requirements and without performing the normal cauldron emptying between those casts.
+    source: https://www.the-unmatched.club/rules/the-wayward-sisters
+
+sources:
+  - type: official_product
+    url: https://restorationgames.com/shop/unmatched-slings-and-arrows/
+  - type: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/the-wayward-sisters
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/the-wayward-sisters
