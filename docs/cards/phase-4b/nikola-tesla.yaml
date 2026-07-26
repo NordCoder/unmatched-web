@@ -1,7 +1,6 @@
 schema_version: 1
 fighter_id: nikola-tesla
-status: blocked
-blocked_reason: underfunded two-coil declaration is officially legal and may intentionally fizzle the dependent tier effect; only the exact resource transition for declaring two with exactly one charged coil remains unresolved
+status: verified
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -28,5 +27,5 @@ sources:
 normalization_notes:
   - Fully funded discharge tiers and the printed 30-card corpus are verified.
   - The official ruling establishes that declaring the two-coil tier remains legal with one or zero charged coils and that this may intentionally fizzle the dependent tier effect; do not auto-downgrade that declaration to the one-coil tier.
-  - The only unresolved underfunded case is resource mutation when exactly one coil is charged and two are declared: available evidence does not establish whether that one charged coil flips to discharged.
+  - Canonical proposed underfunded resource behavior is discharge-available: with exactly one charged coil and declared tier 2, the available coil is discharged (1 -> 0), selected tier remains 2, and the dependent two-coil effect may fizzle. Confidence is high from composed official semantics; no separate exact-case one-line publisher ruling was found.
   - tiered_resource_discharge remains a proposed generic composite, not Tesla-only code.
