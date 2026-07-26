@@ -76,14 +76,18 @@ cards:
       selector: 3
       viewer: controller
       capture: looked_cards
-    - op: DISCARD
-      controller: opponent
-      from_zone: opponent.deck_top
-      selector: one_of_captured
-    - op: REORDER
-      zone: opponent.deck_top
-      selector: remaining_two
-      order: chosen
+    nested_choice:
+      owner: controller
+      choose: one_card_from_captured_looked_cards
+      then:
+      - op: DISCARD
+        controller: opponent
+        from_zone: opponent.deck_top
+        selector: chosen_card
+      - op: REORDER
+        zone: opponent.deck_top
+        selector: remaining_captured_cards
+        order: chosen_by_controller
 - id: fist-of-khonshu
   name: Fist of Khonshu
   quantity: 2
@@ -100,7 +104,7 @@ cards:
     operations:
     - op: MOVE
       target: opposing_combat_fighter
-      distance: 4
+      max_distance: 4
 - id: past-and-present-intermingle
   name: Past and Present Intermingle
   quantity: 3
@@ -213,7 +217,7 @@ cards:
     operations:
     - op: MOVE
       target: moon-knight
-      distance: 4
+      max_distance: 4
       overrides:
       - may_move_through_opposing_fighters
     - op: GAIN_ACTION
@@ -230,5 +234,5 @@ sources:
 - https://www.unmatchedarena.com/heroes/moon-knight
 - https://restorationgames.com/shop/marvel-redemption-row/
 normalization_notes:
-- Card types were cross-checked against the current secondary deck index; values, BOOSTs, quantities and effects are from
-  the published deck corpus.
+- Card types were cross-checked against the current secondary deck index; values, BOOSTs, quantities and effects are from the published deck corpus.
+- Audit correction: That's the Part I Like explicitly binds the selected top-deck card after LOOK_AT and then reorders the remaining captured cards; Fist of Khonshu and Travelers of the Night use up-to movement semantics.
