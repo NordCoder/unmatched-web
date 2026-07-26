@@ -1,37 +1,39 @@
 schema_version: 1
 fighter_id: michelangelo
 status: blocked
-reason: public_normalized_card_corpus_incomplete
+reason: complete_per_card_metadata_and_effect_transcript_not_verified
 sources_checked:
+- https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
 - https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/michelangelo
-- https://www.the-unmatched.club/heroes/michelangelo
+- https://www.the-unmatched.club/tools/tracker?h=michelangelo
 construction:
   kind: fixed
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   rules: []
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
 cards: []
 external_definitions: []
 validation:
-  available_pool_count: null
-  game_deck_count: null
+  available_pool_count: 30
+  game_deck_count: 30
   quantity_sum: null
   result: BLOCKED
-  reason: complete per-card quantity/type/value/BOOST/effect corpus not verified from eligible sources
+  reason: Official IELLO rules establish a 30-card deck; a current tracker reconciles card names/quantities to 30, but complete printed type/value/BOOST/effect metadata has not been independently verified.
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/michelangelo
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-26'
+  note: Establishes Michelangelo's 30-card allocation and Pizza Party rules.
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/michelangelo
+  url: https://www.the-unmatched.club/tools/tracker?h=michelangelo
+  checked_at: '2026-07-26'
+  note: Current card-name/quantity reconciliation; not sufficient alone for full printed metadata/effects.
 normalization_notes:
-- Complete competitive hero action-card corpus not available from checked eligible sources.
+- Deck construction is authoritative 30/30; quantity_sum stays null until every card definition is fully transcribed and cross-checked.
+- The blocker is narrowed to the card-detail layer, not deck identity or size.
+- Adventures enemy/scenario behavior is excluded.
