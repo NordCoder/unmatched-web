@@ -1,6 +1,6 @@
 schema_version: 1
 fighter_id: bullseye
-status: blocked
+status: verified
 
 construction:
   kind: fixed
@@ -79,15 +79,13 @@ cards:
     usable_by: [bullseye]
     type: versatile
     printed_value: 3
-    boost: null
+    boost: 2
     tags: []
     effects:
       - trigger: after_combat
         condition: {opposing_combat_fighter_defeated_by_this_attack: false}
         choices: [{owner: controller, choose: fighter_in_opposing_combat_fighter_current_zone}]
         operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]
-    evidence_status: partial
-    evidence_gap: Type, value, quantity, and effect are independently cross-checked, but the printed BOOST value was not recovered from a sufficiently authoritative/current allowed source in this follow-up pass.
 
   - id: master-strategist
     name: Master Strategist
@@ -214,9 +212,7 @@ normalization_notes:
   - Feint is versatile in Bullseye's deck; Tactical Retreat is the single defense definition.
   - A secondary strategy article incorrectly reports four Arrogant But Effective copies. Current component imagery visibly marks the published card x3, and the 30-card quantity reconciliation agrees.
   - Arrogant But Effective changes the combat winner at its after-combat timing and then moves Bullseye up to 2 spaces; the movement is not omitted from normalization.
-  - Ricochet's type, value, quantity, and effect are independently cross-checked; only its BOOST value remains intentionally unfilled.
+  - Follow-up direct component imagery supplied during research visibly confirms Ricochet as value 3, BOOST 2, versatile, x3; this closes the final Bullseye evidence gap.
   - No community /decks/ record was used.
 
-blockers:
-  - id: ricochet-boost-evidence-gap
-    reason: One printed field remains unverified: Ricochet's BOOST value. It is intentionally null rather than inferred from fan copies or secondary aggregate assumptions.
+blockers: []
