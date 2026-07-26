@@ -21,8 +21,8 @@ ability:
     - id: source-cancellation-protection
       trigger: static
       continuous: true
-      condition: {count_cards_in_discard_with_tag_source: {gte: 7}, card_user: ciri}
-      operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_cards_used_by_ciri}]
+      condition: {count_cards_in_discard_with_tag_source: {gte: 7}}
+      operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_controller_action_cards}]
 
 resources:
   - id: source-count
@@ -42,7 +42,7 @@ rulings:
     summary: For a Source card, count Source cards in the discard when resolving it and apply only the highest listed threshold not exceeding the count; lower thresholds are not chosen or additionally resolved.
     source: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
   - id: seven-source-protection
-    summary: With at least seven Source cards in the discard, effects on Ciri's cards cannot be canceled.
+    summary: With at least seven Source cards in the discard, effects on the controller's cards cannot be canceled; this is a character-deck scope, not a current-fighter-user restriction.
     source: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
 
 sources:
@@ -52,3 +52,4 @@ sources:
 
 normalization_notes:
   - source-count is derived from authoritative card-zone contents, not a manually mutable token value.
+  - Uncontainable Power protects effects on the controller's action cards, including cards usable by Ihuarraquax or ANY cards; it is not limited to cards whose current fighter user is Ciri.
