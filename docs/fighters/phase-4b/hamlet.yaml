@@ -1,0 +1,67 @@
+schema_version: 1
+id: hamlet
+display_name: Hamlet
+set_ids: [slings-and-arrows]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: hamlet, display_name: Hamlet, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: rosencrantz-and-guildenstern, display_name: Rosencrantz & Guildenstern, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: question_state, value: none}
+    - {key: hamlet_took_damage_this_turn, value: false}
+
+ability:
+  id: the-question
+  controller: owner
+  effects:
+    - id: choose-question-state
+      trigger: turn_start
+      choices: [{owner: controller, choose: question_state, options: [to-be, not-to-be]}]
+      operations:
+        - {op: SET_STATE, key: question_state, value: chosen_question_state}
+        - {op: DEAL_EFFECT_DAMAGE, target: chosen_friendly_fighter, amount: 2, condition: {chosen_question_state: not-to-be}}
+    - id: to-be-extra-draw
+      trigger: maneuver_draw
+      condition: {question_state: to-be}
+      operations: [{op: DRAW, count: 1}]
+    - id: not-to-be-attack-bonus
+      trigger: static
+      continuous: true
+      condition: {question_state: not-to-be, attacker: hamlet}
+      operations: [{op: ADD_VALUE, target: hamlet_attack, amount: 2}]
+
+resources:
+  - id: question-token
+    kind: counter
+    visibility: public
+    initial: none
+    values: [none, to-be, not-to-be]
+
+persistent_state:
+  - {key: question_state, type: enum, reset: never}
+  - {key: hamlet_took_damage_this_turn, type: boolean, reset: turn_start}
+
+deck:
+  manifest: ../../cards/phase-4b/hamlet.yaml
+  construction: fixed
+
+rulings:
+  - id: rg-single-fighter
+    summary: Rosencrantz & Guildenstern are one sidekick fighter despite the two-name display label.
+    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+  - id: not-to-be-damages-friendly
+    summary: Choosing NOT TO BE immediately requires dealing 2 damage to one of Hamlet's own fighters.
+    source: https://www.the-unmatched.club/heroes/hamlet
+
+sources:
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/hamlet}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/hamlet}
