@@ -27,8 +27,8 @@ validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, un
 sources:
   - https://unmatched.cards/umdb/decks/king-arthur
   - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
-  - https://www.geektopiagames.com/unmatched/king-arthur/
-  - https://www.the-unmatched.club/heroes/king-arthur
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - The Holy Grail is intentionally not approximated with RECOVER because its published effect assigns an exact health value.
-  - Published UmDb is authoritative for Feint and Regroup BOOST 1; a secondary transcription showing BOOST 2 was rejected.
+  - Published UmDb is authoritative for Feint and Regroup BOOST 1; secondary/fan transcriptions with different BOOST values were rejected.
