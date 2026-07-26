@@ -65,10 +65,13 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
+    choices:
+    - owner: controller
+      choose: defeated_the_hand
     operations:
     - op: RETURN_FIGHTER
-      target: defeated_the_hand
-      destination_rule: space_in_elektra_zone
+      target: chosen_fighter
+      destination_rule: chosen_space_in_elektra_zone
       health_rule: set_to_1
 - id: intercept
   name: Intercept
@@ -107,13 +110,17 @@ cards:
   effects:
   - trigger: immediately
     optional: true
+    choices:
+    - owner: controller
+      choose: the_hand_fighter
     operations:
     - op: SWAP
       a: elektra
-      b: chosen_the_hand
+      b: chosen_fighter
     - op: SET_STATE
       key: combat.defender
-      value: chosen_the_hand
+      value: chosen_fighter
+    dependency: defender_changes_only_if_swap_occurs
 - id: ninjitsu
   name: Ninjitsu
   quantity: 2
@@ -170,7 +177,7 @@ cards:
     operations:
     - op: MOVE
       target: elektra
-      distance: 3
+      max_distance: 3
 - id: mesmerize
   name: Mesmerize
   quantity: 2
@@ -184,20 +191,28 @@ cards:
   - resurrected-clause
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: opponent
     operations:
     - op: LOOK_AT
-      source: opponent.hand
+      source: chosen_opponent.hand
       selector: all
       viewer: controller
+      capture: viewed_hand
     - op: GAIN_ACTION
       count: 1
-    - op: DISCARD
-      controller: opponent
-      from_zone: hand
-      selector: chosen_by_controller
-      count: 1
+    nested_choice:
+      owner: controller
       condition:
         resurrection_used: true
+      choose: one_card_from_viewed_hand
+      then:
+      - op: DISCARD
+        controller: chosen_opponent
+        from_zone: hand
+        selector: chosen_card
+        count: 1
 - id: sai
   name: Sai
   quantity: 2
@@ -223,3 +238,4 @@ sources:
 normalization_notes:
 - Published fixed deck size is 20. RESURRECTED clauses are gated by fighter persistent state.
 - Audit correction: The Fist's self-damage is an explicit cost for its return-to-hand and gain-action consequence, preserving the printed "if you do" dependency.
+- Audit correction: Hands of Red, Snakeroot Clan and Mesmerize now bind fighter/opponent/card choices explicitly; Snakeroot changes the defender only if the swap succeeds.
