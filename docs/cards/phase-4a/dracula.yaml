@@ -1,0 +1,200 @@
+schema_version: 1
+fighter_id: dracula
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: ambush
+    name: Ambush
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 3
+    effects:
+      - trigger: during_combat
+        operations:
+          - {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1, capture: discarded_card}
+          - {op: ADD_VALUE, target: this_card, amount: captured.discarded_card.boost_or_0}
+
+  - id: feeding-frenzy
+    name: Feeding Frenzy
+    quantity: 2
+    usable_by: [dracula]
+    type: attack
+    printed_value: 2
+    boost: 3
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_sisters_in_same_zone_as_opposing_fighter}]
+
+  - id: beastform
+    name: Beastform
+    quantity: 2
+    usable_by: [dracula]
+    type: attack
+    printed_value: 6
+    boost: 4
+    effects:
+      - trigger: during_combat
+        optional: true
+        choices: [{owner: controller, choose: any_number_of_cards_from_hand, min: 0}]
+        operations:
+          - {op: DISCARD, from: hand, selector: chosen_cards, count: chosen_count}
+          - {op: ADD_VALUE, target: this_card, amount: chosen_count}
+
+  - id: thirst-for-sustenance
+    name: Thirst for Sustenance
+    quantity: 3
+    usable_by: [sister]
+    type: attack
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        choices: [{owner: controller, choose: space_adjacent_to_opposing_combat_fighter}]
+        operations: [{op: PLACE, target: dracula, destination: chosen_space}]
+
+  - id: feint
+    name: Feint
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+  - id: dash
+    name: Dash
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations: [{op: MOVE, target: own_combat_fighter, max_distance: 3}]
+
+  - id: exploit
+    name: Exploit
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations: [{op: DRAW, count: 1}]
+
+  - id: do-my-bidding
+    name: Do My Bidding
+    quantity: 2
+    usable_by: [dracula]
+    type: defense
+    printed_value: 3
+    boost: 3
+    effects:
+      - trigger: immediately
+        operations:
+          - {op: MOVE_CARD, from_zone: opponent.committed_attack, to_zone: opponent.hand, selector: current_attack_card}
+          - {op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller}
+        nested_choice:
+          owner: controller
+          choose: attack_or_versatile_card_from_opponent_hand
+          then:
+            - op: REPLACE_COMBAT_CARD
+              side: attacker
+              card: chosen_card
+              controller: opponent
+              resolution_rule: source_defined_replacement_card_enters_current_combat_and_resolves_eligible_effects
+
+  - id: look-into-my-eyes
+    name: Look Into My Eyes
+    quantity: 2
+    usable_by: [dracula]
+    type: defense
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations: [{op: ADD_VALUE, target: this_card, amount: opposing_attack_card.boost_or_0}]
+
+  - id: mistform
+    name: Mistform
+    quantity: 2
+    usable_by: [dracula]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: battlefield_space}]
+        operations:
+          - {op: PLACE, target: dracula, destination: chosen_space}
+          - {op: GAIN_ACTION, count: 1}
+
+  - id: prey-upon
+    name: Prey Upon
+    quantity: 2
+    usable_by: [dracula]
+    type: scheme
+    printed_value: null
+    boost: 4
+    effects:
+      - trigger: scheme
+        operations:
+          - op: DEAL_EFFECT_DAMAGE
+            target: all_opposing_fighters_adjacent_to_dracula
+            amount_each: 1
+            capture_actual_damage_total: prey_damage
+          - {op: RECOVER, target: dracula, amount: captured.prey_damage}
+
+  - id: baptism-of-blood
+    name: Baptism of Blood
+    quantity: 2
+    usable_by: [dracula]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        operations: [{op: RECOVER, target: dracula, amount: 2}]
+        optional_followup:
+          condition: {defeated_sister_exists: true}
+          choices: [{owner: controller, choose: space_in_dracula_zone}]
+          operations: [{op: RETURN_FIGHTER, target: one_defeated_sister, destination: chosen_space, health_rule: full_starting_health}]
+
+  - id: ravening-seduction
+    name: Ravening Seduction
+    quantity: 3
+    usable_by: [sister]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: any_fighter}]
+        operations:
+          - {op: MOVE, target: chosen_fighter, max_distance: 2}
+          - {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount_rule: count_sisters_adjacent_to_chosen_fighter_after_move}
+
+external_definitions: []
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 13
+
+sources:
+  - https://unmatched.cards/umdb/decks/dracula
+  - https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
+  - https://www.the-unmatched.club/rules/dracula
+
+normalization_notes:
+  - Do My Bidding proves that combat-card replacement is a composite state transition, represented as REPLACE_COMBAT_CARD rather than pretending a second Attack action begins.
+  - Baptism of Blood uses RETURN_FIGHTER; ordinary RECOVER cannot target a defeated Sister.
+  - Prey Upon captures damage actually dealt so prevented/replaced damage does not create unsupported healing.
