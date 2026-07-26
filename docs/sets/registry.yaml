@@ -2,6 +2,8 @@ schema_version: 1
 last_verified: 2026-07-26
 scope: competitive-compatible official Unmatched content
 
+# release_year is the earliest verified release/fulfillment year for the canonical product lineage.
+# Later retail/reprint channels belong in editions and do not create duplicate gameplay records.
 records:
   - id: battle-of-legends-vol-1
     name: "Unmatched: Battle of Legends, Volume One"
@@ -15,8 +17,7 @@ records:
     battlefields: [marmoreal, sarpedon]
     special_components: [alice-size-token]
     set_mechanics: []
-    editions:
-      - {year: 2019, note: original release}
+    editions: [{year: 2019, note: original release}]
     sources:
       product_page: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
@@ -57,7 +58,7 @@ records:
     set_mechanics: []
     editions:
       - {year: 2019, note: original standalone fighter release}
-      - {year: 2025, note: fighter deck returned in Bruce Lee vs. Muhammad Ali; track as same fighter lineage, not a second historical solo set}
+      - {year: 2025, note: fighter deck returned as a member of Bruce Lee vs. Muhammad Ali}
     sources:
       current_history: https://restorationgames.com/unmatched-the-ultimate-fighters-bruce-lee-vs-muhammad-ali/
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -75,8 +76,7 @@ records:
     battlefields: [raptor-paddock]
     special_components: [ingen-trap-tokens]
     set_mechanics: [multiple-heroes, traps, one-way-paths]
-    editions:
-      - {year: 2020, note: original licensed release}
+    editions: [{year: 2020, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/jurassic-park-ingen-vs-raptors-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf
@@ -96,9 +96,9 @@ records:
     set_mechanics: [secret-passages]
     editions:
       - {year: 2020, note: original release}
-      - {year: 2025, note: Vault return/reprint announced with small rulebook clarifications}
+      - {year: 2025, note: returned from the Vault with small rulebook clarifications}
     sources:
-      product_page: https://restorationgames.com/shop/cobble-and-fog-unmatched/
+      product_page: https://restorationgames.com/shop/cobble-fog-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
       edition_note: https://restorationgames.com/the-unmatched-vault-cobble-fog/
     verification: verified
@@ -115,8 +115,7 @@ records:
     battlefields: [sunnydale-high-school, the-bronze]
     special_components: [buffy-sidekick-choice, spike-shadow-tokens, willow-transformation-token]
     set_mechanics: [pre-game-sidekick-choice]
-    editions:
-      - {year: 2020, note: original licensed release}
+    editions: [{year: 2020, note: original licensed release}]
     sources:
       rulebook: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -134,8 +133,7 @@ records:
     battlefields: [heorot]
     special_components: [little-red-basket-card, beowulf-rage-tokens, door-tokens]
     set_mechanics: [doors]
-    editions:
-      - {year: 2020, note: original release; board presents Heorot with two graphical treatments, not two different canonical battlefields}
+    editions: [{year: 2020, note: "Heorot appears with two graphical treatments; it is one canonical battlefield"}]
     sources:
       product_page: https://restorationgames.com/shop/little-red-beowulf-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf
@@ -153,13 +151,12 @@ records:
     battlefields: []
     special_components: []
     set_mechanics: []
-    editions:
-      - {year: 2021, note: limited single-fighter licensed release}
+    editions: [{year: 2021, note: limited single-fighter licensed release}]
     sources:
       completeness_crosscheck: https://boardgamegeek.com/boardgameversion/557976/english-edition
       published_deck_index: https://unmatched.cards/umdb/decks/stats
     verification: verified
-    provenance_note: "Current Restoration product/rulebook page is not publicly indexed; fighter existence/release metadata is cross-checked against BGG publisher-version metadata and UmDb. Card semantics remain Phase 4 work."
+    provenance_note: "Release membership is verified; current Restoration product/rulebook page is not publicly indexed. Card semantics remain Phase 4 work."
 
   - id: battle-of-legends-vol-2
     name: "Unmatched: Battle of Legends, Volume Two"
@@ -173,8 +170,7 @@ records:
     battlefields: [hanging-gardens]
     special_components: [sun-wukong-clone-tokens]
     set_mechanics: [high-ground, summonable-sidekicks]
-    editions:
-      - {year: 2021, note: original release}
+    editions: [{year: 2021, note: original release}]
     sources:
       product_page: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
@@ -192,8 +188,7 @@ records:
     battlefields: [hells-kitchen]
     special_components: [scheme-item-tokens, combat-item-tokens, battlefield-items]
     set_mechanics: [battlefield-items, nonstandard-deck-size]
-    editions:
-      - {year: 2022, note: original licensed release}
+    editions: [{year: 2022, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
       published_deck_index: https://unmatched.cards/umdb/decks/stats
@@ -211,8 +206,7 @@ records:
     battlefields: [the-raft]
     special_components: [ghost-rider-hellfire-tokens, scheme-item-tokens, combat-item-tokens, battlefield-items]
     set_mechanics: [battlefield-items, fighter-resource]
-    editions:
-      - {year: 2022, note: original licensed release}
+    editions: [{year: 2022, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/marvel-redemption-row/
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -230,8 +224,7 @@ records:
     battlefields: [t-rex-paddock]
     special_components: [insight-tokens]
     set_mechanics: [large-fighter, insight-tokens]
-    editions:
-      - {year: 2022, note: original licensed release}
+    editions: [{year: 2022, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -249,8 +242,7 @@ records:
     battlefields: [king-solomons-mine]
     special_components: []
     set_mechanics: [secret-passages]
-    editions:
-      - {year: 2022, note: original release}
+    editions: [{year: 2022, note: original release}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-houdini-genie/
       rulebook: https://restorationgames.com/wp-content/uploads/2022/09/UM-HvG_Rules-two-page.pdf
@@ -269,8 +261,7 @@ records:
     battlefields: [navy-pier]
     special_components: [squirrel-tokens, battlefield-items]
     set_mechanics: [battlefield-items, multiple-heroes, summonable-sidekicks]
-    editions:
-      - {year: 2023, note: original licensed release}
+    editions: [{year: 2023, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -288,8 +279,7 @@ records:
     battlefields: [helicarrier]
     special_components: [black-panther-vibranium-suit, black-widow-reference-card, scheme-item-tokens, combat-item-tokens, battlefield-items]
     set_mechanics: [battlefield-items, special-card-storage, nonstandard-deck-size]
-    editions:
-      - {year: 2023, note: original licensed release}
+    editions: [{year: 2023, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
       completeness_crosscheck: https://boardgamegeek.com/wiki/page/thing%3A295564%3Amoreinfo
@@ -307,8 +297,7 @@ records:
     battlefields: [sanctum-sanctorum]
     special_components: [scheme-item-tokens, combat-item-tokens, battlefield-items]
     set_mechanics: [battlefield-items]
-    editions:
-      - {year: 2023, note: original licensed release}
+    editions: [{year: 2023, note: original licensed release}]
     sources:
       product_page: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
       rulebook: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
@@ -328,8 +317,7 @@ records:
     special_components: [tesla-coil-tokens, jill-trent-gadget-tokens, adventures-enemy-and-scenario-components]
     set_mechanics: [competitive-heroes-in-adventures-product]
     deferred_noncompetitive_content: [mothman, martian-invader, adventures-minions, initiative-system, threat-system, scenario-objectives]
-    editions:
-      - {year: 2023, note: original Adventures release}
+    editions: [{year: 2023, note: original Adventures release}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/
       core_rules: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Core-rules_EN_Light.pdf
@@ -348,8 +336,7 @@ records:
     battlefields: [azuchi-castle]
     special_components: [oda-honor-guard-health-dials]
     set_mechanics: [multi-health-sidekicks]
-    editions:
-      - {year: 2024, note: modern Core Rulebook + Set Rulebook publishing model}
+    editions: [{year: 2024, note: modern Core Rulebook + Set Rulebook publishing model}]
     sources:
       product_page: https://restorationgames.com/shop/suns-origin-unmatched/
     verification: verified
@@ -366,8 +353,7 @@ records:
     battlefields: [globe-theatre]
     special_components: [hamlet-ability-token, wayward-sisters-cauldron, titania-glamour-cards]
     set_mechanics: [multiple-heroes, card-title-sequencing, fighter-state-choice, glamour-deck, ingredient-spell-system]
-    editions:
-      - {year: 2024, note: original release}
+    editions: [{year: 2024, note: original release}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-slings-and-arrows/
       set_rules: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
@@ -377,7 +363,7 @@ records:
     name: "Unmatched: The Witcher — Steel & Silver"
     kind: set
     release_status: released
-    release_year: 2025
+    release_year: 2024
     competitive_compatible: true
     license_kind: third_party
     availability: current
@@ -385,19 +371,19 @@ records:
     battlefields: [kaer-morhen, fayrlund-forest]
     special_components: [geralt-gear-cards, ciri-source-tracker, leshen-wolf-sidekicks]
     set_mechanics: [pre-game-deck-construction, ongoing-schemes, one-way-paths, summonable-sidekicks]
-    editions:
-      - {year: 2024, note: first public sale/demo availability at PAX Unplugged; retail/product lineage commonly cataloged as 2025}
+    editions: [{year: 2024, note: first verified public sale at PAX Unplugged 2024}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-witcher-steel-and-silver/
       set_rules: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
       bundle_page: https://restorationgames.com/shop/unmatched-witcher-bundle/
+      release_evidence: https://restorationgames.com/join-us-at-paxu-2024/
     verification: verified
 
   - id: witcher-realms-fall
     name: "Unmatched: The Witcher — Realms Fall"
     kind: set
     release_status: released
-    release_year: 2025
+    release_year: 2024
     competitive_compatible: true
     license_kind: third_party
     availability: current
@@ -405,12 +391,12 @@ records:
     battlefields: [naglfar, streets-of-novigrad]
     special_components: [yennefer-triss-rival-hero-choice, eredin-wild-hunt-riders]
     set_mechanics: [setup-time-hero-selection, ongoing-schemes, multi-level-battlefield-adjacency]
-    editions:
-      - {year: 2024, note: first public sale/demo availability at PAX Unplugged; retail/product lineage commonly cataloged as 2025}
+    editions: [{year: 2024, note: first verified public sale at PAX Unplugged 2024}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-witcher-realms-fall/
       set_rules: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
       bundle_page: https://restorationgames.com/shop/unmatched-witcher-bundle/
+      release_evidence: https://restorationgames.com/join-us-at-paxu-2024/
     verification: verified
 
   - id: battle-of-legends-vol-3
@@ -425,8 +411,7 @@ records:
     battlefields: [santas-workshop, venice]
     special_components: [blackbeard-doubloon-and-treasure-components, pandora-box-cards]
     set_mechanics: [one-way-paths, conveyor-belt, fighter-resource, external-card-pool]
-    editions:
-      - {year: 2025, note: original release}
+    editions: [{year: 2025, note: original release}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
       trilogy_page: https://restorationgames.com/shop/unmatched-battle-of-legends-complete-trilogy-bundle/
@@ -445,8 +430,7 @@ records:
     battlefields: [thrilla-in-manila, tsing-shan-monastery]
     special_components: [muhammad-ali-butterfly-bee-token]
     set_mechanics: []
-    editions:
-      - {year: 2025, note: Bruce Lee returns with new miniature; canonical fighter lineage preserves original deck identity where officially unchanged}
+    editions: [{year: 2025, note: "Bruce Lee returns; Restoration states his deck could not change"}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
       design_history: https://restorationgames.com/unmatched-the-ultimate-fighters-bruce-lee-vs-muhammad-ali/
@@ -457,7 +441,7 @@ records:
     name: "Unmatched Adventures: Teenage Mutant Ninja Turtles"
     kind: adventures_set
     release_status: released
-    release_year: 2026
+    release_year: 2025
     competitive_compatible: true
     license_kind: third_party
     availability: current
@@ -487,15 +471,14 @@ records:
     battlefields: [white-house, alamo]
     special_components: [railroad-tokens, rosie-upgrade-tokens, ruse-tokens]
     set_mechanics: [track-network, mech-upgrades, ruse-network, secret-passages]
-    editions:
-      - {year: 2026, note: Restoration webstore early release 2026-03-16; full retail 2026-06-24}
+    editions: [{year: 2026, note: "webstore 2026-03-16; full retail 2026-06-24"}]
     sources:
       product_page: https://restorationgames.com/shop/unmatched-stars-and-stripes/
       rulebook: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
       secret_passages_addendum: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
       release_announcement: https://restorationgames.com/press-release-unmatched-stars-and-stripes/
     verification: verified
-    provenance_note: "The White House secret-passage rule was omitted from the printed/main rulebook and is authoritative only through the separate 2026 addendum. Phase 4 must independently verify the complete card corpus because normalized public databases may lag the physical release."
+    provenance_note: "White House Secret Passages were omitted from the main rulebook; the separate 2026 addendum is first-class authority. Phase 4 must independently verify the complete physical card corpus."
 
   - id: tmnt-shredder-krang-hero-decks
     name: "Unmatched Adventures: TMNT — Shredder & Krang Hero Decks"
@@ -531,7 +514,7 @@ records:
       official_collection: https://restorationgames.com/unmatched/
       official_accessories_index: https://restorationgames.com/product-category/accessories/unmatched-accessories/
     verification: partial
-    provenance_note: "Official sale/existence is verified. Exact graph/topology and any equivalence to another battlefield must be established from authoritative physical/map material in Phase 5; do not infer it from community claims."
+    provenance_note: "Official existence is verified. Exact graph/topology/equivalence is a Phase 5 verification requirement; community reskin claims are not imported as canonical facts."
 
   - id: hellboy
     name: "Unmatched: Hellboy"
@@ -549,4 +532,4 @@ records:
       product_page: https://restorationgames.com/shop/unmatched-hellboy/
       announcement: https://restorationgames.com/gen-con-blueprints-announcement-recap/
     verification: blocked
-    provenance_note: "Official announcement identifies a four-character licensed box, but the current product page exposes no playable roster/rulebook/content corpus. Do not import community-predicted fighter names. Add content only after authoritative publication."
+    provenance_note: "Official announcement describes a future four-character licensed box, but the current product page exposes no final roster/rulebook/content corpus. Do not import community-predicted fighter names."
