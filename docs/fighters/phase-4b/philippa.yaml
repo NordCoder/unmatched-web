@@ -1,0 +1,49 @@
+schema_version: 1
+id: philippa
+display_name: Philippa
+set_ids: [witcher-realms-fall]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: philippa, display_name: Philippa, role: hero, count: 1, attack_type: ranged, starting_health: 12, starts_on_board: true, summonable: false}
+    - {id: dijkstra, display_name: Dijkstra, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: maneuver_actions_taken_this_turn, value: 0}
+
+ability:
+  id: court-intrigue
+  controller: owner
+  effects:
+    - id: refill-to-four
+      trigger: turn_end
+      optional: true
+      condition: {hand_size: {lt: 4}}
+      operations: [{op: DRAW, count_rule: four_minus_current_hand_size}]
+
+resources: []
+persistent_state:
+  - {key: maneuver_actions_taken_this_turn, type: integer, reset: turn_start}
+
+deck:
+  manifest: ../../cards/phase-4b/philippa.yaml
+  construction: fixed
+
+rulings:
+  - id: ability-not-usable-at-four-plus
+    summary: Philippa's end-turn ability is available only when her hand contains fewer than four cards; it never discards down to four.
+    source: https://www.the-unmatched.club/rules/philippa
+
+sources:
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/philippa}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/rules/philippa}
+
+normalization_notes:
+  - Backup Plan can set Philippa's health to exactly 5, including lowering it from above 5; the generic exact-health-assignment proposal is recorded in the Worker C report.
