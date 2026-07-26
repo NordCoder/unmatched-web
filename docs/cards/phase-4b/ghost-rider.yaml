@@ -19,12 +19,15 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
-    operations:
+    costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: 1
+      cost_semantics: true
+    operations:
     - op: DRAW
       count: 2
+    dependency: draw_only_if_hellfire_cost_was_paid
 - id: control-the-demon
   name: Control the Demon
   quantity: 3
@@ -53,17 +56,22 @@ cards:
   tags: []
   effects:
   - trigger: during_combat
-    optional: true
     operations:
     - op: ADD_VALUE
       target: this_card
       amount_rule: opposing_combat_card.boost_or_0
+  - trigger: during_combat
+    optional: true
+    costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: 2
+      cost_semantics: true
+    operations:
     - op: ADD_VALUE
       target: this_card
       amount_rule: opposing_combat_card.boost_or_0
+    dependency: second_boost_addition_only_if_two_hellfire_cost_was_paid
 - id: i-finally-escaped-hell
   name: I Finally Escaped Hell
   quantity: 3
@@ -77,13 +85,16 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
-    operations:
+    costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: 1
+      cost_semantics: true
+    operations:
     - op: MOVE
       target: ghost-rider
-      distance: 2
+      max_distance: 2
+    dependency: movement_only_if_hellfire_cost_was_paid
 - id: i-brought-the-devil-with-me
   name: I Brought the Devil With Me
   quantity: 3
@@ -97,12 +108,15 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
-    operations:
+    costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: 2
+      cost_semantics: true
+    operations:
     - op: GAIN_ACTION
       count: 1
+    dependency: action_only_if_two_hellfire_cost_was_paid
 - id: blaze-of-glory
   name: Blaze of Glory
   quantity: 2
@@ -115,7 +129,9 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    optional: true
+    choices:
+    - owner: controller
+      choose: hellfire_amount_0_to_current
     operations:
     - op: SPEND_RESOURCE
       resource: hellfire
@@ -155,14 +171,19 @@ cards:
   effects:
   - trigger: during_combat
     optional: true
-    operations:
+    choices:
+    - owner: controller
+      choose: hellfire_amount_0_to_current
+    costs:
     - op: SPEND_RESOURCE
       resource: hellfire
       amount: chosen_amount
-      capture: spent
+      cost_semantics: true
+    operations:
     - op: ADD_VALUE
       target: this_card
-      amount_rule: captured.spent
+      amount_rule: chosen_amount
+    dependency: value_increase_equals_successfully_paid_hellfire_amount
 - id: stoke-the-flames
   name: Stoke the Flames
   quantity: 3
@@ -211,10 +232,10 @@ cards:
     operations:
     - op: MOVE
       target: ghost-rider
-      distance: 4
+      max_distance: 4
     - op: MOVE
       target: up_to_one_initially_adjacent_fighter
-      distance: 4
+      max_distance: 4
     - op: GAIN_RESOURCE
       resource: hellfire
       amount: 2
@@ -247,3 +268,6 @@ sources:
 - https://unmatched.cards/umdb/decks/ghost-rider
 - https://unmatched.cards/card-counter/ghost-rider
 - https://restorationgames.com/shop/marvel-redemption-row/
+normalization_notes:
+- Audit correction: printed Hellfire payments are represented as costs/dependencies rather than independent operations, so their benefits cannot resolve if the required payment is unavailable or not made.
+- Audit correction: Penance Stare always applies its first opposing-card BOOST addition; only the second addition is optional and costs 2 Hellfire.
