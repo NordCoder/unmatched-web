@@ -20,7 +20,7 @@ Every specification area uses one of these states:
 | Area | Status | Primary output |
 | --- | --- | --- |
 | Source policy and provenance | verified | `sources/` |
-| Competitive core rules | planned | `rules/` |
+| Competitive core rules | **verified — Phase 1 gate passed** | `rules/` |
 | Timing, choices, effects, rulings | planned | `mechanics/`, `rulings/` |
 | Set registry and set-specific rules | planned | `sets/` |
 | Fighters and decks | planned | `fighters/`, `cards/` |
@@ -29,37 +29,40 @@ Every specification area uses one of these states:
 | Engine-facing contract | planned | stable schemas + mechanic taxonomy |
 | Adventures/co-op extension | deferred | separate future workstream |
 
-## Planned structure
+## Current rules corpus
+
+```text
+docs/rules/
+├── README.md
+├── terminology.md
+├── battlefield.md
+├── setup.md
+├── turn-structure.md
+├── maneuver.md
+├── scheme.md
+├── combat.md
+├── effect-resolution-baseline.md
+├── defeat-and-game-end.md
+├── multiplayer-deltas.md
+└── phase-1-validation.md
+```
+
+Phase 1 is complete for its declared **vanilla competitive two-player** scope. This does not make the full project `developer-ready`: Phase 2 still has to formalize pending choices, generalized timing/effect semantics, global rulings, extra/free actions, cancellation, placement edge cases, bonus attacks, and related mechanics before real fighter decks can safely become executable data.
+
+## Planned remaining structure
 
 ```text
 docs/
 ├── sources/
 │   ├── source-policy.md
 │   └── source-registry.md
-├── rules/
-│   ├── terminology.md
-│   ├── setup.md
-│   ├── turn-structure.md
-│   ├── maneuver.md
-│   ├── combat.md
-│   ├── schemes.md
-│   ├── exhaustion.md
-│   └── game-end.md
-├── mechanics/
-│   ├── timing.md
-│   ├── effects.md
-│   ├── choices.md
-│   ├── movement-vs-placement.md
-│   ├── bonus-attacks.md
-│   ├── multiple-heroes.md
-│   ├── summoning.md
-│   ├── ongoing-schemes.md
-│   └── battlefield-mechanics.md
-├── sets/
-├── fighters/
-├── cards/
-├── battlefields/
-├── rulings/
+├── rules/                 # Phase 1 complete
+├── mechanics/             # Phase 2
+├── sets/                  # Phase 3
+├── fighters/              # Phase 4
+├── cards/                 # Phase 4
+├── battlefields/          # Phase 5
+├── rulings/               # Phase 2 onward
 ├── research-plan.md
 └── specification-readiness.md
 ```
