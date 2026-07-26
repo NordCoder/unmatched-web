@@ -35,9 +35,9 @@ ability:
     condition: {controller_won_combat: true}
     operations: [{op: SET_STATE, key: ali_won_combat_this_turn, value: true}]
   - id: record-combat-damage
-    trigger: after_combat
-    condition: {controller_combat_damage_dealt_gt: 0}
-    operations: [{op: CHANGE_STATE, key: ali_combat_damage_dealt_this_turn, delta_rule: controller_combat_damage_dealt}]
+    trigger: combat_damage_applied
+    condition: {damage_type: combat, source_fighter: muhammad-ali, applied_damage_gt: 0}
+    operations: [{op: CHANGE_STATE, key: ali_combat_damage_dealt_this_turn, delta_rule: applied_damage_amount}]
   - id: change-stance-after-win
     trigger: after_attack
     condition: {combat_result: won}
@@ -69,3 +69,4 @@ sources:
 normalization_notes:
 - Float attack reach remains an explicit source-defined targeting modifier pending shared engine integration.
 - Historical combat-win and combat-damage state is persisted because Louisville Lip and The Greatest inspect earlier combats in the same turn.
+- Combat damage is accumulated when it is applied, before AFTER COMBAT effects inspect the turn total; this avoids timing-order dependence with The Greatest.
