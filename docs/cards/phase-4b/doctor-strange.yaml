@@ -119,7 +119,7 @@ cards:
       wong_adjacent_to_opposing_fighter: true
     operations:
     - op: DEAL_EFFECT_DAMAGE
-      target: adjacent_opposing_fighter
+      target: opposing_combat_fighter
       amount: 1
     - op: DRAW
       count: 1
@@ -236,6 +236,9 @@ cards:
   tags: []
   effects:
   - trigger: scheme
+    choices:
+    - owner: controller
+      choose: card_in_own_hand
     operations:
     - op: REVEAL
       source: hand
@@ -245,9 +248,13 @@ cards:
       from_zone: hand
       to_zone: deck_top
       selector: captured.revealed
-    - op: RECOVER
-      target: doctor-strange_or_adjacent_friendly_fighter
-      amount_rule: captured.revealed.boost_or_0
+    nested_choice:
+      owner: controller
+      choose: doctor_strange_or_friendly_fighter_adjacent_to_doctor_strange
+      then:
+      - op: RECOVER
+        target: chosen_fighter
+        amount_rule: captured.revealed.boost_or_0
 external_definitions: []
 validation:
   available_pool_count: 30
@@ -262,3 +269,4 @@ sources:
 normalization_notes:
 - BLIND BOOST operations use deck-top reveal/discard semantics and are not DRAW operations.
 - Audit correction: Seven Suns of Cinnibus exposes two ordered independent optional BLIND BOOST opportunities, allowing zero, one, or two resolutions without introducing an undocumented repeatable field.
+- Audit correction: No Really, I'm a Doctor explicitly binds the revealed hand card and then the healing target; Steadfast Disciple damages the opposing combat fighter named by the printed text rather than an arbitrary adjacent opponent.
