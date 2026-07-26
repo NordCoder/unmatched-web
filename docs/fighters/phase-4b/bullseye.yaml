@@ -19,7 +19,9 @@ topology:
     summonable: false
 setup:
   hooks: []
-  state_initialization: []
+  state_initialization:
+  - key: won_combat_earlier_this_turn
+    value: false
 ability:
   id: worlds-greatest-assassin
   controller: owner
@@ -34,7 +36,7 @@ ability:
       final_combat_winner: bullseye
     operations:
     - op: SET_STATE
-      key: won_combat_this_turn
+      key: won_combat_earlier_this_turn
       value: true
 resources: []
 persistent_state:
@@ -42,10 +44,10 @@ persistent_state:
   type: space_ref
   reset: turn_start
   note: Required by card conditions that compare Bullseye's current space to the space where he started the turn.
-- key: won_combat_this_turn
+- key: won_combat_earlier_this_turn
   type: boolean
   reset: turn_start
-  note: Historical state used by published effects that ask whether Bullseye already won a combat this turn. It is updated only after the combat's final winner is known, so Arrogant But Effective can make that combat count for later effects.
+  note: Historical state used by published effects that ask whether Bullseye already won a combat earlier in the current turn. It is updated only after the combat's final winner is known, so the current combat does not satisfy its own predicate and Arrogant But Effective can make that combat count for later effects.
 deck:
   manifest: ../../cards/phase-4b/bullseye.yaml
   construction: fixed
