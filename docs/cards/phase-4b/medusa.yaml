@@ -1,0 +1,24 @@
+schema_version: 1
+fighter_id: medusa
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: gaze-of-stone, name: Gaze of Stone, quantity: 3, usable_by: [medusa], type: attack, printed_value: 2, boost: 4, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 8}]}]}
+  - {id: second-shot, name: Second Shot, quantity: 3, usable_by: [medusa], type: attack, printed_value: 3, boost: 3, effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
+  - {id: hiss-and-slither, name: Hiss and Slither, quantity: 3, usable_by: [medusa], type: defense, printed_value: 4, boost: 3, effects: [{trigger: after_combat, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_choice, count: 1}]}]}
+  - {id: a-momentary-glance, name: A Momentary Glance, quantity: 2, usable_by: [medusa], type: scheme, printed_value: null, boost: 4, effects: [{trigger: scheme, choices: [{choose: fighter_in_medusa_zone}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
+  - {id: clutching-claws, name: Clutching Claws, quantity: 3, usable_by: [harpy], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_choice, count: 1}]}]}
+  - {id: the-hounds-of-mighty-zeus, name: The Hounds of Mighty Zeus, quantity: 2, usable_by: [harpy], type: versatile, printed_value: 4, boost: 3, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_harpy, max_distance: 3}]}]}
+  - {id: winged-frenzy, name: Winged Frenzy, quantity: 2, usable_by: any, type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}, {op: RETURN_FIGHTER, target: one_defeated_harpy, destination: any_space_in_medusa_zone, health_rule: source_defined_one_hit_sidekick}]}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}, {trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}]}
+  - {id: dash, name: Dash, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 3}]}]}
+  - {id: snipe, name: Snipe, quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
+
+external_definitions: []
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+sources:
+  - https://unmatched.cards/umdb/decks/medusa
+  - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
+normalization_notes: []
