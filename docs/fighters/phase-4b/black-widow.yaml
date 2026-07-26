@@ -38,13 +38,27 @@ setup:
       zone: deck
     - op: DRAW
       count: 5
-  state_initialization: []
+  state_initialization:
+  - key: opposing_fighter_damaged_this_turn
+    value: false
 ability:
   id: missions
   controller: owner
-  effects: []
+  effects:
+  - id: record-opposing-fighter-damage
+    trigger: fighter_damaged
+    condition:
+      damaged_fighter_relation: opposing
+    operations:
+    - op: SET_STATE
+      key: opposing_fighter_damaged_this_turn
+      value: true
 resources: []
-persistent_state: []
+persistent_state:
+- key: opposing_fighter_damaged_this_turn
+  type: boolean
+  reset: turn_start
+  note: Required by The Moscow Protocol. It records whether any opposing fighter has taken any damage during the current turn, regardless of source.
 deck:
   manifest: ../../cards/phase-4b/black-widow.yaml
   construction: fixed
@@ -57,7 +71,6 @@ sources:
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/black-widow
 normalization_notes:
-- Black Widow's published pool is 31 cards; Moscow Protocol begins in hand, then the remaining 30 are shuffled and five are
-  drawn.
-- Mission acquisition reveals from the deck until a mission is found, moves that mission to hand, and shuffles the other revealed
-  cards back; it does nothing if no mission remains in deck.
+- Black Widow's published pool is 31 cards; Moscow Protocol begins in hand, then the remaining 30 are shuffled and five are drawn.
+- Mission acquisition reveals from the deck until a mission is found, moves that mission to hand, and shuffles the other revealed cards back; it does nothing if no mission remains in deck.
+- Audit correction: The Moscow Protocol's turn-history predicate is backed by explicit resettable state instead of an undeclared derived condition.
