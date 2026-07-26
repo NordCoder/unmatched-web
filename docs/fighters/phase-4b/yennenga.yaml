@@ -1,0 +1,40 @@
+schema_version: 1
+id: yennenga
+display_name: Yennenga
+set_ids: [battle-of-legends-vol-2]
+status: blocked
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: yennenga, display_name: Yennenga, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: archer, display_name: Archer, role: sidekick, count: 2, attack_type: ranged, starting_health: 2, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: shield-of-the-archers
+  controller: owner
+  effects:
+    - id: redirect-yennenga-damage
+      trigger: before_damage_application
+      condition: {target: yennenga}
+      optional: true
+      choices: [{owner: controller, choose: damage_split_to_archers_in_yennenga_zone, max_per_archer: remaining_health}]
+      operations: [{op: REDIRECT_DAMAGE, source_damage: pending_damage, from: yennenga, to: chosen_archer_allocations}]
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/yennenga.yaml, construction: fixed}
+rulings:
+  - id: volley-composite
+    summary: VOLLEY is a bonus attack after the parent combat using the published attacker/defender/value rules; it is not another Attack action.
+    source: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/yennenga}
+  - {type: secondary_crosscheck, url: https://www.geektopiagames.com/unmatched/yennenga/}
+blocker:
+  reason: movement_path_capture_required_by_stallion_charge_not_in_shared_effect_model
+  affected_card: stallion-charge
+  report: ../../phase-4b/worker-a-report.md
