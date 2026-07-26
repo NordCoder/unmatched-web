@@ -3,12 +3,7 @@ id: pandora
 display_name: Pandora
 set_ids:
 - battle-of-legends-vol-3
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- https://unmatched.cards/umdb/decks/pandora
-- https://www.the-unmatched.club/heroes/pandora
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -30,34 +25,36 @@ topology:
     starting_health: 1
     starts_on_board: false
     summonable: true
-    runtime_identity: Each summoned Kakodaemon is a distinct one-health fighter instance.
+    runtime_identity: Each Kakodaemon is a distinct one-health fighter instance.
 setup:
   hooks: []
   state_initialization:
-  - key: pandora_attack_bonus_this_turn
-    value: 0
+  - {key: pandora_attack_bonus_this_turn, value: 0}
 ability:
   id: pandoras-box
   controller: owner
   effects:
   - id: open-pandoras-box
-    trigger: source_defined_box_open
+    trigger: start_turn
     operations:
     - op: TRIGGER_COMPOSITE
       kind: source_defined_controlled_reveal_loop
       pool: pandora-miseries
-    note: Repeat/stop/forced-threshold loop requires the generic extension proposed in the worker report.
+      controller_may_stop_between_iterations: true
+      forced_stop: {total_feathers_gte: 3}
+      after_stop: {damage_pandora_equal_revealed_count: true}
+  - id: reset-pandoras-box
+    trigger: end_turn
+    operations:
+    - op: TRIGGER_COMPOSITE
+      kind: source_defined_return_and_shuffle_external_definitions
+      pool: pandora-miseries
+      destination: pandora-box
   - id: pandora-turn-attack-bonus
     trigger: static
     continuous: true
-    condition:
-      attacker: pandora
-      state: pandora_attack_bonus_this_turn
-      gt: 0
-    operations:
-    - op: ADD_VALUE
-      target: pandora_attack
-      amount_from_state: pandora_attack_bonus_this_turn
+    condition: {attacker: pandora, state: pandora_attack_bonus_this_turn, gt: 0}
+    operations: [{op: ADD_VALUE, target: pandora_attack, amount_from_state: pandora_attack_bonus_this_turn}]
 resources:
 - id: pandora-box
   kind: card_zone
@@ -80,13 +77,20 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/pandora
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/pandora
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-26'
+  note: Physical 2025 set/deck review used as component cross-check.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/pandora
+  checked_at: '2026-07-26'
+  note: Current action-card transcription.
+- authority: reference
+  url: https://www.geektopiagames.com/unmatched/pandora/
+  checked_at: '2026-07-26'
+  note: Independent action-card and Misery cross-check.
 normalization_notes:
-- Seven Misery definitions are external gameplay definitions, not action-card instances.
-- Current UmDb action-card content is visibly incomplete, so the fighter/deck pair remains blocked even though the Box mechanic
-  is documented.
+- The seven Misery cards are external gameplay definitions and do not inflate the 30-card action deck.
+- The Box repeat/stop procedure remains an explicit source-defined composite pending orchestrator promotion of a generic resumable loop primitive.
+- No fan-deck namespace is used.
