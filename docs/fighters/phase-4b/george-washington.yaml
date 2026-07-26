@@ -1,29 +1,14 @@
 schema_version: 1
 id: george-washington
 display_name: George Washington
-set_ids:
-- stars-and-stripes
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- https://unmatched.cards/umdb/decks/george-washington
-- https://www.the-unmatched.club/heroes/george-washington
+set_ids: [stars-and-stripes]
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: george-washington
-    display_name: George Washington
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 14
-    starts_on_board: true
-    summonable: false
+  - {id: george-washington, display_name: George Washington, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
   - id: culper-spy
     display_name: Culper Spy
     role: sidekick
@@ -31,8 +16,8 @@ topology:
     attack_type: melee
     starting_health: 1
     starts_on_board: true
-    summonable: false
-    runtime_identity: Each Culper Spy token is a distinct one-health fighter instance.
+    summonable: true
+    runtime_identity: Each Culper Spy token is a distinct one-health fighter instance and may be returned after defeat when a source allows it.
 setup:
   hooks: []
   state_initialization: []
@@ -43,32 +28,22 @@ ability:
   - id: espionage-ruse
     trigger: attack_declared_pre_defense
     optional: true
-    condition:
-      resource: ruse-tokens
-      available_gte: 1
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_ruse_attachment_and_veto
-    note: Requires a generic pre-defense commitment hook and temporary marker attachment semantics proposed in the worker
-      report.
+    condition: {resource: ruse-tokens, available_gte: 1}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ruse_attachment_and_veto}]
 resources:
-- id: ruse-tokens
-  kind: token_pool
-  visibility: public
-  initial: 4
+- {id: ruse-tokens, kind: token_pool, visibility: public, initial: 4}
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/george-washington.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: ruse-pre-defense-window
+  summary: A ruse is committed before the defender chooses whether to defend; the defender may discard a random card to remove it before choosing a defense card.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
-- authority: official_set
-  url: https://restorationgames.com/wp-content/uploads/2026/03/UM-SnS-rules-addendum_color.pdf
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/george-washington
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/george-washington
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
+normalization_notes:
+- Culper Spies are summonable because Recruit to the Ring can return defeated Spies.
+- Ruse attachment/veto remains an explicit pre-defense composite pending shared combat-marker semantics.
