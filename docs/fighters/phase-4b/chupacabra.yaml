@@ -3,12 +3,7 @@ id: chupacabra
 display_name: Chupacabra
 set_ids:
 - battle-of-legends-vol-3
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- https://unmatched.cards/umdb/decks/chupacabra
-- https://www.the-unmatched.club/heroes/chupacabra
+status: verified
 movement: 3
 topology:
   type: single_hero
@@ -24,7 +19,8 @@ topology:
     summonable: false
 setup:
   hooks: []
-  state_initialization: []
+  state_initialization:
+  - {key: won_combat_this_turn, value: false}
 ability:
   id: the-hunger
   controller: owner
@@ -32,11 +28,12 @@ ability:
   - id: hunger-draw
     trigger: after_attack
     optional: true
-    operations:
-    - op: DRAW
-      count: 1
+    operations: [{op: DRAW, count: 1}]
 resources: []
-persistent_state: []
+persistent_state:
+- key: won_combat_this_turn
+  type: boolean
+  reset: turn_start
 deck:
   manifest: ../../cards/phase-4b/chupacabra.yaml
   construction: fixed
@@ -44,10 +41,18 @@ rulings: []
 sources:
 - authority: official_component
   url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/chupacabra
+  checked_at: '2026-07-26'
 - authority: reference
-  url: https://www.the-unmatched.club/heroes/chupacabra
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-26'
+  note: Physical 2025 set/deck review used for component cross-checking.
+- authority: reference
+  url: https://www.unmatchedarena.com/heroes/chupacabra
+  checked_at: '2026-07-26'
+  note: Complete current deck transcription, cross-checked against physical components and an independent tracker.
+- authority: reference
+  url: https://www.the-unmatched.club/tools/tracker?h=chupacabra
+  checked_at: '2026-07-26'
 normalization_notes:
-- A secondary current index can reconcile 30 physical card names/quantities, but source policy does not permit inventing the
-  missing published type/value/BOOST/effect corpus.
+- Historical win state is explicit because Blood in the Air depends on whether Chupacabra won an earlier combat this turn.
+- Physical/current cross-check resolves the card title as Tooth and Tail; no fan-deck namespace is used.
