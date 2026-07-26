@@ -28,22 +28,37 @@ ability:
   - id: espionage-ruse
     trigger: attack_declared_pre_defense
     optional: true
-    condition: {resource: ruse-tokens, available_gte: 1}
+    condition: {resource: ruse-tokens, ready_gte: 1}
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ruse_attachment_and_veto}]
 resources:
-- {id: ruse-tokens, kind: token_pool, visibility: public, initial: 4}
+- id: ruse-tokens
+  kind: token_pool
+  visibility: public
+  initial: 4
+  runtime_state:
+    per_token_states: [ready, attached_to_current_attack, used]
+    initial_state: ready
+    use_rule: ready_to_attached_before_defense_choice
+    veto_rule: defender_random_discard_removes_attachment_before_defense_choice
+    post_attack_rule: used
+    regain_rule: used_to_ready
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/george-washington.yaml
   construction: fixed
 rulings:
 - id: ruse-pre-defense-window
-  summary: A ruse is committed before the defender chooses whether to defend; the defender may discard a random card to remove it before choosing a defense card.
+  summary: A ready ruse may be committed before the defender chooses whether to defend; the defender may discard a random card to remove the ruse before choosing a defense card.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+- id: ruse-ready-used-lifecycle
+  summary: Ruse tokens begin ready; using a token makes it unavailable until a source regains it. Card effects marked as ruse effects resolve only if the ruse remains associated with that attack after the defender's removal opportunity.
   source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
 - {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
+- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms pre-defense ruse commitment and bluffing semantics.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Fighter ability and current visual card corpus.}
 normalization_notes:
 - Culper Spies are summonable because Recruit to the Ring can return defeated Spies.
+- Ruse tokens require per-token ready/used state plus a combat-scoped attachment marker; a scalar token count alone is insufficient for reconnect-safe execution.
 - Ruse attachment/veto remains an explicit pre-defense composite pending shared combat-marker semantics.
