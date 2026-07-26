@@ -49,13 +49,8 @@ deck:
 
 rulings:
   - id: tesla-permissive-discharge-declaration
-    summary: A two-coil discharge option is a legal choice even when only one or zero coils are charged. The selected two-coil tier is not automatically downgraded to the one-coil tier, and its dependent effect may intentionally fizzle when the declared discharge cannot be fully completed.
+    summary: A two-coil discharge option is legal with one or zero charged coils. The selected tier remains two, is not downgraded to the one-coil tier, and its dependent effect may intentionally fizzle when the declared discharge cannot be fully completed.
     source: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
-  - id: tesla-partial-discharge-normalization
-    summary: When exactly one coil is charged and the player declares the legal two-coil option, normalize the resource transition as discharging the one available charged coil (1 -> 0), keep the selected tier at two, and allow the dependent two-coil effect to fizzle. This is a high-confidence composition of the official ruling with the set rule that discharge changes each available coil from charged to discharged; no separate publisher ruling spelling out this exact one-line edge case was located.
-    source: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
-    evidence_confidence: high
-    explicit_exact_case_ruling: not_found
   - id: tesla-overflow-move-survives-no-damage
     summary: The two-coil start-turn ability can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
     source: https://www.the-unmatched.club/heroes/nikola-tesla
@@ -70,5 +65,5 @@ sources:
 
 normalization_notes:
   - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
-  - Underfunded two-coil declaration legality and dependent-effect fizzle are source-backed. Do not auto-downgrade a declared two-coil tier to the one-coil tier.
-  - Canonical Worker C normalization for 1 charged + declare 2 is 1 -> 0 charged, selected tier remains 2, dependent tier effect may fizzle. Confidence is high from composed official semantics; an explicit exact-case one-line publisher ruling was not found.
+  - "Recommended integration behavior (high confidence): with 1 charged coil and declared tier 2, discharge the available coil (1 -> 0), keep selected tier 2, do not resolve tier 1 as fallback, and allow the tier-2 dependent effect to fizzle."
+  - "Evidence qualifier: no exact-case publisher ruling for the 1 -> 0 transition was found; the recommendation composes the official charged -> discharged coil rule with the official underfunded-declaration/fizzle ruling."
