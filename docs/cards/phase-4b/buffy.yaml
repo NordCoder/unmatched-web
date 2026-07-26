@@ -21,7 +21,7 @@ cards:
   - {id: swift-strike, name: Swift Strike, quantity: 3, inclusion: base, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 4}]}]}
   - {id: insight, name: Insight, quantity: 3, inclusion: choose_group, tags: [sidekick:giles], usable_by: [giles], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: LOOK_AT, source: opponent_hand, viewer: owner}, {op: DISCARD, from: opponent_hand, selector: chosen_card, count: 1}]}]}
   - {id: training, name: Training, quantity: 2, inclusion: choose_group, tags: [sidekick:giles], usable_by: [giles], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 3}]}]}
-  - {id: right-hand-man, name: Right-hand Man, quantity: 2, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander, buffy], type: versatile, printed_value: 2, boost: 3, effects: [{trigger: during_combat, condition: {xander_adjacent_to_buffy: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}], normalization_blocker: buffy_may_play_only_while_adjacent_to_xander}
+  - {id: right-hand-man, name: Right-hand Man, quantity: 2, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: versatile, printed_value: 2, boost: 3, effects: [{trigger: during_combat, condition: {xander_adjacent_to_buffy: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}], alternate_play_permission: {fighter: buffy, condition: buffy_adjacent_to_xander}, normalization_blocker: shared_schema_has_no_conditional_alternate_user_permission}
   - {id: military-knowledge, name: Military Knowledge, quantity: 3, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
 
 external_definitions:
@@ -39,4 +39,4 @@ sources:
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
 normalization_notes:
   - Published pool is 35 cards, but every game deck is exactly 30: 25 base plus the selected sidekick's five-card package.
-  - Right-hand Man's conditional Buffy play permission is preserved and blocks full v1 normalization.
+  - Right-hand Man remains Xander's card; Buffy's conditional adjacent-to-Xander permission is preserved separately and blocks full v1 normalization.
