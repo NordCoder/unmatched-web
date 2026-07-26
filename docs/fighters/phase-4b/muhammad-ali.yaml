@@ -3,12 +3,7 @@ id: muhammad-ali
 display_name: Muhammad Ali
 set_ids:
 - bruce-lee-vs-muhammad-ali
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
-- https://unmatched.cards/umdb/decks/muhammad-ali
-- https://www.the-unmatched.club/heroes/muhammad-ali
+status: verified
 movement: 3
 topology:
   type: single_hero
@@ -25,71 +20,52 @@ topology:
 setup:
   hooks: []
   state_initialization:
-  - key: ali_stance
-    value: float
+  - {key: ali_stance, value: float}
+  - {key: ali_won_combat_this_turn, value: false}
+  - {key: ali_combat_damage_dealt_this_turn, value: 0}
 ability:
   id: float-like-a-butterfly-sting-like-a-bee
   controller: owner
   effects:
   - id: initialize-float
     trigger: setup
-    operations:
-    - op: SET_STATE
-      key: ali_stance
-      value: float
+    operations: [{op: SET_STATE, key: ali_stance, value: float}]
+  - id: record-combat-win
+    trigger: after_combat
+    condition: {controller_won_combat: true}
+    operations: [{op: SET_STATE, key: ali_won_combat_this_turn, value: true}]
+  - id: record-combat-damage
+    trigger: after_combat
+    condition: {controller_combat_damage_dealt_gt: 0}
+    operations: [{op: CHANGE_STATE, key: ali_combat_damage_dealt_this_turn, delta_rule: controller_combat_damage_dealt}]
   - id: change-stance-after-win
     trigger: after_attack
-    condition:
-      combat_result: won
-    operations:
-    - op: CHANGE_STATE
-      key: ali_stance
-      transition: toggle_float_sting
+    condition: {combat_result: won}
+    operations: [{op: CHANGE_STATE, key: ali_stance, transition: toggle_float_sting}]
   - id: sting-attack-bonus
     trigger: static
     continuous: true
-    condition:
-      state: ali_stance
-      equals: sting
-      attacker: muhammad-ali
-    operations:
-    - op: ADD_VALUE
-      target: muhammad_ali_attack
-      amount: 2
+    condition: {state: ali_stance, equals: sting, attacker: muhammad-ali}
+    operations: [{op: ADD_VALUE, target: muhammad_ali_attack, amount: 2}]
   - id: float-reach
     trigger: static
     continuous: true
-    condition:
-      state: ali_stance
-      equals: float
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_attack_reach_modifier
-      max_distance: 2
-    note: Requires generic attack-targeting/range extension proposed in worker report.
+    condition: {state: ali_stance, equals: float}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_attack_reach_modifier, max_distance: 2}]
 resources:
-- id: ali-stance-token
-  kind: token_pool
-  visibility: public
-  initial: float
+- {id: ali-stance-token, kind: token_pool, visibility: public, initial: float}
 persistent_state:
-- key: ali_stance
-  type: enum
-  values:
-  - float
-  - sting
-  reset: never
+- {key: ali_stance, type: enum, values: [float, sting], reset: never}
+- {key: ali_won_combat_this_turn, type: boolean, reset: turn_start}
+- {key: ali_combat_damage_dealt_this_turn, type: integer, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/muhammad-ali.yaml
   construction: fixed
 rulings: []
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/muhammad-ali
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/muhammad-ali
+- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/muhammad-ali, checked_at: '2026-07-27', note: Visual card corpus transcribed from the current Club tracker/card images supplied during reconciliation.}
 normalization_notes:
-- Fighter stats/stance behavior are transcribed as currently indexed; Phase 4B verification is blocked by the missing complete
-  published action-card corpus.
+- Float attack reach remains an explicit source-defined targeting modifier pending shared engine integration.
+- Historical combat-win and combat-damage state is persisted because Louisville Lip and The Greatest inspect earlier combats in the same turn.
