@@ -1,0 +1,214 @@
+schema_version: 1
+fighter_id: yennefer-triss
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+card_zones:
+  - id: ongoing-schemes
+    visibility: public
+    controller: owner
+
+cards:
+  - id: incinerate
+    name: Incinerate
+    quantity: 3
+    usable_by: [yennefer]
+    type: attack
+    printed_value: 7
+    boost: 2
+    cancellation: protected
+    effects:
+      - trigger: during_combat
+        controller: opponent
+        optional: true
+        costs: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_cards, count: 2, requires_full_count: true}]
+        operations: [{op: IGNORE_VALUE, target: this_card}]
+
+  - id: merigolds-hailstorm
+    name: Merigold's Hailstorm
+    quantity: 2
+    usable_by: [triss]
+    type: attack
+    printed_value: 4
+    boost: 3
+    effects:
+      - trigger: after_combat
+        choices:
+          - owner: opponent
+            choose: branch
+            options: [discard_hand_cards, damage_own_hero, discard_deck_top]
+        branches:
+          - condition: {chosen_branch: discard_hand_cards}
+            operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 2, partial_resolution: true}]
+          - condition: {chosen_branch: damage_own_hero}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: opponent.hero, amount: 3}]
+          - condition: {chosen_branch: discard_deck_top}
+            operations: [{op: DISCARD, controller: opponent, from: deck_top, selector: top, count: 4, partial_resolution: true}]
+
+  - id: portal-to-anywhere
+    name: Portal To Anywhere
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices:
+          - {owner: controller, choose: surviving_combat_fighter}
+          - {owner: controller, choose: battlefield_space}
+        operations:
+          - {op: PLACE, target: chosen_fighter, destination: chosen_space}
+          - {op: GAIN_ACTION, count: 1}
+
+  - id: echoing-blast
+    name: Echoing Blast
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        condition: {combat_result: won}
+        operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]
+
+  - id: ball-lightning
+    name: Ball Lightning
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        branches:
+          - condition: {combat_result: won}
+            operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]
+          - condition: {combat_result: lost}
+            operations:
+              - {op: DISCARD, controller: controller, from: hand, selector: chosen_by_controller, count: 1, partial_resolution: true}
+              - {op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}
+
+  - id: telepathy
+    name: Telepathy
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: immediately
+        choices:
+          - owner: opponent
+            optional_operation: {op: DISCARD, controller: opponent, from: hand, selector: chosen_card, count: 1}
+            if_declined: [{op: CANCEL_EFFECTS, target_scope: own_combat_card}]
+
+  - id: quick-and-ready
+    name: Quick And Ready
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: space_in_own_combat_fighter_zone}]
+        operations:
+          - {op: PLACE, target: own_combat_fighter, destination: chosen_space}
+          - {op: DRAW, count: 1}
+
+  - id: magical-barrier
+    name: Magical Barrier
+    quantity: 3
+    usable_by: any
+    type: defense
+    printed_value: 4
+    boost: 3
+    effects:
+      - trigger: immediately
+        operations: [{op: RECOVER, target: own_combat_fighter, amount: 1}]
+
+  - id: paralyzing-fetters
+    name: Paralyzing Fetters
+    quantity: 3
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: immediately
+        operations:
+          - op: SET_VALUE
+            target: opposing_combat_card
+            value_from: opposing_combat_card.printed_value
+            lock: true
+            scope: current_combat
+
+  - id: advisor-to-the-king
+    name: Advisor To The King
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [ongoing_scheme]
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: RECOVER, target: yennefer, amount: 1}
+          - {op: RECOVER, target: triss, amount: 1}
+          - {op: DRAW, count: 1}
+          - {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}
+      - trigger: static
+        continuous: true
+        while_in_zone: ongoing-schemes
+        operations: [{op: ADD_BOOST_VALUE, target: controller_all_boost_values, amount: 1}]
+      - trigger: turn_end
+        while_in_zone: ongoing-schemes
+        condition: {controller_attacked_this_turn: false}
+        operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]
+
+  - id: lodge-of-sorceresses
+    name: Lodge Of Sorceresses
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        simultaneous_choices:
+          participants: all_players
+          each:
+            choose: card_from_own_hand
+            visibility: committed_hidden_until_all_locked
+            reveal_after_lock: true
+            capture: revealed_card
+        operations:
+          - op: DRAW
+            controller: each_player
+            count_rule: that_players_revealed_card.boost_or_0
+            capture_counts: cards_drawn_by_player
+          - op: DEAL_EFFECT_DAMAGE
+            target: each_player_with_maximum_cards_drawn.hero
+            amount_rule: maximum_cards_drawn
+
+external_definitions: []
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 11
+
+sources:
+  - https://unmatched.cards/umdb/decks/yennefer-triss
+  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
+  - https://www.the-unmatched.club/rules/yennefer-triss
+
+normalization_notes:
+  - Fighter role/health and active special ability are supplied by the fighter manifest's setup choice.
+  - Paralyzing Fetters proves SET_VALUE needs an optional combat-scoped lock semantic.
+  - Advisor to the King applies to BOOST values, including BOOST operations from special abilities, according to the fighter-specific ruling.
+  - Lodge of Sorceresses uses Phase 2 simultaneous committed choices; no server-visible early choice may leak before both selections lock.
