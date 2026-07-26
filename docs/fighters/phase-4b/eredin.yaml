@@ -24,7 +24,7 @@ ability:
       condition: {all_red_riders_defeated: true}
       operations:
         - {op: ADD_VALUE, target: controller_combat_cards, amount: 1}
-        - {op: SET_STATE, target: eredin, key: move_value, value: 3}
+        - {op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: eredin, attribute: move_value, set_value: 3, source_lifetime: while_condition_true}
 
 resources: []
 persistent_state:
@@ -46,3 +46,4 @@ sources:
 
 normalization_notes:
   - Foul Purpose and Implacable alter legal combat-card play modes before ordinary combat effects. They share the generic combat-play-mode proposal in the Worker C report.
+  - Eredin's +1 combat value and move value 3 are derived continuous modifiers while all Riders are defeated; they must disappear immediately when a Rider returns. Move-value handling uses C-EXT-011 rather than permanent SET_STATE mutation.
