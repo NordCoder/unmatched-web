@@ -1,0 +1,71 @@
+schema_version: 1
+id: bloody-mary
+display_name: Bloody Mary
+set_ids: [battle-of-legends-vol-2]
+status: verified
+movement: 3
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: bloody-mary
+      display_name: Bloody Mary
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 16
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks: []
+  state_initialization: []
+
+ability:
+  id: ritualistic-power
+  controller: owner
+  effects:
+    - id: start-turn-three-card-action
+      trigger: turn_start
+      condition: {hand_size_exactly: 3}
+      optional: false
+      operations:
+        - {op: GAIN_ACTION, count: 1}
+
+resources: []
+
+persistent_state:
+  - key: action_ordinal_this_turn
+    type: integer
+    reset: turn_start
+    note: Required by multiple published card effects that distinguish the third action.
+  - key: turn_start_space
+    type: space_ref
+    reset: turn_start
+    note: Required by Jump Scare; the condition is historical and cannot be reconstructed from current position.
+
+deck:
+  manifest: ../../cards/phase-4a/bloody-mary.yaml
+  construction: fixed
+
+rulings:
+  - id: bloody-mary-third-action
+    summary: Card conditions referring to the third action use actual action ordinal, including gained/free action semantics from Phase 2; they are not derived from remaining action budget.
+    source: https://www.the-unmatched.club/rules/bloody-mary
+  - id: bloody-mary-jump-scare-history
+    summary: Jump Scare depends on zones shared with the space Bloody Mary occupied at turn start; retain that space even if she later moves or is defeated.
+    source: https://www.the-unmatched.club/rules/bloody-mary
+
+sources:
+  - type: official_set
+    url: https://restorationgames.com/shop/battle-of-legends-vol-2-unmatched/
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+  - type: published_deck_index
+    url: https://unmatched.cards/umdb/decks/bloody-mary
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/rules/bloody-mary
+
+provenance_exclusions:
+  - Community balance-patch decks under unmatched.cards/decks are not authoritative; patched Bloody Mary wording/quantities are excluded.
