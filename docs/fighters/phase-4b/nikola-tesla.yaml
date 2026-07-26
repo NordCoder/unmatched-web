@@ -2,7 +2,8 @@ schema_version: 1
 id: nikola-tesla
 display_name: Nikola Tesla
 set_ids: [tales-to-amaze]
-status: verified
+status: blocked
+blocked_reason: official ruling confirms a two-coil option may be chosen with only one or zero charged coils, but the accessible official verdict does not expose the exact partial-discharge/tier-effect resolution needed for deterministic implementation
 movement: 2
 
 topology:
@@ -49,7 +50,7 @@ deck:
 
 rulings:
   - id: tesla-permissive-discharge-declaration
-    summary: An effect may declare the two-coil discharge option even when only one or zero coils are charged. Exact underfunded-discharge resolution requires the generic extension proposed in the Worker C report.
+    summary: A two-coil discharge option is a legal choice even when only one or zero coils are charged. The accessible official verdict confirms choice legality but does not expose enough normative detail to determine partial resource mutation and dependent tier resolution without invention.
     source: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
   - id: tesla-overflow-move-survives-no-damage
     summary: The two-coil start-turn ability can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
@@ -58,6 +59,7 @@ rulings:
 sources:
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla}
   - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/nikola-tesla}
+  - {type: official_ruling, url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e}
   - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
 
 normalization_notes:
