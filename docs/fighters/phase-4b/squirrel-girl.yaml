@@ -1,74 +1,97 @@
 schema_version: 1
 id: squirrel-girl
 display_name: Squirrel Girl
-set_ids:
-- marvel-teen-spirit
+set_ids: [marvel-teen-spirit]
 status: blocked
 movement: 2
+
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: squirrel-girl
-    display_name: Squirrel Girl
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 13
-    starts_on_board: true
-    summonable: false
-  - id: squirrel
-    display_name: Squirrel
-    role: sidekick
-    count: 8
-    attack_type: melee
-    starting_health: 1
-    starts_on_board: false
-    summonable: true
-    occupancy_class: small
+    - id: squirrel-girl
+      display_name: Squirrel Girl
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 13
+      starts_on_board: true
+      summonable: false
+    - id: squirrel
+      display_name: Squirrel
+      role: sidekick
+      count: 8
+      attack_type: melee
+      starting_health: 1
+      starts_on_board: false
+      summonable: true
+      occupancy_class: small
+      runtime_identity: Each Squirrel token is a distinct fighter instance even though same-type Squirrels share printed statistics.
+
 setup:
   hooks: []
   state_initialization:
-  - key: squirrels_in_reserve
-    value: 8
+    - {key: squirrels_in_reserve, value: 8}
+
 ability:
   id: squirrel-summoning
   controller: owner
   effects:
-  - id: summon-squirrel
-    trigger: turn_start
-    optional: false
-    condition:
-      reserve_count:
-        squirrel: '>0'
-      legal_adjacent_destination_exists: true
-    operations:
-    - op: SUMMON
-      pool: squirrel
-      destination_rule: adjacent_to_squirrel-girl
+    - id: start-turn-squirrel-placement
+      trigger: turn_start
+      optional: true
+      condition: {empty_space_adjacent_to_squirrel-girl_exists: true}
+      branches:
+        - condition: {reserve_count: {squirrel: greater_than_0}}
+          operations:
+            - {op: SUMMON, pool: squirrel, destination_rule: empty_space_adjacent_to_squirrel-girl}
+        - condition: {reserve_count: {squirrel: 0}}
+          choices: [{owner: controller, choose: squirrel_on_battlefield}]
+          operations:
+            - {op: PLACE, target: chosen_squirrel, destination_rule: empty_space_adjacent_to_squirrel-girl}
+
 resources:
-- id: squirrel-reserve
-  kind: token_pool
-  visibility: public
-  initial: 8
+  - id: squirrel-reserve
+    kind: token_pool
+    visibility: public
+    initial: 8
+
 persistent_state:
-- key: squirrels_in_reserve
-  type: integer
-  reset: never
+  - key: squirrels_in_reserve
+    type: integer
+    reset: never
+
 deck:
   manifest: ../../cards/phase-4b/squirrel-girl.yaml
   construction: fixed
-rulings: []
+
+rulings:
+  - id: squirrel-girl-no-starting-squirrels
+    summary: No Squirrels are placed during setup; the eight tokens begin off-board.
+    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
+  - id: squirrel-girl-summon-is-optional
+    summary: At the start of each turn the controller may use the Squirrel placement ability; it is not mandatory.
+    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
+  - id: squirrel-girl-reposition-when-reserve-empty
+    summary: If all eight Squirrels are already on the battlefield, the start-turn ability may move one existing Squirrel to an empty space adjacent to Squirrel Girl instead of summoning from reserve.
+    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/squirrel-girl
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/squirrel-girl
+  - type: official_product
+    url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+  - type: official_rulebook
+    url: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
+  - type: published_database
+    url: https://unmatched.cards/umdb/decks/squirrel-girl
+  - type: current_rulings_index
+    url: https://www.the-unmatched.club/heroes/squirrel-girl
+
 normalization_notes:
-- No Squirrels begin on the battlefield.
+  - Official Teen Spirit rules define Squirrels as small fighters: opposing and small fighters may move through each other, a small fighter may share a space with another fighter, and up to four small fighters may occupy one space in addition to an ordinary fighter.
+  - A small fighter sharing a space with another fighter is adjacent to that fighter.
+  - When a small fighter takes damage, each other small fighter of the same type in that space takes the same amount of damage.
+  - The corrected start-turn ability is optional and has a reposition branch after the reserve is exhausted.
+
 blockers:
-- id: semantic-extension-small-fighter-occupancy
-  reason: Small fighters can share spaces (up to four) and damage to one Squirrel propagates to other Squirrels in that space;
-    current occupancy/damage vocabulary has no generic representation.
+  - id: semantic-extension-small-fighter-occupancy
+    reason: The published small-fighter rules require shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, and same-type co-located damage propagation. Current generic battlefield occupancy/damage semantics do not encode these rules.
