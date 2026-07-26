@@ -22,7 +22,7 @@ Every specification area uses one of these states:
 | Source policy and provenance | verified | `sources/` |
 | Competitive core rules | **verified — Phase 1 gate passed** | `rules/` |
 | Timing, choices, effects, rulings | **verified — Phase 2 gate passed** | `mechanics/`, `rulings/` |
-| Set registry and set-specific rules | planned | `sets/` |
+| Set/release registry and set-specific mechanics | **verified — Phase 3 gate passed** | `sets/` |
 | Fighters and decks | planned | `fighters/`, `cards/` |
 | Battlefields | planned | `battlefields/` |
 | Cross-validation and ambiguity closure | planned | validation reports / rulings |
@@ -61,6 +61,13 @@ docs/
 │   ├── setup-hooks.md
 │   └── phase-2-validation.md
 │
+├── sets/                   # Phase 3 complete
+│   ├── README.md
+│   ├── registry.yaml
+│   ├── mechanics-index.md
+│   ├── source-bibliography.md
+│   └── phase-3-validation.md
+│
 ├── rulings/
 │   ├── global-rulings.md
 │   └── ambiguity-register.md
@@ -69,7 +76,6 @@ docs/
 │   ├── source-policy.md
 │   └── source-registry.md
 │
-├── sets/                   # Phase 3
 ├── fighters/               # Phase 4
 ├── cards/                  # Phase 4
 ├── battlefields/           # Phase 5
@@ -79,8 +85,16 @@ docs/
 
 ## Current boundary
 
-Phases 1–2 now define the global competitive resolution framework: core actions, action boundaries, timing windows, resumable choices, visibility, effect categories, cancellation, gained/free actions, movement versus placement, bonus attacks, `End the turn`, dormancy, and setup hooks.
+Phases 1–3 now establish:
 
-This still does **not** make the actual fighter roster `developer-ready`. Phase 3 must establish the exhaustive current set/release registry and authoritative set-specific rules. Phase 4 must then map every fighter/card into the Phase 2 effect framework, retaining content-specific rulings and explicit blockers where authority is missing.
+- the competitive core rules;
+- deterministic timing/effect/choice semantics;
+- global rulings and ambiguity containment;
+- the exhaustive released product/content work queue;
+- fighter-to-release and battlefield-to-release membership;
+- authoritative entry points for known set-specific mechanics;
+- explicit handling of reprints, addenda, supplements and announced-but-blocked content.
+
+This still does **not** make the actual fighter roster `developer-ready`. Phase 4 must transcribe and validate fighter/deck content against the Phase 2 effect framework. Phase 5 must turn each supported battlefield into a verified graph.
 
 The structure may evolve when the corpus demonstrates a real need. Do not introduce abstractions only to make the documentation look uniform.
