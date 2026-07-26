@@ -1,44 +1,16 @@
 schema_version: 1
 id: shredder
 display_name: Shredder
-set_ids:
-- tmnt-shredder-krang-hero-decks
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/stats
-- https://www.the-unmatched.club/heroes/shredder
+set_ids: [tmnt-shredder-krang-hero-decks]
+status: verified
 movement: 3
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: shredder
-    display_name: Shredder
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 15
-    starts_on_board: true
-    summonable: false
-  - id: bebop
-    display_name: Bebop
-    role: sidekick
-    count: 1
-    attack_type: melee
-    starting_health: 7
-    starts_on_board: true
-    summonable: false
-  - id: rocksteady
-    display_name: Rocksteady
-    role: sidekick
-    count: 1
-    attack_type: melee
-    starting_health: 7
-    starts_on_board: true
-    summonable: false
+  - {id: shredder, display_name: Shredder, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: bebop, display_name: Bebop, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
+  - {id: rocksteady, display_name: Rocksteady, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
 setup:
   hooks: []
   state_initialization: []
@@ -48,52 +20,33 @@ ability:
   effects:
   - id: deploy-foot-soldier
     trigger: start_turn
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_path_token_deployment
-      resource: foot-soldiers
-      adjacent_to: friendly_fighter
-    note: Foot soldiers occupy path edges rather than spaces; generic path_ref/edge-token semantics are proposed in the report.
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_path_token_deployment, resource: foot-soldiers, adjacent_to: friendly_fighter}]
   - id: foot-soldier-attack-network
     trigger: static
     continuous: true
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_attack_targeting_via_path_token
-    note: Friendly fighters may attack opposing fighters adjacent to Foot soldiers under the competitive hero ability.
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_attack_targeting_via_path_token}]
   - id: boosted-maneuver-removal
     trigger: opponent_boosted_maneuver
     optional: true
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_remove_traversed_path_tokens
-      mover_role: opponent_hero
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_remove_traversed_path_tokens, mover_role: opponent_hero}]
 resources:
-- id: foot-soldiers
-  kind: token_pool
-  visibility: public
-  initial: 24
+- {id: foot-soldiers, kind: token_pool, visibility: public, initial: 24}
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/shredder.yaml
   construction: fixed
 rulings:
-- id: shredder-sidekick-foot-soldier-removal
-  summary: Current official-ruling index distinguishes which opposing moving fighter may remove Foot soldiers during a boosted
-    maneuver.
-  source: https://www.the-unmatched.club/rules/shredder
-- id: shredder-removable-paths
-  summary: Current official-ruling index records Foot soldier behavior when a battlefield path can leave the game state.
+- id: shredder-sidekick-revival
+  summary: Back to Work can recover Bebop and Rocksteady even if they were defeated, then places them as close as possible to Shredder.
+  source: https://www.the-unmatched.club/heroes/shredder
+- id: shredder-path-token-rulings
+  summary: Foot Soldiers occupy paths and interact with boosted opposing movement according to the competitive hero rules/rulings.
   source: https://www.the-unmatched.club/rules/shredder
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/stats
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/shredder
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Visual competitive Hero Deck corpus transcribed from Club card images supplied during reconciliation.}
+- {authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27'}
 normalization_notes:
-- Only the official competitive hero conversion is modeled. Shredder's Adventures villain deck, threat behavior, initiative
-  logic, and scenario behavior are explicitly excluded.
+- Bebop and Rocksteady are summonable runtime instances because Back to Work explicitly returns defeated sidekicks.
+- Foot Soldier edge/path semantics remain source-defined composites pending shared path_ref integration.
+- Adventures villain deck, threat state, initiative logic and scenario AI are excluded.
