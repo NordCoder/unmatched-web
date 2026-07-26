@@ -1,6 +1,7 @@
 schema_version: 1
 fighter_id: nikola-tesla
-status: verified
+status: blocked
+blocked_reason: underfunded two-coil declaration is officially legal but the accessible official verdict does not expose exact partial-discharge and dependent tier-effect resolution
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -23,4 +24,5 @@ sources:
   - https://www.the-unmatched.club/heroes/nikola-tesla
   - https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
 normalization_notes:
-  - tiered_resource_discharge is a proposed generic composite, not Tesla-only code. The official ruling permits declaring a two-coil tier with fewer than two charged coils, so strict ordinary cost semantics are insufficient.
+  - Fully funded discharge tiers and the printed 30-card corpus are verified.
+  - tiered_resource_discharge is a proposed generic composite, not Tesla-only code. The official ruling permits declaring a two-coil tier with fewer than two charged coils, but exact underfunded resolution remains blocked rather than inferred.
