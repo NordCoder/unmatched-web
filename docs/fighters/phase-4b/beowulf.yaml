@@ -28,9 +28,10 @@ deck: {manifest: ../../cards/phase-4b/beowulf.yaml, construction: fixed}
 rulings:
   - id: rage-per-damage-effect
     summary: Beowulf gains one Rage when a damage effect deals him one or more damage; distinct sequential damage effects can each grant Rage, but multiple points from one effect do not.
-    source: https://www.the-unmatched.club/heroes/beowulf
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/little-red-beowulf-unmatched/}
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/beowulf}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/beowulf}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
