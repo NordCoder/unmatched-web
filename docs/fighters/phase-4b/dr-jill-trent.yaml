@@ -1,0 +1,67 @@
+schema_version: 1
+id: dr-jill-trent
+display_name: Dr. Jill Trent
+set_ids: [tales-to-amaze]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: dr-jill-trent, display_name: Dr. Jill Trent, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: daisy, display_name: Daisy, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: active_gadget, value: none}
+
+ability:
+  id: gadgetology
+  controller: owner
+  effects:
+    - id: choose-active-gadget
+      trigger: turn_start
+      choices: [{owner: controller, choose: gadget, options: [hypnoray-blaster, ultrabiotic-tonic]}]
+      operations: [{op: SET_STATE, key: active_gadget, value: chosen_gadget}]
+    - id: hypnoray-blaster
+      trigger: during_combat
+      condition: {attacker: dr-jill-trent, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
+      operations:
+        - {op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed_card}
+        - {op: ADD_VALUE, target: own_attack_card, amount: captured.revealed_card.boost_or_0}
+    - id: ultrabiotic-tonic
+      trigger: after_combat
+      condition: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
+      operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
+
+resources:
+  - id: active-gadget-token
+    kind: counter
+    visibility: public
+    initial: none
+    values: [none, hypnoray-blaster, ultrabiotic-tonic]
+
+persistent_state:
+  - {key: active_gadget, type: enum, reset: never}
+
+deck:
+  manifest: ../../cards/phase-4b/dr-jill-trent.yaml
+  construction: fixed
+
+rulings:
+  - id: no-gadget-before-first-turn
+    summary: Before Jill has taken her first turn, no gadget is active; the first choice occurs at the start of that turn.
+    source: https://www.the-unmatched.club/rules/dr-jill-trent
+  - id: gadgets-use-printed-values
+    summary: Gadget comparisons use printed combat-card values; an undefended attack treats the absent defense printed value as 0.
+    source: https://www.the-unmatched.club/rules/dr-jill-trent
+
+sources:
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/dr-jill-trent}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/rules/dr-jill-trent}
+  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+
+normalization_notes:
+  - Competitive hero behavior only. Adventures enemies and scenario systems are intentionally excluded.
