@@ -30,12 +30,13 @@ persistent_state:
 deck: {manifest: ../../cards/phase-4b/willow.yaml, construction: fixed}
 rulings:
   - id: dark-willow-damage-trigger
-    summary: Damage dealt to either Willow or Tara changes the public form to Dark Willow; card clauses marked for Dark Willow read the current form at resolution.
-    source: https://www.the-unmatched.club/heroes/willow
+    summary: Damage dealt to either Willow or Tara changes the public form to Dark Willow; Dark clauses are mandatory while Dark Willow and ignored while Willow unless the source says otherwise.
+    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
   - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/willow}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/willow}
+  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
 blocker:
   reason: absolute_health_assignment_on_revived_fighter_not_in_shared_effect_model
   affected_card: resurrect
