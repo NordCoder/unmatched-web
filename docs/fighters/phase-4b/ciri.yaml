@@ -22,8 +22,7 @@ ability:
       trigger: static
       continuous: true
       condition: {count_cards_in_discard_with_tag_source: {gte: 7}, card_user: ciri}
-      cancellation: protected
-      operations: [{op: SET_STATE, target: ciri_cards, key: effects_cancelable, value: false}]
+      operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_cards_used_by_ciri}]
 
 resources:
   - id: source-count
