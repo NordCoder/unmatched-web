@@ -20,12 +20,14 @@ cards:
 external_definitions:
   - {id: positioned-shadow-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, move_token, select_token_space, count_token_spaces]}
   - {id: blind-boost-value-multiplier, kind: proposed_generic_value_transform, affected_card: always-surprising, semantics: multiply_the_revealed_blind_boost_value_before_adding_it_to_the_combat_card}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, attack_count: 3, versatile_count: 21, defense_count: 0, scheme_count: 6}
 sources:
   - https://unmatched.cards/umdb/decks/spike
+  - https://unmatched.cards/umdb/decks/stats
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
-  - https://www.the-unmatched.club/heroes/spike
-  - https://gridbeast.gg/unmatched-spike/
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Shadow-sensitive predicates are preserved but blocked until positioned special-token semantics exist generically.
   - Bloody Hell resolves as two damage effects: the initial 1 damage, then one aggregate additional damage effect based on adjacent Shadow spaces.
+  - Current UmDb aggregate statistics reconcile exactly to 3 Attack / 21 Versatile / 0 Defense / 6 Scheme cards. Fan rebalances, including altered Seek the Shadows/Empathy/Arrogance versions, were excluded.
