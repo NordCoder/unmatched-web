@@ -125,19 +125,23 @@ This is sufficient to simulate exhaustion without reshuffling or inventing an ea
 
 ## Two-player game-end path validation
 
-### Path A — only opponent hero defeated at an action boundary
+### Path A — exactly one hero is defeated
 
-At the start/end-of-action check, opponent hero is defeated while active player's hero is undefeated. Active player wins (`GAMEEND-002`).
+At a start/end-of-action check, if exactly one hero is defeated, the player controlling the undefeated hero wins (`GAMEEND-002`, `GAMEEND-006`). This result is independent of whose turn is currently resolving.
 
 ### Path B — both heroes defeated during one action
 
-Both defeated fighters are removed when their health reaches zero (`DEFEAT-002`). The current action finishes. At the required boundary, both heroes are defeated, so the player whose turn is resolving wins (`GAMEEND-003–004`).
+Both defeated fighters are removed when their health reaches zero (`DEFEAT-002`). The current action finishes. At the required boundary, both heroes are defeated, so the player whose turn is resolving wins (`GAMEEND-003–004`, `GAMEEND-006`).
 
 ### Path C — active player's hero defeated but opponent survives
 
-The action continues to its boundary. The active player does not satisfy `GAMEEND-002`, while the opponent's hero remains undefeated. Control/winner evaluation therefore resolves against the active player under the generic two-player condition. The implementation must derive this from the normalized winner predicate rather than from an immediate-loss trigger.
+The action continues to its boundary. At the winner check exactly one hero is defeated, so the opposing player wins even though it is not their turn (`GAMEEND-002`, `GAMEEND-006`). The implementation must derive this from the boundary winner predicate rather than from an immediate-loss trigger at the instant damage is dealt.
 
-### Path D — defeat already exists at the start of an action
+### Path D — opponent's hero defeated but active player survives
+
+The action continues to its boundary. At the winner check exactly one hero is defeated, so the active player wins (`GAMEEND-002`, `GAMEEND-006`).
+
+### Path E — defeat already exists at the start of an action
 
 Because the modern rule checks at both start and end of any action, an implementation must run the same winner predicate before beginning the next action (`GAMEEND-001`). This prevents a defeated-hero state from incorrectly entering another action when a previous special sequence reaches a legal boundary.
 
