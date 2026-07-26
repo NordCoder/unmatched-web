@@ -1,0 +1,43 @@
+schema_version: 1
+id: tomoe-gozen
+display_name: Tomoe Gozen
+set_ids: [suns-origin]
+status: verified
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: tomoe-gozen, display_name: Tomoe Gozen, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: attack-of-opportunity
+  controller: owner
+  effects:
+    - id: damage-hero-leaving-zone
+      trigger: fighter_leaves_zone
+      condition: {fighter: opposing_hero, zone_owner: tomoe-gozen}
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_hero, amount: 1}]
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/tomoe-gozen.yaml
+  construction: fixed
+
+rulings:
+  - id: leaving-zone-is-event-semantic
+    summary: The ability applies when an opposing hero leaves Tomoe's zone by movement, placement outside it, or leaving the board; it is not limited to Maneuver movement.
+    source: https://www.geektopiagames.com/unmatched/tomoe-gozen/
+
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/suns-origin-unmatched/}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen}
+  - {type: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen}
+
+normalization_notes:
+  - Witness My Last Battle has declaration-time target and face-up-play rules. These use the reusable combat-play-mode proposal in the Worker C report rather than a Tomoe-only engine branch.
