@@ -1,0 +1,55 @@
+schema_version: 1
+id: ciri
+display_name: Ciri
+set_ids: [witcher-steel-and-silver]
+status: verified
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: ciri, display_name: Ciri, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: ihuarraquax, display_name: Ihuarraquax, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: source
+  controller: owner
+  effects:
+    - id: source-cancellation-protection
+      trigger: static
+      continuous: true
+      condition: {count_cards_in_discard_with_tag_source: {gte: 7}, card_user: ciri}
+      cancellation: protected
+      operations: [{op: SET_STATE, target: ciri_cards, key: effects_cancelable, value: false}]
+
+resources:
+  - id: source-count
+    kind: counter
+    visibility: public
+    initial: 0
+    derivation: count cards in own discard with tag source
+
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/ciri.yaml
+  construction: fixed
+
+rulings:
+  - id: source-threshold-resolution
+    summary: For a Source card, count Source cards in the discard when resolving it and apply only the highest listed threshold not exceeding the count; lower thresholds are not chosen or additionally resolved.
+    source: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+  - id: seven-source-protection
+    summary: With at least seven Source cards in the discard, effects on Ciri's cards cannot be canceled.
+    source: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+
+sources:
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/ciri}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/ciri}
+
+normalization_notes:
+  - source-count is derived from authoritative card-zone contents, not a manually mutable token value.
