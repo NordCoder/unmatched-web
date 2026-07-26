@@ -23,10 +23,15 @@ external_definitions:
   - {id: positioned-fog-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, move_token, select_token_space]}
   - {id: temporary-off-board-undefeated, kind: proposed_generic_fighter_state, return_timing: start_of_next_turn}
   - {id: lurking-choice, kind: choice_bundle, options: [place_invisible_man_on_a_fog_space, move_one_fog_up_to_3]}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 14}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 14, attack_count: 7, versatile_count: 9, defense_count: 6, scheme_count: 8}
 sources:
   - https://unmatched.cards/umdb/decks/invisible-man
-  - https://www.geektopiagames.com/unmatched/invisible-man/
-  - https://www.the-unmatched.club/heroes/invisible-man
+  - https://unmatched.cards/umdb/decks/stats
+  - https://restorationgames.com/shop/cobble-fog-unmatched/
+  - https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
+  - https://restorationgames.com/the-unmatched-vault-cobble-fog/
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Fog token facts are complete, but token movement/placement and Vanish off-board lifetime remain blocked rather than encoded as custom fighter operations.
+  - Current UmDb aggregate statistics reconcile exactly to 7 Attack / 9 Versatile / 6 Defense / 8 Scheme cards; canonical individual-card spot checks were used for source-sensitive entries, and fan patched/remade Invisible Man decks were rejected.
