@@ -1,0 +1,42 @@
+schema_version: 1
+id: jekyll-and-hyde
+display_name: Jekyll & Hyde
+set_ids: [cobble-and-fog]
+status: verified
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: jekyll-and-hyde, display_name: Jekyll & Hyde, role: hero, count: 1, attack_type: melee, starting_health: 16, starts_on_board: true, summonable: false}
+setup:
+  hooks: []
+  state_initialization: [{key: form, value: jekyll}]
+ability:
+  id: dual-nature
+  controller: owner
+  effects:
+    - id: choose-form
+      trigger: turn_start
+      optional: true
+      choices: [{owner: controller, choose: [jekyll, hyde]}]
+      operations: [{op: SET_STATE, key: form, value: chosen_value}]
+    - id: hyde-maneuver-damage
+      trigger: after_maneuver
+      condition: {state: form, equals: hyde}
+      optional: false
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: jekyll-and-hyde, amount: 1}]
+resources: []
+persistent_state:
+  - {key: form, type: enum, values: [jekyll, hyde], reset: never, visibility: public}
+deck: {manifest: ../../cards/phase-4b/jekyll-and-hyde.yaml, construction: fixed}
+rulings:
+  - id: form-card-legality
+    summary: Jekyll-only and Hyde-only cards are playable only while the corresponding form is current; ANY cards remain legal in either form.
+    source: https://www.the-unmatched.club/heroes/jekyll-hyde
+sources:
+  - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
+  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
+  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/jekyll-hyde}
+  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/jekyll-hyde}
