@@ -2,7 +2,7 @@
 
 **Branch:** `phase-4b-worker-c-modern`  
 **Authorized base:** `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-**Corpus head immediately before this report commit:** `ea0aa34126ec5f14e15e2ea724c9fe497110eae7`  
+**Corpus head immediately before the original report commit:** `ea0aa34126ec5f14e15e2ea724c9fe497110eae7`  
 **Scope:** modern mechanic-heavy competitive fighters only  
 **Assigned fighters:** 13
 
@@ -17,7 +17,7 @@ For `tales-to-amaze`, only the four player hero decks and their competitive beha
 | Annie Christmas | `docs/fighters/phase-4b/annie-christmas.yaml` | `docs/cards/phase-4b/annie-christmas.yaml` | 30 | verified | health-relative static bonus, defender replacement |
 | Dr. Jill Trent | `docs/fighters/phase-4b/dr-jill-trent.yaml` | `docs/cards/phase-4b/dr-jill-trent.yaml` | 30 | verified | public gadget state machine, printed-value comparisons |
 | Golden Bat | `docs/fighters/phase-4b/golden-bat.yaml` | `docs/cards/phase-4b/golden-bat.yaml` | 30 | verified | maneuver history, turn-start space snapshot |
-| Nikola Tesla | `docs/fighters/phase-4b/nikola-tesla.yaml` | `docs/cards/phase-4b/nikola-tesla.yaml` | 30 | **blocked** | charged-coil resource; one narrow partial-discharge state-transition gap |
+| Nikola Tesla | `docs/fighters/phase-4b/nikola-tesla.yaml` | `docs/cards/phase-4b/nikola-tesla.yaml` | 30 | verified | charged-coil resource, permissive tier declaration, high-confidence partial-discharge normalization |
 | Oda Nobunaga | `docs/fighters/phase-4b/oda-nobunaga.yaml` | `docs/cards/phase-4b/oda-nobunaga.yaml` | 30 | verified | two independent 6-health sidekicks, flanking |
 | Tomoe Gozen | `docs/fighters/phase-4b/tomoe-gozen.yaml` | `docs/cards/phase-4b/tomoe-gozen.yaml` | 30 | verified | zone-leave event semantics, declaration-time attack override |
 | William Shakespeare | `docs/fighters/phase-4b/shakespeare.yaml` | `docs/cards/phase-4b/shakespeare.yaml` | 30 | verified | persistent ordered Line, syllable threshold, completion effects |
@@ -39,7 +39,7 @@ For `tales-to-amaze`, only the four player hero decks and their competitive beha
 - No Tales to Amaze enemy/initiative/scenario card is included in the 390-card corpus.
 - Every explicit `usable_by` target is present in the corresponding fighter topology.
 
-Tesla's **quantity, printed corpus, underfunded declaration legality, and dependent-effect fizzle behavior are verified**. The fighter/deck remains `blocked` only because one exact resource-state transition is still missing from accessible normative evidence: with exactly one charged coil, after declaring a two-coil discharge that cannot be fully paid, does that one available coil flip to discharged or remain charged?
+Tesla's **quantity, printed corpus, underfunded declaration legality, tier-selection behavior, and dependent-effect fizzle behavior are verified**. Worker C also adopts `1 charged + declare 2 -> 0 charged` as the canonical proposed resource transition with high confidence from composed official semantics: the ruling makes the two-coil declaration legal with insufficient charge, while the official set rules define discharge per available coil as `charged -> discharged`. No separate publisher ruling spelling out that exact one-line edge case was located; this is retained as a non-blocking evidence qualifier rather than a research blocker.
 
 ## Proposed reusable semantic extensions
 
@@ -73,10 +73,12 @@ These are integration proposals only. Worker C did **not** change shared semanti
 
 - **Affected:** Nikola Tesla `7 Hertz`, `Death Ray`, `Intense Experimentation`, `Lightning Storm`, `Polyphase Coils`, `Repulsion Blast`, `X-Ray Radiation`, and potentially other effects using the same discharge grammar.
 - **Authority:** official `Tales to Amaze` set rules: `https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf`; official Rulings Archive verdict mirrored at `https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e`; Unmatched Reference v10 at `https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf`, which identifies the Rulings Archive as officially recognized by Restoration Games; printed deck facts from `https://unmatched.cards/umdb/decks/nikola-tesla`.
-- **Confirmed semantics:** the player may declare the two-coil option with one or zero charged coils. That declaration is not automatically downgraded to the one-coil tier. The ruling permits the underfunded choice specifically so its dependent tier effect may intentionally fizzle.
-- **Why current semantics are insufficient:** Phase 4A cost semantics validate a required cost before committing its dependent branch, while Tesla permits declaration independently of current resource sufficiency and can then fizzle the declared tier effect.
-- **Proposed generic model:** a declared resource tier whose option legality can be independent of available resource; when the declared amount is not fully available, the dependent declared-tier effect can fizzle without resolving a lower tier. Resource mutation must remain source-defined rather than inferred from ordinary strict `SPEND_RESOURCE` semantics.
-- **Integration blocker:** **yes, but narrowed to one source-blocked state transition only**: when exactly one coil is charged and two are declared, accessible normative evidence does not establish whether the available charged coil is nevertheless flipped to discharged. The `0 charged → declare 2` case has no resource-mutation ambiguity, and the dependent two-coil effect is known to be allowed to fizzle.
+- **Confirmed semantics:** the player may declare the two-coil option with one or zero charged coils. That declaration is not automatically downgraded to the one-coil tier. The underfunded selected tier may intentionally fizzle rather than resolving a lower tier.
+- **Canonical proposed partial-discharge behavior:** with exactly one charged coil and declared tier `2`, discharge the one available charged coil (`1 -> 0`), preserve selected tier `2`, do not resolve the one-coil tier as a fallback, and allow the dependent two-coil effect to fizzle.
+- **Evidence assessment:** `1 -> 0` is **high-confidence composed official semantics**, not an exact-case quotation. Official rules define discharge of an individual available coil as `charged -> discharged`, and the official ruling independently establishes that declaring `2` remains legal with only `0/1` charged. No separate publisher ruling literally stating the exact `1 charged + declare 2` transition was found.
+- **Why current semantics are insufficient:** Phase 4A cost semantics validate a required cost before committing its dependent branch, while Tesla permits declaration independently of current resource sufficiency and can consume the available portion of the declared resource before the selected tier effect fizzles.
+- **Proposed generic model:** a declared resource tier whose option legality can be independent of available resource; `discharge_available` consumes up to the declared amount from currently charged resource units; selected tier identity remains the declared tier; if the declared amount is not fully discharged, the declared-tier dependent effect may fizzle without resolving a lower tier.
+- **Integration blocker:** yes for promoting the generic composite into shared semantics, but **no research/source blocker remains for Nikola Tesla**.
 
 ### C-EXT-005 — filtered zone aggregate and highest-met threshold
 
@@ -132,14 +134,15 @@ No shared extension is proposed for these because current semantics are sufficie
 
 ## Ambiguities / blockers
 
-1. **Nikola Tesla — narrow P1 source gap:** declaration of two coils with only one or zero charged is confirmed legal, it must not auto-downgrade to the one-coil tier, and the dependent declared-tier effect may intentionally fizzle. The only unresolved case is `1 charged + declare 2`: does the available charged coil flip to discharged, or is resource state left unchanged because the two-coil discharge cannot be fully completed?
-2. **Shakespeare × `End the turn` — integration cross-check:** current general rulings say `END_TURN` jumps to the current action Cleanup Step. Shakespeare's Line is itself a cleanup destination/lifecycle rule. Integration should run an explicit cross-fighter fixture to confirm Line append/completion ordering when `END_TURN` occurs; no contradictory source was found.
-3. **No cooperative inference:** Tales to Amaze enemy/scenario procedures were intentionally not used to fill gaps in competitive hero behavior.
+1. **Shakespeare × `End the turn` — integration cross-check:** current general rulings say `END_TURN` jumps to the current action Cleanup Step. Shakespeare's Line is itself a cleanup destination/lifecycle rule. Integration should run an explicit cross-fighter fixture to confirm Line append/completion ordering when `END_TURN` occurs; no contradictory source was found.
+2. **No cooperative inference:** Tales to Amaze enemy/scenario procedures were intentionally not used to fill gaps in competitive hero behavior.
+
+Nikola Tesla no longer has a Worker C research blocker. The exact one-line publisher wording for `1 charged + declare 2 -> 0 charged` was not found, but the behavior is retained as a high-confidence composition of official set rules plus the official declaration/fizzle ruling and is handed to the orchestrator as canonical proposed behavior.
 
 ## Source gaps
 
 - Tales to Amaze competitive card metadata is complete in published UmDb, and Restoration explicitly confirms the four heroes are usable in ordinary Unmatched. A separate current official publisher-hosted per-hero card-text PDF was not located during this pass; normalized card facts therefore retain UmDb provenance plus current Rulings Archive cross-checks.
-- Tesla's only remaining source gap is the resource-state result of `1 charged + declare 2`; declaration legality and dependent-effect fizzle are no longer open questions.
+- Tesla has a **non-blocking evidence qualifier**: no separate publisher ruling literally states `if exactly one coil is charged and two are declared, discharge the one charged coil`. Worker C's canonical proposed behavior is nevertheless `1 -> 0` with high confidence from composed official semantics.
 - No fan/community `/decks/...` balance patch was imported. Community/reference pages were used only as secondary cross-checks where an official set rule or published UmDb entry did not expose the same detail.
 
 ## Worker 4B-C Handoff
@@ -148,12 +151,12 @@ Branch: `phase-4b-worker-c-modern`
 Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
 Head: emitted as the exact branch SHA in the final Worker C handoff response; a commit cannot self-contain its own SHA  
 Assigned fighters: 13  
-Verified: 12 — Annie Christmas, Dr. Jill Trent, Golden Bat, Oda Nobunaga, Tomoe Gozen, William Shakespeare, Hamlet, Titania, Ciri, Ancient Leshen, Eredin, Philippa  
-Blocked: 1 — Nikola Tesla (`1 charged + declare 2` partial-discharge resource transition only)  
+Verified: 13 — Annie Christmas, Dr. Jill Trent, Golden Bat, Nikola Tesla, Oda Nobunaga, Tomoe Gozen, William Shakespeare, Hamlet, Titania, Ciri, Ancient Leshen, Eredin, Philippa  
+Blocked: none  
 Quantity validation: **PASS — 390/390 action cards; 13/13 deck quantities reconcile**  
 Schema-extension proposals: C-EXT-001 through C-EXT-009 above  
-New ambiguity/blockers: Tesla single remaining partial-discharge state transition; Shakespeare/END_TURN integration fixture  
-Source gaps: Tesla `1 charged + declare 2` resource mutation only; no separate publisher-hosted Tales competitive card-text corpus found  
+New ambiguity/blockers: Shakespeare/END_TURN integration fixture only; no assigned fighter remains source-blocked  
+Source gaps: Tesla exact-case one-line ruling not found (non-blocking high-confidence composed official semantics); no separate publisher-hosted Tales competitive card-text corpus found  
 Files created: 27 — 13 fighter manifests, 13 deck manifests, this report  
 Shared semantic files changed: **none**  
 Phase 4A manifests rewritten: **none**  
