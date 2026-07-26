@@ -166,12 +166,14 @@ cards:
     condition:
       combat_result: won
     optional: true
+    choices:
+    - owner: controller
+      choose: card_in_own_discard
     operations:
     - op: MOVE_CARD
       from_zone: discard
       to_zone: deck
-      selector:
-        count: 1
+      selector: chosen_card
     - op: SHUFFLE
       zone: deck
 - id: lady-justice
@@ -283,4 +285,5 @@ sources:
 - https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
 normalization_notes:
 - Audit correction: The Savage She-Hulk treats the additional action as a real cost that gates the value-9 consequence.
-- Audit correction: Legalese now contains executable draw/discard branches and preserves who chooses based on the combat result.
+- Audit correction: Legalese contains executable draw/discard branches and preserves who chooses based on the combat result.
+- Audit correction: Sensational explicitly binds the discard-pile card selected before shuffling it into the deck.
