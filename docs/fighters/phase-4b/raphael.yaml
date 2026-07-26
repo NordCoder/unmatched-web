@@ -1,72 +1,44 @@
 schema_version: 1
 id: raphael
 display_name: Raphael
-set_ids:
-- tmnt-adventures
-status: blocked
-reason: public_normalized_card_corpus_incomplete
-sources_checked:
-- https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- https://unmatched.cards/umdb/decks/raphael
-- https://www.the-unmatched.club/heroes/raphael
+set_ids: [tmnt-adventures]
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: raphael
-    display_name: Raphael
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 17
-    starts_on_board: true
-    summonable: false
-  - id: casey-jones
-    display_name: Casey Jones
-    role: sidekick
-    count: 1
-    attack_type: ranged
-    starting_health: 8
-    starts_on_board: true
-    summonable: false
+  - {id: raphael, display_name: Raphael, role: hero, count: 1, attack_type: melee, starting_health: 17, starts_on_board: true, summonable: false}
+  - {id: casey-jones, display_name: Casey Jones, role: sidekick, count: 1, attack_type: ranged, starting_health: 8, starts_on_board: true, summonable: false}
 setup:
   hooks: []
   state_initialization:
-  - key: anger_issues_used_this_turn
-    value: false
+  - {key: anger_issues_used_this_turn, value: false}
+  - {key: lost_combat_this_turn, value: false}
 ability:
   id: anger-issues
   controller: owner
   effects:
+  - id: record-combat-loss
+    trigger: after_combat
+    condition: {controller_lost_combat: true}
+    operations: [{op: SET_STATE, key: lost_combat_this_turn, value: true}]
   - id: anger-issues-action
     trigger: after_combat
-    condition:
-      active_player: owner
-      combat_result: lost
-      state: anger_issues_used_this_turn
-      equals: false
-    operations:
-    - op: GAIN_ACTION
-      count: 1
-    - op: SET_STATE
-      key: anger_issues_used_this_turn
-      value: true
+    condition: {active_player: owner, combat_result: lost, state: anger_issues_used_this_turn, equals: false}
+    operations: [{op: GAIN_ACTION, count: 1}, {op: SET_STATE, key: anger_issues_used_this_turn, value: true}]
 resources: []
 persistent_state:
-- key: anger_issues_used_this_turn
-  type: boolean
-  reset: turn_start
+- {key: anger_issues_used_this_turn, type: boolean, reset: turn_start}
+- {key: lost_combat_this_turn, type: boolean, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/raphael.yaml
   construction: fixed
 rulings: []
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/raphael
-- authority: reference
-  url: https://www.the-unmatched.club/heroes/raphael
+- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
+- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27'}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', note: Visual card corpus transcribed from current Club card images supplied during reconciliation.}
 normalization_notes:
-- Only competitive hero behavior is modeled.
+- lost_combat_this_turn is explicit historical state for Payback Time.
+- Only competitive Raphael/Casey behavior is modeled.
