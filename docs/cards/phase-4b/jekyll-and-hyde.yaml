@@ -22,6 +22,12 @@ external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
 sources:
   - https://unmatched.cards/umdb/decks/jekyll-hyde
-  - https://www.geektopiagames.com/unmatched/dr-jekyll-and-mr-hyde/
+  - https://unmatched.cards/umdb/decks/stats
+  - https://restorationgames.com/shop/cobble-fog-unmatched/
+  - https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
+  - https://restorationgames.com/the-unmatched-vault-cobble-fog/
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Jekyll/Hyde card legality is encoded by card tags plus the public form state; all 30 cards remain in one fixed deck.
+  - Current UmDb recheck preserves the previous Recoiling Blow correction: after the Hyde effect resolves, the form returns to Jekyll.
