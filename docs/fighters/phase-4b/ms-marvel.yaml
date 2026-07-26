@@ -3,7 +3,7 @@ id: ms-marvel
 display_name: Ms. Marvel
 set_ids:
 - marvel-teen-spirit
-status: verified
+status: blocked
 movement: 2
 topology:
   type: single_hero
@@ -26,29 +26,28 @@ ability:
   effects:
   - id: start-turn-move
     trigger: turn_start
+    optional: true
     operations:
     - op: MOVE
       target: ms-marvel
-      distance: 1
+      max_distance: 1
   - id: extended-attack-range
     trigger: static
     continuous: true
-    operations:
-    - op: SET_STATE
-      key: attack_range_rule
-      value:
-        max_space_distance: 2
-        ignore_zones: true
-        may_attack_over_fighters: true
+    normalization_blocker: Ms. Marvel attacks by graph distance up to 2 while ignoring zones. Phase 4A has standard melee/ranged-zone legality but no reusable graph-distance attack-legality modifier; encoding an undocumented structured object in SET_STATE would not satisfy the shared-model validation contract.
 resources: []
 persistent_state:
-- key: attack_range_rule
-  type: enum
-  reset: never
+- key: turn_start_space
+  type: space_ref
+  reset: turn_start
+  note: Required by Momentous Shift; current position alone cannot reconstruct whether Ms. Marvel started the turn in a different space.
 deck:
   manifest: ../../cards/phase-4b/ms-marvel.yaml
   construction: fixed
-rulings: []
+rulings:
+- id: stretchy-range
+  summary: Ms. Marvel may attack a fighter up to 2 spaces away by space distance, ignoring zones.
+  source: https://unmatched.cards/umdb/decks/ms-marvel
 sources:
 - type: official_product
   url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
@@ -56,3 +55,9 @@ sources:
   url: https://unmatched.cards/umdb/decks/ms-marvel
 - type: current_rulings_index
   url: https://www.the-unmatched.club/heroes/ms-marvel
+normalization_notes:
+- Audit correction: Stretchy's start-of-turn move is optional and is an up-to-1 movement.
+- Audit correction: Momentous Shift's turn-start comparison is backed by explicit historical state, following FIGHTER-SCHEMA-005.
+blockers:
+- id: semantic-extension-spatial-attack-range
+  reason: A reusable attack-legality modifier is required for graph-distance attacks that ignore zones. The previous attack_range_rule object was stored in an enum-typed persistent state and had no shared semantic contract.
