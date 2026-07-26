@@ -39,7 +39,7 @@ setup:
     - op: DRAW
       count: 5
   state_initialization:
-  - key: opposing_fighter_damaged_this_turn
+  - key: opposing_fighter_took_damage_this_turn
     value: false
 ability:
   id: missions
@@ -51,11 +51,11 @@ ability:
       damaged_fighter_relation: opposing
     operations:
     - op: SET_STATE
-      key: opposing_fighter_damaged_this_turn
+      key: opposing_fighter_took_damage_this_turn
       value: true
 resources: []
 persistent_state:
-- key: opposing_fighter_damaged_this_turn
+- key: opposing_fighter_took_damage_this_turn
   type: boolean
   reset: turn_start
   note: Required by The Moscow Protocol. It records whether any opposing fighter has taken any damage during the current turn, regardless of source.
