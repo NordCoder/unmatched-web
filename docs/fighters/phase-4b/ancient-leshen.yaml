@@ -3,14 +3,14 @@ id: ancient-leshen
 display_name: Ancient Leshen
 set_ids: [witcher-steel-and-silver]
 status: verified
-movement: 1
+movement: source_defined_by_fighter
 
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-    - {id: ancient-leshen, display_name: Ancient Leshen, role: hero, count: 1, attack_type: ranged, starting_health: 13, starts_on_board: true, summonable: false}
-    - {id: wolf, display_name: Wolf, role: sidekick, count: 2, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: true}
+    - {id: ancient-leshen, display_name: Ancient Leshen, role: hero, count: 1, attack_type: ranged, starting_health: 13, move_value: 1, starts_on_board: true, summonable: false}
+    - {id: wolf, display_name: Wolf, role: sidekick, count: 2, attack_type: melee, starting_health: 1, move_value: 3, starts_on_board: true, summonable: true}
 
 setup:
   hooks: []
@@ -26,15 +26,11 @@ ability:
       continuous: true
       condition: {attacker: ancient-leshen, ancient_leshen_attacked_earlier_this_turn: true}
       operations: [{op: ADD_VALUE, target: leshen_attack, amount: 3}]
-    - id: wolf-move-value
-      trigger: static
-      continuous: true
-      operations: [{op: SET_STATE, target: wolf_instances, key: move_value, value: 3}]
 
 resources: []
 persistent_state:
   - {key: ancient_leshen_attacked_this_turn, type: boolean, reset: turn_start}
-  - {key: left_space_this_turn_by_fighter, type: boolean, reset: turn_start}
+  - {key: left_space_this_turn_by_fighter, type: fighter_instance_boolean_map, reset: turn_start}
   - {key: leshen_temporarily_off_board_until_turn_start, type: boolean, reset: never}
 
 deck:
@@ -55,4 +51,6 @@ sources:
   - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/ancient-leshen}
 
 normalization_notes:
+  - Ancient Leshen and Wolves have different base move values (1 and 3 respectively); movement is fighter-definition data, not a permanent SET_STATE mutation. This uses C-EXT-011.
+  - Per-turn movement history is keyed by runtime fighter instance; a shared boolean would conflate the Leshen and two Wolves. This uses C-EXT-010.
   - Vanish Into Murder removes a living hero from the battlefield without defeating it, then schedules a return. The generic temporary-off-board extension is proposed in the Worker C report.
