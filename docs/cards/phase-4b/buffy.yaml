@@ -21,11 +21,10 @@ cards:
   - {id: swift-strike, name: Swift Strike, quantity: 3, inclusion: base, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 4}]}]}
   - {id: insight, name: Insight, quantity: 3, inclusion: choose_group, tags: [sidekick:giles], usable_by: [giles], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: LOOK_AT, source: opponent_hand, viewer: owner}, {op: DISCARD, from: opponent_hand, selector: chosen_card, count: 1}]}]}
   - {id: training, name: Training, quantity: 2, inclusion: choose_group, tags: [sidekick:giles], usable_by: [giles], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 3}]}]}
-  - {id: right-hand-man, name: Right-hand Man, quantity: 2, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: versatile, printed_value: 2, boost: 3, effects: [{trigger: during_combat, condition: {xander_adjacent_to_buffy: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}], alternate_play_permission: {fighter: buffy, condition: buffy_adjacent_to_xander}, normalization_blocker: shared_schema_has_no_conditional_alternate_user_permission}
+  - {id: right-hand-man, name: Right-hand Man, quantity: 2, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: versatile, printed_value: 2, boost: 3, effects: [{trigger: during_combat, condition: {xander_adjacent_to_buffy: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
   - {id: military-knowledge, name: Military Knowledge, quantity: 3, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
 
-external_definitions:
-  - {id: buffy-right-hand-man-permission, kind: proposed_generic_play_permission, card: right-hand-man, alternate_user: buffy, condition: buffy_adjacent_to_xander}
+external_definitions: []
 validation:
   available_pool_count: 35
   game_deck_count: 30
@@ -37,6 +36,9 @@ validation:
 sources:
   - https://unmatched.cards/umdb/decks/buffy
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
+  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Published pool is 35 cards, but every game deck is exactly 30: 25 base plus the selected sidekick's five-card package.
-  - Right-hand Man remains Xander's card; Buffy's conditional adjacent-to-Xander permission is preserved separately and blocks full v1 normalization.
+  - Current allowed sources identify Right-hand Man as a Xander card, value 2, BOOST 3, whose combat value becomes 6 when Xander is adjacent to Buffy.
+  - A community/fan transcription additionally claims Buffy may play Right-hand Man while adjacent to Xander. Because the current official rulebook, Reference and published UmDb checked do not substantiate that parenthetical permission, it is deliberately not encoded as canonical gameplay semantics; this remains a source blocker.
