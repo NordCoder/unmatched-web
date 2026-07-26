@@ -4,111 +4,75 @@
 
 Branch: `phase-4b-worker-d-latest`  
 Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Head: **reported in the external handoff after this report commit is created.** A Git commit cannot truthfully embed its own SHA in a file inside that same commit because changing the embedded SHA changes the commit object ID.  
+Head: reported externally after commit creation; a commit cannot embed its own final SHA.  
 Assigned fighters: **16**  
-Verified fighters: `bruce-lee`, `muhammad-ali`, `blackbeard`, `chupacabra`, `loki`, `pandora`, `leonardo`, `donatello`, `michelangelo`, `raphael`, `john-henry`, `wyatt-earp`, `george-washington`, `shredder`, `krang`  
-Partial fighters: `rosie-the-riveter`  
-Blocked fighters: **none**  
+Verified: **15** — `bruce-lee`, `muhammad-ali`, `blackbeard`, `chupacabra`, `loki`, `pandora`, `leonardo`, `donatello`, `michelangelo`, `raphael`, `john-henry`, `wyatt-earp`, `george-washington`, `shredder`, `krang`  
+Partial: **1** — `rosie-the-riveter`  
+Blocked: **none**  
 Verified action decks: **16/16**  
-Quantity validation: **PASS for all 16 action decks; every fixed action deck reconciles to 30 physical cards.**  
-Files created on Worker D branch: **33** (16 fighter manifests, 16 deck manifests, this report).  
-Shared schema/mechanics/rules/rulings/set/roadmap files changed: **none**.
+Quantity validation: **PASS — all 16 fixed decks reconcile to 30 cards.**  
+Schema-extension proposals: **12**, listed below; no shared semantic file changed.  
+New ambiguity/blockers: **no gameplay blocker**; Rosie has one printed-identity gap only.  
+Source gaps: Rosie upgrade effects are known, but exact printed token labels/order were not directly transcribed from the first-party upgrade image.  
+Files created: **33** — 16 fighter manifests, 16 deck manifests, this report.  
+Shared files changed: **none**.  
+Merge to `main`: **not performed**.
 
-### Final verification matrix
+### Verification matrix
 
-| Fighter | Fighter status | Deck status | Deck reconciliation | Notes |
+| Fighter | Fighter | Deck | Reconciliation | Remaining note |
 | --- | --- | --- | --- | --- |
-| Bruce Lee | verified | verified | 17 definitions / 30 cards | One canonical 2019→2025 lineage. |
-| Muhammad Ali | verified | verified | 13 / 30 | Full visual corpus reconciled with official IELLO stance/set rules. |
-| Blackbeard | verified | verified | 12 / 30 | Ransom semantics explicit. |
-| Chupacabra | verified | verified | 11 / 30 | Historical combat-win state explicit. |
-| Loki | verified | verified | 11 / 30 | TRICK ownership/hand-zone semantics retained. |
-| Pandora | verified | verified | 12 / 30 + 7 Miseries | Miseries are external gameplay definitions. |
-| Leonardo | verified | verified | 12 / 30 | Competitive hero behavior only. |
-| Donatello | verified | verified | 14 / 30 | Inventions reconciled against official IELLO text. |
-| Michelangelo | verified | verified | 12 / 30 | Starting/max hand size 3; Nunchaku state explicit. |
-| Raphael | verified | verified | 12 / 30 | Anger Issues and lost-combat history explicit. |
-| Rosie the Riveter | **partial** | **verified** | 11 / 30 | All four upgrade gameplay semantics identified; exact printed token labels/order remain untranscribed. |
-| John Henry | verified | verified | 12 / 30 | Track/path movement and distinct-path history explicit. |
-| Wyatt Earp | verified | verified | 12 / 30 | Restricted free-attack actions explicit. |
-| George Washington | verified | verified | 13 / 30 | Ruse clauses and Culper Spy revival explicit. |
+| Bruce Lee | verified | verified | 17 / 30 | Single canonical 2019→2025 lineage. |
+| Muhammad Ali | verified | verified | 13 / 30 | — |
+| Blackbeard | verified | verified | 12 / 30 | Ransom requires generic third-party payment semantics. |
+| Chupacabra | verified | verified | 11 / 30 | — |
+| Loki | verified | verified | 11 / 30 | TRICK ownership semantics preserved. |
+| Pandora | verified | verified | 12 / 30 + 7 Miseries | Miseries are external definitions. |
+| Leonardo | verified | verified | 12 / 30 | Competitive behavior only. |
+| Donatello | verified | verified | 14 / 30 | Inventions modeled as a public card zone. |
+| Michelangelo | verified | verified | 12 / 30 | Hand-size semantics require shared support. |
+| Raphael | verified | verified | 12 / 30 | — |
+| Rosie the Riveter | **partial** | verified | 11 / 30 | Gameplay complete; printed upgrade labels/order unverified. |
+| John Henry | verified | verified | 12 / 30 | Track/path semantics require shared support. |
+| Wyatt Earp | verified | verified | 12 / 30 | Restricted free-action semantics require shared support. |
+| George Washington | verified | verified | 13 / 30 | Ruse attachment semantics require shared support. |
 | Shredder | verified | verified | 13 / 30 | Competitive Hero Deck only; Foot Soldiers are path resources. |
-| Krang | verified | verified | 10 / 30 | Competitive Hero Deck only; destruction-die rules preserved. |
+| Krang | verified | verified | 10 / 30 | Competitive Hero Deck only; destruction-die semantics preserved. |
 
-### Quantity validation
+### Rosie residual gap
 
-| Fighter | Game deck | Unique action-card definitions | External definitions | Result |
-| --- | ---: | ---: | ---: | --- |
-| Bruce Lee | 30 | 17 | 0 | PASS |
-| Muhammad Ali | 30 | 13 | 0 | PASS |
-| Blackbeard | 30 | 12 | 0 | PASS |
-| Chupacabra | 30 | 11 | 0 | PASS |
-| Loki | 30 | 11 | 0 | PASS |
-| Pandora | 30 | 12 | 7 Miseries | PASS |
-| Leonardo | 30 | 12 | 0 | PASS |
-| Donatello | 30 | 14 | 0 | PASS |
-| Michelangelo | 30 | 12 | 0 | PASS |
-| Raphael | 30 | 12 | 0 | PASS |
-| Rosie the Riveter | 30 | 11 | 4 fighter-level upgrades | PASS |
-| John Henry | 30 | 12 | 0 | PASS |
-| Wyatt Earp | 30 | 12 | 0 | PASS |
-| George Washington | 30 | 13 | 0 | PASS |
-| Shredder | 30 | 13 | 0 | PASS |
-| Krang | 30 | 10 | destruction-die rule | PASS |
+All four upgrade gameplay effects are recorded in `docs/fighters/phase-4b/rosie-the-riveter.yaml`:
 
-### Rosie upgrade reconciliation
+- ranged attack type;
+- movement value 3;
+- +1 to Rosie's attacks;
+- optional draw 1 after Rosie attacks.
 
-The official Restoration Games Stars & Stripes material establishes four upgrade tokens, all inactive at setup, and states that active upgrades grant Rosie additional abilities. A first-party image asset for the upgrade set is published at `Rosie-Upgrades-1024x354.png`.
+`rosie-the-riveter` remains `partial` only because the exact printed token labels and physical order/identity mapping were not directly transcribed. Semantic IDs in the manifest are descriptive and are not claimed printed names.
 
-The four gameplay semantics are now identified and recorded in `docs/fighters/phase-4b/rosie-the-riveter.yaml`:
-
-1. **Ranged upgrade** — Rosie becomes a ranged fighter while active.
-2. **Movement upgrade** — Rosie's movement value becomes 3 instead of 2 while active.
-3. **Attack upgrade** — Rosie's attacks receive +1 value while active.
-4. **Draw upgrade** — after Rosie attacks, she may draw 1 card while active.
-
-Evidence stack:
-
-- official Stars & Stripes rules/components establish the four-upgrade system;
-- official Restoration gameplay article establishes active-upgrade additional abilities;
-- official `Rosie-Upgrades-1024x354.png` asset establishes a first-party visual reference exists;
-- independent physical-owner reports corroborate all four semantics, with a second owner report independently corroborating the draw-after-attack upgrade.
-
-Rosie remains `partial`, not `verified`, for one narrowly defined reason: **the exact printed token labels and physical order/identity mapping have not been directly transcribed from the first-party upgrade image**. The manifest therefore uses descriptive semantic ids and does not claim them as printed names.
-
-This is no longer a gameplay-semantics gap. It is a printed-identity/order verification gap.
-
-### Final visual-corpus reconciliation
-
-The final research pass used the current The Unmatched Club card-image corpus as a physical-card transcription layer for newest decks whose machine-readable databases were incomplete. Supplied images exposed printed names, quantities, fighter restrictions, card types, printed values, BOOSTs and exact effects.
-
-The visual transcription is not standalone product authority. Canonical fighter/set identity and special-rule interpretation remain anchored to official Restoration Games / IELLO material.
-
-No `unmatched.cards/decks/...` fan/community deck is used to populate an official manifest.
-
-### Schema/effect-extension proposals for orchestrator
-
-Proposals only; Worker D does not modify shared semantics.
+### Schema-extension proposals
 
 1. Attack targeting/range modifier — Muhammad Ali / Shredder.
 2. Maneuver movement-value modifier — Loki / Krang / Rosie.
 3. Controlled repeat/stop resolution loop — Pandora.
-4. Starting/max hand-size rules — Michelangelo.
+4. Starting/max hand-size authority — Michelangelo.
 5. Positioned resource/path-cost semantics — John Henry.
-6. Restricted free action — Wyatt Earp / Rosie action cards.
+6. Restricted free-action credit — Wyatt Earp / Rosie card effects.
 7. Pre-defense marker attachment — George Washington.
 8. Path/edge-resident tokens — Shredder.
-9. Random die/table resolution with reroll authority — Krang.
+9. Random die/table resolution with paid reroll authority — Krang.
 10. Third-party ransom/payment window — Blackbeard.
-11. Ordered/multi-fighter reposition semantics — Leonardo.
-12. Fighter attack-type modifier — Rosie ranged upgrade.
+11. Ordered multi-fighter reposition semantics — Leonardo.
+12. Fighter attack-type modifier — Rosie.
+
+### Source discipline
+
+Official Restoration Games / IELLO material remains canonical for set identity and special rules. The Unmatched Club card-image corpus is used only as a transcription layer where official sources do not expose complete machine-readable action-card text. `unmatched.cards/decks/...` fan/community decks are excluded.
 
 ### Scope
 
-Worker D writes only:
+Worker D changed only:
 
 - `docs/fighters/phase-4b/<assigned-id>.yaml`;
 - `docs/cards/phase-4b/<assigned-id>.yaml`;
 - `docs/phase-4b/worker-d-report.md`.
-
-No shared semantic/control file is modified. No merge to `main` is performed by this worker.
