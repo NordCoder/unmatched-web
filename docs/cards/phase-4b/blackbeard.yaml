@@ -208,7 +208,7 @@ cards:
     trigger: scheme
     operations:
     - {op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}
-    - {op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1, destination: blackbeard-doubloons}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_transfer_resource, from: treasury-doubloons, to: blackbeard-doubloons, amount: 1}
 - id: scourge-of-the-seven-seas
   name: Scourge of the Seven Seas
   quantity: 2
@@ -269,5 +269,6 @@ sources:
   note: Fighter ability and current official-ruling index.
 normalization_notes:
 - The action-card corpus is transcribed from current deck indexes and cross-checked against a physical 2025 set review; the Restoration product page establishes the canonical set.
+- Resource movement between Treasury and Blackbeard is represented by an explicit transfer composite instead of overloading SPEND_RESOURCE with a destination field.
 - Ransom windows use an explicit source-defined composite pending orchestrator promotion of generic multiplayer payment semantics.
 - No unmatched.cards/decks fan namespace is used.
