@@ -1,0 +1,217 @@
+schema_version: 1
+fighter_id: bloody-mary
+status: verified
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: bloody-requiem
+    name: Bloody Requiem
+    quantity: 3
+    usable_by: [bloody-mary]
+    type: attack
+    printed_value: 3
+    boost: 4
+    effects:
+      - trigger: after_combat
+        operations:
+          - op: TRIGGER_COMPOSITE
+            kind: bonus_attack
+            definition: bloody-reprise
+            capture:
+              parent_defense_card_printed_value: opposing_defense_card.printed_value_or_null
+
+  - id: speak-three-times
+    name: Speak Three Times
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: attack
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: during_combat
+        condition: {action_ordinal_this_turn: 3}
+        operations: [{op: SET_VALUE, target: this_card, value: 7}]
+
+  - id: ghostly-touch
+    name: Ghostly Touch
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: attack
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        operations: [{op: BOOST, target: this_attack, source: hand, count: 1}]
+      - trigger: after_combat
+        condition: {action_ordinal_this_turn: 3}
+        operations: [{op: RECOVER, target: bloody-mary, amount: 3}]
+
+  - id: out-of-the-mirror
+    name: Out of the Mirror
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: attack
+    printed_value: 1
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations:
+          - {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1, capture: discarded_card}
+          - {op: ADD_VALUE, target: this_card, amount: captured.discarded_card.boost_or_0}
+      - trigger: after_combat
+        condition: {action_ordinal_this_turn: 3}
+        operations: [{op: DRAW, count: 1}]
+
+  - id: evade
+    name: Evade
+    quantity: 3
+    usable_by: [bloody-mary]
+    type: defense
+    printed_value: 3
+    boost: 1
+    effects:
+      - trigger: after_combat
+        operations: [{op: DRAW, count: 1}]
+
+  - id: mirror-image
+    name: Mirror Image
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: defense
+    printed_value: 0
+    boost: 2
+    effects:
+      - trigger: during_combat
+        operations: [{op: SET_VALUE, target: this_card, value_from: opposing_card.printed_value}]
+
+  - id: closer-than-she-appears
+    name: Closer Than She Appears
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: MOVE, target: bloody-mary, max_distance: 1}
+          - {op: DRAW, count: 1}
+          - {op: GAIN_ACTION, count: 1}
+
+  - id: stolen-memories
+    name: Stolen Memories
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        choices:
+          - {owner: controller, choose: opponent}
+        operations:
+          - {op: LOOK_AT, source: chosen_opponent.hand, viewer: controller, selector: all}
+        nested_choice:
+          owner: controller
+          choose: one_card_from_viewed_hand
+          then:
+            owner: chosen_opponent
+            optional_operation: {op: DISCARD, from: hand, selector: chosen_card, count: 1}
+            if_declined:
+              - {op: DEAL_EFFECT_DAMAGE, target: chosen_opponent.hero, amount_from: chosen_card.boost_or_0}
+
+  - id: broken-glass
+    name: Broken Glass
+    quantity: 3
+    usable_by: [bloody-mary]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: during_combat
+        optional: true
+        choices: [{owner: controller, choose: delta, options: [-1, 1]}]
+        operations: [{op: ADD_VALUE, target: this_card, amount: chosen_delta}]
+      - trigger: after_combat
+        condition: {current_value_equals: opposing_card.current_value}
+        operations:
+          - {op: DRAW, count: 1}
+          - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+
+  - id: trick-of-the-light
+    name: Trick of the Light
+    quantity: 3
+    usable_by: [bloody-mary]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    effects:
+      - trigger: after_combat
+        optional: true
+        choices: [{owner: controller, choose: empty_space_adjacent_to_opposing_combat_fighter}]
+        operations: [{op: PLACE, target: bloody-mary, destination: chosen_space}]
+
+  - id: infinity-mirror
+    name: Infinity Mirror
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: versatile
+    printed_value: 4
+    boost: 2
+    effects:
+      - trigger: after_combat
+        choices: [{owner: controller, choose: combat_fighter}]
+        operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]
+
+  - id: jump-scare
+    name: Jump Scare
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - trigger: during_combat
+        condition: {bloody_mary_shares_no_zone_with_space_ref: turn_start_space}
+        operations: [{op: SET_VALUE, target: this_card, value: 6}]
+
+  - id: feint
+    name: Feint
+    quantity: 2
+    usable_by: [bloody-mary]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - trigger: immediately
+        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+
+external_definitions:
+  - id: bloody-reprise
+    kind: bonus_attack
+    attacker: same_as_parent_combat
+    defender: same_as_parent_combat_after_participant_replacement
+    printed_attack_value: 0
+    captured_context:
+      - parent_defense_card_printed_value
+    effects:
+      - trigger: during_combat
+        condition: {captured.parent_defense_card_printed_value: not_null}
+        operations: [{op: SET_VALUE, target: this_bonus_attack, value_from: captured.parent_defense_card_printed_value}]
+
+validation:
+  available_pool_count: 30
+  game_deck_count: 30
+  quantity_sum: 30
+  unique_card_definitions: 13
+
+sources:
+  - https://unmatched.cards/umdb/decks/bloody-mary
+  - https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
+  - https://www.the-unmatched.club/rules/bloody-mary
+
+normalization_notes:
+  - Third-action checks consume the fighter manifest's persisted action ordinal rather than action-budget arithmetic.
+  - Bloody Reprise proves that a nested bonus-combat definition can require a captured snapshot from its parent combat.
+  - Community patched versions of Stolen Memories, Speak Three Times, Out of the Mirror or Bloody Mary's ability are excluded.
