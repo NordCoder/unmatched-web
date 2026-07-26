@@ -17,6 +17,7 @@ cards:
   boost: 3
   tags:
   - effects_cannot_be_canceled
+  cancellation: protected
   effects:
   - trigger: after_combat
     condition:
@@ -127,7 +128,7 @@ cards:
     operations:
     - op: MOVE
       target: chosen_combat_fighter
-      distance: 3
+      max_distance: 3
 - id: the-living-light
   name: The Living Light
   quantity: 2
@@ -164,10 +165,10 @@ cards:
     operations:
     - op: MOVE
       target: cloak
-      distance: 2
+      max_distance: 2
     - op: MOVE
       target: dagger
-      distance: 2
+      max_distance: 2
 - id: feint
   name: Feint
   quantity: 3
@@ -237,3 +238,5 @@ sources:
 - https://unmatched.cards/umdb/decks/cloak-and-dagger
 - https://www.unmatchedarena.com/heroes/cloak-and-dagger
 - https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+normalization_notes:
+- Audit correction: Lightforce Barrage uses the schema's first-class cancellation protection instead of relying only on a decorative tag.
