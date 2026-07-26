@@ -169,12 +169,11 @@ cards:
   - trigger: scheme
     choices: [{owner: controller, choose: opponent, capture: target_player}]
     operations: [{op: LOOK_AT, source: captured.target_player.hand, selector: all, viewer: controller}]
-  - trigger: scheme
-    condition: {culper_spy_adjacent_to_target_opponent_fighter: true}
-    choices: [{owner: controller, choose: card_in_target_opponent_hand, capture: chosen_card}]
-    operations:
-    - {op: DISCARD, from: captured.target_player.hand, selector: captured.chosen_card}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_regain_ruse_token, count: 1}
+    choices_after_lookup:
+    - {owner: controller, choose: card_in_target_opponent_hand, capture: chosen_card, required_if: {culper_spy_adjacent_to_target_opponent_fighter: true}}
+    followup:
+    - {op: DISCARD, from: captured.target_player.hand, selector: captured.chosen_card, condition: {culper_spy_adjacent_to_target_opponent_fighter: true}}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_regain_ruse_token, count: 1, condition: {culper_spy_adjacent_to_target_opponent_fighter: true}}
 - id: gather-information
   name: Gather Information
   quantity: 2
@@ -191,9 +190,10 @@ external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13, result: PASS}
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars_Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
 - {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
 normalization_notes:
 - All 13 definitions reconcile to 30 physical cards.
 - Triangle-marked printed clauses are normalized as ruse_attached_to_this_attack conditions.
+- Sympathetic Stain keeps opponent selection, private hand inspection, conditional discard and ruse regain in one scheme-resolution context.
 - Recruit to the Ring and Undercover Agent require runtime fighter-instance identity for Culper Spies.
