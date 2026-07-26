@@ -2,7 +2,7 @@ schema_version: 1
 id: buffy
 display_name: Buffy
 set_ids: [buffy-the-vampire-slayer]
-status: blocked
+status: verified
 movement: 3
 
 topology:
@@ -43,8 +43,3 @@ sources:
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/buffy}
   - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
   - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
-blocker:
-  reason: component_level_source_gap_for_claimed_right_hand_man_alternate_buffy_permission
-  affected_card: right-hand-man
-  note: Current official rulebook, Reference and published UmDb establish Xander ownership and the adjacency value effect but do not substantiate the claimed alternate Buffy play permission found in community transcription; it is not encoded canonically pending primary component evidence.
-  report: ../../phase-4b/worker-a-report.md
