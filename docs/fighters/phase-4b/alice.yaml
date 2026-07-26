@@ -14,7 +14,7 @@ topology:
 
 setup:
   hooks:
-    - stage: after_placement
+    - stage: POST_PLACEMENT_CONFIGURATION
       pending_choice: {owner: controller, visibility: public, choose: [big, small]}
       operations: [{op: SET_STATE, key: alice_size, value: chosen_value}]
   state_initialization: [{key: alice_size, value: source_defined_setup_choice}]
