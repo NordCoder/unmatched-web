@@ -3,7 +3,7 @@ id: nikola-tesla
 display_name: Nikola Tesla
 set_ids: [tales-to-amaze]
 status: blocked
-blocked_reason: official ruling confirms a two-coil option may be chosen with only one or zero charged coils, but the accessible official verdict does not expose the exact partial-discharge/tier-effect resolution needed for deterministic implementation
+blocked_reason: official ruling confirms an underfunded two-coil declaration is legal and may intentionally fizzle its dependent tier effect; the only unresolved deterministic state transition is whether the single available charged coil is discharged when two are declared but only one is charged
 movement: 2
 
 topology:
@@ -50,17 +50,21 @@ deck:
 
 rulings:
   - id: tesla-permissive-discharge-declaration
-    summary: A two-coil discharge option is a legal choice even when only one or zero coils are charged. The accessible official verdict confirms choice legality but does not expose enough normative detail to determine partial resource mutation and dependent tier resolution without invention.
+    summary: A two-coil discharge option is a legal choice even when only one or zero coils are charged. The official ruling permits this specifically so the dependent effect may intentionally fizzle instead of automatically downgrading to the one-coil tier. The remaining unresolved edge case is resource mutation when exactly one coil is charged: whether that one charged coil is flipped to discharged after declaring two.
     source: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
   - id: tesla-overflow-move-survives-no-damage
     summary: The two-coil start-turn ability can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
     source: https://www.the-unmatched.club/heroes/nikola-tesla
 
 sources:
+  - {type: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla}
   - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/nikola-tesla}
   - {type: official_ruling, url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e}
+  - {type: reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, note: Unmatched Reference v10 identifies the Rulings Archive as officially recognized by Restoration Games.}
   - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
 
 normalization_notes:
   - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
+  - Underfunded two-coil declaration legality and dependent-effect fizzle are source-backed. Do not auto-downgrade a declared two-coil tier to the one-coil tier.
+  - Keep only the exact 1-charged-plus-declare-2 resource transition blocked until a normative source establishes whether the available charged coil is consumed.
