@@ -42,11 +42,12 @@ deck:
 
 rulings:
   - id: flanked-definition
-    summary: A fighter is flanked when at least two fighters controlled by the same player are adjacent to it.
-    source: https://unmatched.cards/umdb/decks/oda-nobunaga
+    summary: An opposing fighter is flanked when adjacent to two or more fighters under Oda's controller; other friendly fighters in team/cooperative play do not count.
+    source: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
 
 sources:
   - {type: official_product, url: https://restorationgames.com/shop/suns-origin-unmatched/}
+  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/oda-nobunaga}
 
 normalization_notes:
