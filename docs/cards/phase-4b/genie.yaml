@@ -39,13 +39,16 @@ cards:
     condition:
       combat_result: won
     optional: true
-    operations:
+    costs:
     - op: DISCARD
       from_zone: hand
       selector:
         count: 2
+      cost_semantics: true
+    operations:
     - op: GAIN_ACTION
       count: 1
+    dependency: action_only_if_two_card_discard_cost_was_paid
 - id: imprisoned-wrath
   name: Imprisoned Wrath
   quantity: 2
@@ -59,14 +62,17 @@ cards:
   effects:
   - trigger: after_combat
     optional: true
-    operations:
+    costs:
     - op: DISCARD
       from_zone: hand
       selector:
         count: 2
+      cost_semantics: true
+    operations:
     - op: DEAL_EFFECT_DAMAGE
       target: adjacent_opposing_fighter
       amount: 2
+    dependency: damage_only_if_two_card_discard_cost_was_paid
 - id: i-am-freed
   name: I Am Freed
   quantity: 2
@@ -222,10 +228,24 @@ cards:
       count: 1
     - op: REQUEST_CHOICE
       definition:
+        owner: controller
         choose_one:
-        - draw_5
-        - lock_own_card_values_to_4_for_turn
-        - each_opponent_discards_2
+        - id: draw-five
+          operations:
+          - op: DRAW
+            count: 5
+        - id: lock-own-card-values-to-four
+          operations:
+          - op: SET_STATE
+            key: three_wishes_value_lock_active
+            value: true
+        - id: each-opponent-discards-two
+          operations:
+          - op: DISCARD
+            controller: each_opponent
+            from_zone: hand
+            selector: chosen_by_that_opponent
+            count: 2
 external_definitions: []
 validation:
   available_pool_count: 30
@@ -236,5 +256,7 @@ validation:
 sources:
 - https://unmatched.cards/card-counter/the-genie
 - https://unmatched.cards/umdb/decks/the-genie
-- https://www.unmatchedarena.com/heroes/the-genie
 - https://restorationgames.com/shop/unmatched-houdini-genie/
+normalization_notes:
+- Audit correction: Your Wish Is My Command and Imprisoned Wrath treat the two-card discard as an explicit cost, preserving their printed dependency.
+- Audit correction: Three Wishes now contains executable operations for all three branches; the value-lock branch sets fighter persistent state consumed by the continuous rule in the fighter manifest.
