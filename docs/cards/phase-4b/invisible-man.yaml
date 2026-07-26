@@ -1,0 +1,32 @@
+schema_version: 1
+fighter_id: invisible-man
+status: blocked
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: slip-away, name: Slip Away, quantity: 3, usable_by: [invisible-man], type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: []}], normalization_blocker: move_one_fog_to_fighter_free_space_then_place_invisible_man_there}
+  - {id: surprise-attack, name: Surprise Attack, quantity: 2, usable_by: [invisible-man], type: attack, printed_value: 5, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, condition: {invisible_man_on_fog: true}, operations: []}], normalization_blocker: move_current_fog_token_to_another_space}
+  - {id: emerge-from-mist, name: Emerge from Mist, quantity: 2, usable_by: [invisible-man], type: attack, printed_value: 3, boost: 2, effects: [{trigger: during_combat, condition: {invisible_man_started_turn_on_fog: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - {id: coded-notes, name: Coded Notes, quantity: 2, usable_by: [invisible-man], type: defense, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 3}, {op: REQUEST_CHOICE, definition: coded_notes_return_two}, {op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: chosen_two}, {op: REORDER, zone: deck, selector: chosen_two, order: chosen_order}]}]}
+  - {id: into-thin-air, name: Into Thin Air, quantity: 2, usable_by: [invisible-man], type: defense, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: invisible-man, max_distance: 1}]}], normalization_blocker: opponent_moves_one_fog_up_to_3_spaces}
+  - {id: lurking, name: Lurking, quantity: 2, usable_by: [invisible-man], type: defense, printed_value: 2, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: REQUEST_CHOICE, definition: lurking_choice}]}], normalization_blocker: choices_reference_positioned_fog_tokens}
+  - {id: rolling-fog, name: Rolling Fog, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, operations: [{op: GAIN_ACTION, count: 1}]}], normalization_blocker: move_one_fog_token_to_another_space}
+  - {id: reign-of-terror, name: Reign of Terror, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, condition: {invisible_man_on_fog: true}, choices: [{choose: opposing_fighter}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
+  - {id: vanish, name: Vanish, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: RECOVER, target: invisible-man, amount: 1}], normalization_blocker: remove_undefeated_fighter_until_start_of_next_turn_then_place_any_space}, {trigger: scheme, condition: {action_ordinal: 1}, operations: [{op: END_TURN}]}]}
+  - {id: step-lightly, name: Step Lightly, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, choices: [{choose: adjacent_fighter}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: source_defined_1_or_3_based_on_fog}]}], normalization_blocker: opponent_moves_one_fog_up_to_2_spaces}
+  - {id: covert-preparation, name: Covert Preparation, quantity: 3, usable_by: [invisible-man], type: versatile, printed_value: 2, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}], normalization_blocker: sequential_owner_then_opponent_fog_movement}
+  - {id: impossible-to-see, name: Impossible to See, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value: 0}, {op: PREVENT_OPERATION, target: opposing_combat_card_value, operation: value_change, duration: combat}]}]}
+  - {id: confound, name: Confound, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: REQUEST_CHOICE, definition: opponent_discard_one_or_owner_moves_each_fog}]}], normalization_blocker: alternate_branch_moves_each_positioned_fog_token}
+  - {id: dreaming-of-revenge, name: Dreaming of Revenge, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {invisible_man_on_fog: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_on_fog, amount: 1}]}]}
+
+external_definitions:
+  - {id: positioned-fog-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, move_token, select_token_space]}
+  - {id: temporary-off-board-undefeated, kind: proposed_generic_fighter_state, return_timing: start_of_next_turn}
+  - {id: lurking-choice, kind: choice_bundle, options: [place_invisible_man_on_a_fog_space, move_one_fog_up_to_3]}
+validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 14}
+sources:
+  - https://unmatched.cards/umdb/decks/invisible-man
+  - https://www.geektopiagames.com/unmatched/invisible-man/
+  - https://www.the-unmatched.club/heroes/invisible-man
+normalization_notes:
+  - Fog token facts are complete, but token movement/placement and Vanish off-board lifetime remain blocked rather than encoded as custom fighter operations.
