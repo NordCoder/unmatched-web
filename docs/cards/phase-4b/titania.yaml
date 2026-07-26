@@ -19,12 +19,46 @@ cards:
   - {id: but-a-dream, name: But A Dream, quantity: 2, usable_by: [titania], type: defense, printed_value: 0, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}, {op: MOVE_CARD, from_zone: resolving_opposing_combat_card, to_zone: owner_hand, selector: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
   - {id: protection-of-the-fairy-woods, name: Protection Of The Fairy Woods, quantity: 3, usable_by: any, type: defense, printed_value: 2, boost: 1, tags: [], effects: [{trigger: immediately, optional: true, costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
   - {id: a-momentary-glance, name: A Momentary Glance, quantity: 2, usable_by: [titania], type: scheme, printed_value: null, boost: 4, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: fighter_in_titania_zone}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
-  - {id: gift-of-the-fair-folk, name: Gift Of The Fair Folk, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: two_distinct_branches, options: [recover_one, draw_two, move_two]}], operations: [{op: RECOVER, target: chosen_fighter, amount: 2, condition: {recover_one_selected: true}}, {op: DRAW, count: 2, condition: {draw_two_selected: true}}, {op: MOVE, target: up_to_two_chosen_fighters, max_distance: 2, condition: {move_two_selected: true}}]}]}
-  - {id: what-fools-these-mortals-be, name: What Fools These Mortals Be, quantity: 2, usable_by: [oberon], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: opponent}, {owner: controller, choose: card_from_viewed_hand}], operations: [{op: LOOK_AT, source: chosen_opponent.hand, selector: all, viewer: controller}, {op: MOVE_CARD, from_zone: chosen_opponent.hand, to_zone: chosen_opponent.deck, selector: chosen_card}, {op: SHUFFLE, zone: chosen_opponent.deck}]}]}
+  - id: gift-of-the-fair-folk
+    name: Gift Of The Fair Folk
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: two_distinct_branches, options: [recover_one, draw_two, move_two]}]
+        branches:
+          - condition: {recover_one_selected: true}
+            choices: [{owner: controller, choose: one_fighter, capture: recovery_target}]
+            operations: [{op: RECOVER, target: captured.recovery_target, amount: 2}]
+          - condition: {draw_two_selected: true}
+            operations: [{op: DRAW, count: 2}]
+          - condition: {move_two_selected: true}
+            choices: [{owner: controller, choose: two_fighters, capture: movement_targets}]
+            operations: [{op: MOVE, target: captured.movement_targets, max_distance: 2}]
+  - id: what-fools-these-mortals-be
+    name: What Fools These Mortals Be
+    quantity: 2
+    usable_by: [oberon]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - trigger: scheme
+        choices: [{owner: controller, choose: opponent, capture: chosen_opponent}]
+        operations: [{op: LOOK_AT, source: captured.chosen_opponent.hand, selector: all, viewer: controller, capture: viewed_hand}]
+        choices_after: [{owner: controller, choose: card_from_captured_viewed_hand, capture: chosen_card}]
+        followup:
+          - {op: MOVE_CARD, from_zone: captured.chosen_opponent.hand, to_zone: captured.chosen_opponent.deck, selector: captured.chosen_card}
+          - {op: SHUFFLE, zone: captured.chosen_opponent.deck}
 
 external_definitions:
   - {id: glamour-of-greed, kind: glamour, effects: [{trigger: turn_end, optional: true, operations: [{op: DRAW, count: 1}]}]}
-  - {id: glamour-of-invisibility, kind: glamour, effects: [{trigger: static, continuous: true, operations: [{op: SET_STATE, target: friendly_fighters, key: may_move_through_opposing_fighters, value: true}]}]}
+  - {id: glamour-of-invisibility, kind: glamour, effects: [{trigger: static, continuous: true, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_rule_modifier, target: friendly_fighters, rule: may_move_through_opposing_fighters, value: true, source_lifetime: active_glamour}]}]}
   - {id: glamour-of-jealousy, kind: glamour, effects: [{trigger: before_defense_card_commit, optional: true, condition: {defender: [titania, oberon]}, operations: [{op: SWAP, a: titania, b: oberon}, {op: SET_STATE, key: combat_defender, value: other_fighter, condition: {swap_completed: true}}]}]}
   - {id: glamour-of-love, kind: glamour, effects: [{trigger: maneuver_before_fighter_movement, optional: true, choices: [{owner: controller, choose: opposing_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 1}]}]}
   - {id: glamour-of-rhyme, kind: glamour, effects: [{trigger: after_scheme, operations: [{op: GAIN_ACTION, count: 1}]}]}
@@ -38,3 +72,5 @@ sources:
 normalization_notes:
   - The six Glamours are external gameplay cards with runtime instances in their own shuffled deck; they do not count toward the 30-card action deck.
   - The auxiliary-deck runtime lifecycle and the pre-defense-card Glamour of Jealousy interrupt are proposed as generic semantics in the Worker C report.
+  - Gift Of The Fair Folk uses branch-local target choices; What Fools These Mortals Be chooses a card only after its controller has looked at the selected opponent's hand.
+  - Glamour of Invisibility uses the reusable continuous rule-modifier proposal rather than permanently mutating fighter state.
