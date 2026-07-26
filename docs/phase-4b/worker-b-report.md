@@ -25,6 +25,7 @@ Established rule: T. Rex is one fighter whose extended base can occupy two space
 Current gap: fighter occupancy and `MOVE`/`PLACE` assume one occupied space.  
 Proposed extension: reusable fighter footprint/orientation state with occupied-space validation, rotation/path semantics and movement overrides.  
 Evidence: `docs/fighters/phase-4b/t-rex.yaml` (`rulings`, `sources`); published UmDb/current rulings.  
+Integration status: blocks `t-rex` verification until the shared model is extended.  
 
 #### B-EXT-002 — Small-fighter shared occupancy
 
@@ -33,6 +34,7 @@ Established rule: multiple Squirrels may share a space under small-fighter capac
 Current gap: normal occupancy and single-target damage do not represent this behavior.  
 Proposed extension: `occupancy_class`, per-space compatibility/capacity, shared-space adjacency/pass-through, and same-type co-located damage propagation with preserved source attribution.  
 Evidence: official Teen Spirit rulebook plus current erratum/rulings in `docs/fighters/phase-4b/squirrel-girl.yaml`.  
+Integration status: blocks `squirrel-girl` verification until the shared model is extended.  
 
 #### B-EXT-003 — Off-board without defeat
 
@@ -41,6 +43,7 @@ Established rule: on first would-be defeat, Elektra and all Hand pieces leave ba
 Current gap: `DEFEAT` is incorrect and `RETURN_FIGHTER` models only the return transition.  
 Proposed extension: generic removal/lifecycle state for `off_board_not_defeated`, preserving fighter identity and ownership for later return.  
 Evidence: published Elektra data/current rulings in `docs/fighters/phase-4b/elektra.yaml`.  
+Integration status: blocks `elektra` verification until the shared model is extended.  
 
 #### B-EXT-004 — Card used as BOOST source
 
@@ -49,6 +52,7 @@ Established rule: a card consumed as a BOOST source can resolve its own `BOOSTED
 Current gap: `BOOST` applies a value but exposes neither a source-card event nor reusable source-card history.  
 Proposed extension: `card_used_as_boost`/equivalent event carrying source card instance, controller, boosted context and disposition, plus historical selectors where required.  
 Evidence: official Houdini vs. The Genie material and published card data in `docs/cards/phase-4b/houdini.yaml`.  
+Integration status: blocks `houdini` deck verification until the shared model is extended.  
 
 #### B-EXT-005 — Field-only disclosure of a hidden card
 
@@ -57,6 +61,7 @@ Established rule: after an attack is committed against Spider-Man but before def
 Current gap: `REVEAL` exposes the whole card and there is no reusable attack-commit/pre-defense-choice hook.  
 Proposed extension: field-level disclosure such as `DISCLOSE_CARD_FIELD(card, printed_value)` plus the required timing hook, without changing card visibility.  
 Evidence: official Brains and Brawn rulebook in `docs/fighters/phase-4b/spider-man.yaml`.  
+Integration status: blocks `spider-man` verification until the shared model is extended.  
 
 #### B-EXT-006 — Battlefield token instances
 
@@ -65,6 +70,7 @@ Established rule: Sattler has five reusable Insight tokens that move between sup
 Current gap: `token_pool` tracks quantity but current persistent-state types cannot represent positioned token multiplicity/instances.  
 Proposed extension: generic battlefield-token instance or equivalent multiset model with location (`supply`/`space_ref`), same-space multiplicity, selectors/counts and return-to-supply operations.  
 Evidence: current Sattler rulings in `docs/fighters/phase-4b/dr-ellie-sattler.yaml`.  
+Integration status: blocks `dr-ellie-sattler` verification until the shared model is extended.  
 
 ### Integration-critical corpus notes
 
