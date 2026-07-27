@@ -2,7 +2,13 @@ schema_version: 1
 id: michelangelo
 display_name: Michelangelo
 set_ids: [tmnt-adventures]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001, D-REQ-013, D-REQ-014]
 movement: 3
 topology:
   type: hero_with_sidekicks
@@ -11,19 +17,17 @@ topology:
   - {id: michelangelo, display_name: Michelangelo, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
   - {id: april-oneil, display_name: "April O'Neil", role: sidekick, count: 1, attack_type: ranged, starting_health: 6, starts_on_board: true, summonable: false}
 setup:
-  hooks:
-  - stage: starting_hand
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_starting_hand_size, size: 3}]
+  hooks: []
   state_initialization:
   - {key: michelangelo_attack_bonus_this_turn, value: 0}
+hand_size_policy:
+  requires: [D-REQ-013]
+  starting_hand_size: 3
+  maximum_hand_size: 3
 ability:
   id: pizza-party
   controller: owner
   effects:
-  - id: maximum-hand-size
-    trigger: static
-    continuous: true
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_maximum_hand_size, size: 3}]
   - id: pizza-party-attack
     trigger: after_attack
     operations: [{op: DRAW, count: 1}]
@@ -43,10 +47,33 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/michelangelo, checked_at: '2026-07-27', note: Visual card corpus transcribed from current Club card images supplied during reconciliation.}
+- id: tmnt-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, ability, starting_hand_size, maximum_hand_size, deck_allocation]
+  durability: durable
+- id: tmnt-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: michelangelo-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/michelangelo
+  checked_at: '2026-07-27'
+  supports: [deck_visual_transcription]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- Source-defined starting and maximum hand size are both 3; shared schema integration remains orchestrator-owned.
-- Nunchaku's turn-scoped attack modifier is persisted explicitly.
+- Starting and maximum hand size are declarative policy data under D-REQ-013; no source_defined hand-size operation remains.
+- Cowabunga requires canonical per-turn card-play history under D-REQ-014.
+- Shell Insertion requires generic choose-N-distinct staged resolution under D-REQ-001.
 - Only competitive hero behavior is modeled.
