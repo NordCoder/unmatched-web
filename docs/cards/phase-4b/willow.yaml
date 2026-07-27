@@ -7,7 +7,18 @@ cards:
   - {id: rending-shot, name: Rending Shot, quantity: 2, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3, controller: owner}]}]}
   - {id: meditation, name: Meditation, quantity: 2, usable_by: [willow], type: defense, printed_value: 5, boost: 2, effects: [{trigger: after_combat, condition: {form: dark-willow}, operations: [{op: SET_STATE, key: form, value: willow}]}]}
   - {id: black-magic, name: Black Magic, quantity: 3, usable_by: [willow], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: during_combat, condition: {form: dark-willow}, operations: [{op: BOOST, target: this_card, card_or_blind_source: top_of_deck}]}]}
-  - {id: love-and-loss, name: Love and Loss, quantity: 2, usable_by: [willow], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}]}, {trigger: scheme, condition: {form: dark-willow}, operations: [{op: MOVE_CARD, from_zone: deck, to_zone: discard, selector: top_2_cards}, {op: REQUEST_CHOICE, definition: love_and_loss_sidekick}, {op: DEAL_EFFECT_DAMAGE, target: chosen_sidekick, amount: 3}]}]}
+  - id: love-and-loss
+    name: Love and Loss
+    quantity: 2
+    usable_by: [willow]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - trigger: scheme
+        operations:
+          - {op: DRAW, count: 2}
+          - {op: TRIGGER_COMPOSITE, definition: love_and_loss_dark_clause}
   - {id: flayed-alive, name: Flayed Alive, quantity: 3, usable_by: [willow], type: attack, printed_value: 4, boost: 3, effects: [{trigger: during_combat, condition: {form: dark-willow}, operations: [{op: BOOST, target: this_card, card_or_blind_source: top_of_deck}]}]}
   - {id: hacker, name: Hacker, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: deck, count: 1, viewer: owner}, {op: REQUEST_CHOICE, definition: hacker_top_or_bottom}, {op: MOVE_CARD, from_zone: deck_top, to_zone: chosen_destination, selector: viewed_card}]}]}
   - {id: when-good-magic-fails, name: When Good Magic Fails, quantity: 2, usable_by: [willow], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {form: dark-willow}, operations: [{op: PLACE, target: willow, destination_rule: any_space_in_willow_zone}, {op: MOVE_CARD, from_zone: deck, to_zone: discard, selector: top_card}]}]}
@@ -19,6 +30,13 @@ cards:
   - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
 
 external_definitions:
+  - id: love_and_loss_dark_clause
+    kind: ordered_conditional_composite
+    condition: {form: dark-willow}
+    operations:
+      - {op: MOVE_CARD, from_zone: deck, to_zone: discard, selector: top_2_cards}
+      - {op: REQUEST_CHOICE, definition: love_and_loss_sidekick}
+      - {op: DEAL_EFFECT_DAMAGE, target: chosen_sidekick, amount: 3}
   - {id: love_and_loss_sidekick, kind: choice, domain: sidekick_in_willow_zone}
   - {id: hacker_top_or_bottom, kind: choice, controller: owner, domain: [deck_top, deck_bottom], output: chosen_destination}
   - {id: set-returned-health-absolute, kind: proposed_generic_operation, affected_card: resurrect, semantics: return_defeated_fighter_then_set_current_health_exactly_to_source_value}
@@ -27,6 +45,7 @@ sources:
   - https://unmatched.cards/umdb/decks/willow
   - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
 normalization_notes:
-  - Hacker now records the actual top-or-bottom card disposition after the private look/choice.
+  - Love and Loss is one ordered Scheme resolution: draw 2 first, then resolve the DARK clause if Dark Willow. The DARK discard/damage clause is no longer represented as an independent same-timing effect.
+  - Hacker records the actual top-or-bottom card disposition after the private look/choice.
   - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Resurrect is not approximated as RECOVER; exact post-return health assignment is a shared-model blocker.
