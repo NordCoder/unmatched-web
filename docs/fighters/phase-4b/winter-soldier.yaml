@@ -1,61 +1,82 @@
 schema_version: 1
 id: winter-soldier
 display_name: Winter Soldier
-set_ids:
-- marvel-for-king-and-country
+set_ids: [marvel-for-king-and-country]
 status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
 movement: 2
+
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: winter-soldier
-    display_name: Winter Soldier
-    role: hero
-    count: 1
-    attack_type: ranged
-    starting_health: 15
-    starts_on_board: true
-    summonable: false
+    - {id: winter-soldier, display_name: Winter Soldier, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+
 setup:
   hooks: []
-  state_initialization:
-  - key: ignore_brainwashed_effects
-    value: false
+  state_initialization: [{key: ignore_brainwashed_effects, value: false}]
+
 ability:
   id: brainwashed
   controller: owner
   effects:
-  - id: own-card-effects-protected
-    trigger: static
-    continuous: true
-    operations:
-    - op: PREVENT_OPERATION
-      target_operation:
-        op: CANCEL_EFFECTS
-        target_scope: winter-soldier-card-effects
+    - id: own-card-effects-protected
+      trigger: static
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: protect
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: PREVENT_OPERATION
+              target_operation: {op: CANCEL_EFFECTS, target_scope: winter-soldier-card-effects}
+
 resources: []
 persistent_state:
-- key: ignore_brainwashed_effects
-  type: boolean
-  reset: turn_end
-  note: Set by A Boy Named Bucky. BRAINWASHED-tagged negative effects check this state and do not resolve while it is true.
+  - {key: ignore_brainwashed_effects, type: boolean, reset: turn_end}
+
 deck:
   manifest: ../../cards/phase-4b/winter-soldier.yaml
   construction: fixed
+
 rulings:
-- id: boy-named-bucky-ignores-brainwashed
-  summary: A Boy Named Bucky lets the controller ignore BRAINWASHED/star effects on Winter Soldier's cards for the rest of that turn; it does not ignore the ordinary non-star portions of those cards.
-  source: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
+  - {id: boy-named-bucky-ignores-brainwashed, source_ref: winter-soldier-official-rulebook, summary: A Boy Named Bucky suppresses BRAINWASHED/star clauses for the rest of the turn without suppressing ordinary portions of the same cards.}
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
-- type: official_rulebook
-  url: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/winter-soldier
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/winter-soldier
-normalization_notes:
-- Protection applies to effects on Winter Soldier's own cards; it does not make their combat values impossible to ignore or otherwise modify by separate rules.
-- Audit correction: A Boy Named Bucky's turn-scoped suppression flag is declared explicitly and consumed by individual BRAINWASHED effects in the deck manifest.
+  - id: winter-soldier-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: winter-soldier-official-rulebook
+    authority: official
+    url: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
+    checked_at: 2026-07-27
+    supports: [brainwashed_rules, a_boy_named_bucky]
+  - id: winter-soldier-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/winter-soldier
+    checked_at: 2026-07-27
+    supports: [fighter_stats, deck_construction, card_text]
+  - id: winter-soldier-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/winter-soldier
+    checked_at: 2026-07-27
+    supports: [brainwashed_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
