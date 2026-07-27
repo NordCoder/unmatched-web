@@ -1,22 +1,20 @@
 schema_version: 1
 id: muhammad-ali
 display_name: Muhammad Ali
-set_ids:
-- bruce-lee-vs-muhammad-ali
-status: verified
+set_ids: [bruce-lee-vs-muhammad-ali]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-005, D-REQ-006]
 movement: 3
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: muhammad-ali
-    display_name: Muhammad Ali
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 16
-    starts_on_board: true
-    summonable: false
+  - {id: muhammad-ali, display_name: Muhammad Ali, role: hero, count: 1, attack_type: melee, starting_health: 16, starts_on_board: true, summonable: false}
 setup:
   hooks: []
   state_initialization:
@@ -41,7 +39,7 @@ ability:
   - id: change-stance-after-win
     trigger: after_attack
     condition: {combat_result: won}
-    operations: [{op: CHANGE_STATE, key: ali_stance, transition: toggle_float_sting}]
+    operations: [{op: CHANGE_STATE, key: ali_stance, transition: {kind: toggle_enum, values: [float, sting]}}]
   - id: sting-attack-bonus
     trigger: static
     continuous: true
@@ -51,7 +49,11 @@ ability:
     trigger: static
     continuous: true
     condition: {state: ali_stance, equals: float}
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_attack_reach_modifier, max_distance: 2}]
+    requires: [D-REQ-005]
+    modifier:
+      kind: attack_legality
+      fighter: muhammad-ali
+      reach_rule: may_attack_opposing_fighter_within_two_spaces
 resources:
 - {id: ali-stance-token, kind: token_pool, visibility: public, initial: float}
 persistent_state:
@@ -63,10 +65,32 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/muhammad-ali, checked_at: '2026-07-27', note: Visual card corpus transcribed from the current Club tracker/card images supplied during reconciliation.}
+- id: ali-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, stance_rules, float_attack_reach]
+  durability: durable
+- id: ali-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: ali-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/muhammad-ali
+  checked_at: '2026-07-27'
+  supports: [fighter_cross_check, card_visual_cross_check]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- Float attack reach remains an explicit source-defined targeting modifier pending shared engine integration.
-- Historical combat-win and combat-damage state is persisted because Louisville Lip and The Greatest inspect earlier combats in the same turn.
-- Combat damage is accumulated when it is applied, before AFTER COMBAT effects inspect the turn total; this avoids timing-order dependence with The Greatest.
+- Float reach is explicit declarative attack-legality data under D-REQ-005; no opaque source_defined handler remains.
+- Historical combat-win and combat-damage state is persisted because later cards inspect earlier combats in the same turn.
+- Combat damage is accumulated when applied, before AFTER COMBAT reads it.
