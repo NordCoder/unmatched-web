@@ -3,7 +3,7 @@ reconciliation_contract: phase-4b-v1
 fighter_id: yennenga
 status: partial
 verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
-requires: [A-REQ-011]
+requires: [A-REQ-011, A-REQ-012]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -28,11 +28,13 @@ cards:
     type: attack
     printed_value: 3
     boost: 3
+    requires: [A-REQ-012]
     effects:
       - id: surprise-volley-effect
         trigger: immediately
         controller: owner
         cancellation: cancelable
+        requires: [A-REQ-012]
         stages:
           - id: choose-archer
             when: always
@@ -46,8 +48,8 @@ cards:
               - {id: choose-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: {ref: combat.opposing_fighter}}, bind: return_space}
             costs: []
             operations:
-              - {op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}
-              - {op: CHANGE_STATE, key: combat.attacker, value: {ref: choice.returned_archer}}
+              - {op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: {kind: starting_health}}
+              - {op: REPLACE_COMBAT_PARTICIPANT, combat: {ref: combat.current}, role: attacker, fighter: {ref: choice.returned_archer}, preserve: [combat_id, defender, committed_cards, timing_window], requires: A-REQ-012}
           - {id: gain-action-if-no-return, when: {choice_unbound: returned_archer}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
   - id: shield-formation
     name: Shield Formation
@@ -74,7 +76,7 @@ cards:
               - {id: choose-defeated-archer, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: archer, state: defeated}, bind: returned_archer}
               - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: yennenga}, bind: return_space}
             costs: []
-            operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}]
+            operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: {kind: starting_health}}]
   - {id: master-of-the-hunt, name: Master of the Hunt, quantity: 2, usable_by: [yennenga], type: scheme, printed_value: null, boost: 3, effects: [{id: master-actions, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: gain-actions, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 2}]}]}]}
   - id: one-with-the-land
     name: One With the Land
