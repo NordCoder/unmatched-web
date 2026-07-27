@@ -29,8 +29,8 @@ ability:
     - id: friendly-zone-combat-bonus
       trigger: static
       continuous: true
-      condition: {friendly_fighter_other_than_oda_in_oda_zone: true}
-      operations: [{op: ADD_VALUE, target: that_friendly_fighters_played_combat_card, amount: 1}]
+      condition: {current_combat_card_user_is_other_friendly_fighter_in_oda_zone: true}
+      operations: [{op: ADD_VALUE, target: current_played_combat_card, amount: 1}]
 
 resources: []
 persistent_state:
@@ -53,3 +53,4 @@ sources:
 normalization_notes:
   - The two Honor Guards are not a one-hit token group; their health is tracked independently.
   - Momentous Shift history is keyed by runtime fighter instance; a single shared space_ref would conflate Oda and the two Honor Guards. This uses C-EXT-010.
+  - Master Strategist is evaluated against the fighter actually using the current combat card. In team play it can benefit a teammate's friendly fighter in Oda's zone, but never Oda himself.
