@@ -50,9 +50,10 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: cleanup_replacement
+  - trigger: after_combat
     condition: {combat_result: won}
-    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: deck, selector: this_card, position: top}]
+    choices: [{owner: controller, choose: card_in_discard, capture: chosen_card}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: captured.chosen_card, position: top}]
 - id: celestial-raiments
   name: Celestial Raiments
   quantity: 2
@@ -98,7 +99,7 @@ cards:
     - {op: ADD_VALUE, target: this_card, amount_from: captured.discarded_card.boost_or_0}
   - trigger: after_combat
     condition: {combat_result: won}
-    operations: [{op: RECOVER, target: own_combat_fighter, amount: 2}]
+    operations: [{op: RECOVER, target: pandora, amount: 2}]
 - id: divine-intervention
   name: Divine Intervention
   quantity: 2
@@ -138,7 +139,7 @@ cards:
   tags: []
   effects:
   - trigger: scheme
-    choices: [{owner: controller, choose: friendly_fighter, capture: fighter}, {owner: controller, choose: any_open_space, capture: destination}]
+    choices: [{owner: controller, choose: controller_owned_fighter, capture: fighter}, {owner: controller, choose: any_open_space, capture: destination}]
     operations:
     - {op: PLACE, target: captured.fighter, destination_rule: captured.destination}
     - {op: GAIN_ACTION, count: 1}
@@ -149,11 +150,11 @@ cards:
   usable_by: [kakodaemon]
   type: attack
   printed_value: 3
-  boost: 1
+  boost: 2
   tags: []
   effects:
   - trigger: after_combat
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_own_combat_fighter, amount: 1}]
 - id: malice
   name: Malice
   quantity: 2
@@ -161,7 +162,7 @@ cards:
   usable_by: [kakodaemon]
   type: versatile
   printed_value: 2
-  boost: 1
+  boost: 2
   tags: []
   effects:
   - trigger: after_combat
@@ -222,13 +223,17 @@ sources:
   note: Physical deck review used as component cross-check.
 - authority: reference
   url: https://www.unmatchedarena.com/heroes/pandora
-  checked_at: '2026-07-26'
-  note: Complete current action-card transcription.
+  checked_at: '2026-07-27'
+  note: Current action-card transcription; rechecked during evidence audit for Hindsight, Guided by the Fates, Forged by Hephaestus, Spite and Malice.
 - authority: reference
   url: https://www.geektopiagames.com/unmatched/pandora/
-  checked_at: '2026-07-26'
-  note: Independent action-card and Misery cross-check.
+  checked_at: '2026-07-27'
+  note: Independent current card-text/value cross-check.
 normalization_notes:
 - Seven Misery definitions are external definitions and do not count toward the 30-card action deck.
+- Hindsight chooses a card already in discard after a win; it does not return itself from the resolution zone.
+- Guided by the Fates always recovers Pandora, even when Kakodaemon played the card.
+- Forged by Hephaestus is limited to a fighter owned by the card controller; friendly allied fighters are not eligible.
+- Spite damages every fighter adjacent to the Kakodaemon that played it, including friendly fighters; Spite and Malice have current BOOST 2.
 - Hindsight and Celestial Raiments use physical/current spellings after cross-checking transcript variants.
 - No unmatched.cards/decks fan namespace is used.
