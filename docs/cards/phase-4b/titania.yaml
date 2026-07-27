@@ -178,7 +178,7 @@ cards:
           - {id: draw, when: {expr: {op: contains, set: {ref: selected_modes}, value: draw_two}}, operations: [{op: DRAW, count: 2}]}
           - id: choose-movement
             when: {expr: {op: contains, set: {ref: selected_modes}, value: move_two}}
-            choices: [{id: fighters, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters}, max: 2}, bind: movement_targets}]
+            choices: [{id: fighters, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters}, cardinality: 2}, bind: movement_targets}]
           - {id: move, when: {ref: movement_targets, exists: true}, operations: [{op: MOVE, target: {ref: movement_targets}, max_distance: 2}]}
   - id: what-fools-these-mortals-be
     name: What Fools These Mortals Be
@@ -255,5 +255,6 @@ validation:
   fan_content: pass
 normalization_notes:
   - auxiliary_cards are six gameplay card definitions instantiated into glamour-deck; external_definitions is intentionally empty so procedural behavior is not hidden there.
+  - Gift Of The Fair Folk binds exactly two distinct fighter targets when its movement mode is selected.
   - What Fools These Mortals Be uses inspect -> dependent choice -> move/shuffle stages.
   - Glamour of Jealousy uses pre-commit participant replacement; Glamour of Invisibility uses a source-lifetime continuous rule modifier.
