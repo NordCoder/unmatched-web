@@ -2,7 +2,13 @@ schema_version: 1
 id: krang
 display_name: Krang
 set_ids: [tmnt-shredder-krang-hero-decks]
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001, D-REQ-004, D-REQ-006, D-REQ-009, D-REQ-010, D-REQ-011]
 movement: 1
 topology:
   type: single_hero
@@ -20,25 +26,34 @@ ability:
   - id: machine-move-modifier
     trigger: static
     continuous: true
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_move_value_modifier, amount_rule: active_doomsday_machine_count}]
+    requires: [D-REQ-004]
+    modifier:
+      kind: maneuver_movement_value
+      target: krang
+      amount_rule: active_doomsday_machines
   - id: ultimate-destruction-reroll
-    trigger: after_source_defined_die_roll
+    trigger: after_ultimate_destruction_roll
     optional: true
     condition: {state: active_doomsday_machines, gte: 1}
-    operations:
-    - {op: CHANGE_STATE, key: active_doomsday_machines, transition: minus_one}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_reroll_die, die: die-of-ultimate-destruction}
+    requires: [D-REQ-009]
+    stages:
+    - id: pay-reroll
+      operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: minus_one}]
+    - id: reroll
+      random_resolution: {table: die-of-ultimate-destruction, replace_previous_result: true, bind: destruction_result}
 resources:
 - {id: doomsday-machines, kind: token_pool, visibility: public, initial: 3}
 - id: die-of-ultimate-destruction
   kind: external_definition_pool
   visibility: public
   initial: physical_die_from_tmnt_base_set
-  rules:
-  - Roll separately for each destruction-die symbol resolved.
-  - Use the numbered result for that symbol.
-  - An X counts as zero and the effect associated with that roll does not resolve.
-  - After a roll, Krang may deactivate an active Doomsday Machine to reroll; this can repeat while active machines remain.
+  requires: [D-REQ-009]
+  random_table:
+    numbered_faces: use_number_for_current_destruction_symbol
+    x_face: {numeric_value: 0, associated_effect_resolves: false}
+    independent_roll_per_symbol: true
+    reroll_cost: deactivate_one_active_doomsday_machine
+    reroll_repeatable_while_cost_available: true
 persistent_state:
 - {key: active_doomsday_machines, type: integer, reset: never}
 deck:
@@ -46,9 +61,32 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf, checked_at: '2026-07-27', note: Published set-rules mirror used to reconcile Ultimate Destruction symbol, X result, separate rolls and reroll procedure.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', note: Visual competitive Hero Deck corpus transcribed from Club card images supplied during reconciliation.}
+- id: shredder-krang-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+  checked_at: '2026-07-27'
+  supports: [official_competitive_hero_deck_release]
+  durability: durable
+- id: shredder-krang-rules-mirror
+  authority: published_rules_mirror
+  url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf
+  checked_at: '2026-07-27'
+  supports: [ultimate_destruction_die, x_result, independent_rolls, reroll_procedure]
+  durability: durable
+- id: krang-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/krang
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, competitive_card_visual_corpus]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: QUALIFIED
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- The competitive Hero Deck uses the base TMNT physical Die of Ultimate Destruction but does not import Adventures villain AI/scenario logic.
-- Dynamic destruction-die BOOST symbols require a schema extension beyond numeric/null BOOST; card manifests preserve them with boost_rule.
+- The competitive Hero Deck consumes the physical Die of Ultimate Destruction but imports no Adventures villain/scenario behavior.
+- Movement and reroll semantics are declarative under D-REQ-004/D-REQ-009; no source_defined die or movement handler remains.
+- Dynamic BOOST, face-up ranged commitment and temporary leave-space locks remain explicit D-REQ dependencies.
