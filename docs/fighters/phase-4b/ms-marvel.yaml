@@ -1,63 +1,95 @@
 schema_version: 1
 id: ms-marvel
 display_name: Ms. Marvel
-set_ids:
-- marvel-teen-spirit
-status: blocked
+set_ids: [marvel-teen-spirit]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-008, B-REQ-009]
 movement: 2
+
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: ms-marvel
-    display_name: Ms. Marvel
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 14
-    starts_on_board: true
-    summonable: false
-setup:
-  hooks: []
-  state_initialization: []
+    - {id: ms-marvel, display_name: Ms. Marvel, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
 ability:
   id: stretchy
   controller: owner
   effects:
-  - id: start-turn-move
-    trigger: turn_start
-    optional: true
-    operations:
-    - op: MOVE
-      target: ms-marvel
-      max_distance: 1
-  - id: extended-attack-range
-    trigger: static
-    continuous: true
-    normalization_blocker: Ms. Marvel attacks by graph distance up to 2 while ignoring zones. Phase 4A has standard melee/ranged-zone legality but no reusable graph-distance attack-legality modifier; encoding an undocumented structured object in SET_STATE would not satisfy the shared-model validation contract.
+    - id: start-turn-move
+      trigger: turn_start
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: decide
+          when: always
+          choices:
+            - id: use_start_move
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: boolean, meaning: move_ms_marvel_up_to_one}
+              bind: use_start_move
+          costs: []
+          operations: []
+        - id: move
+          when: {bound: use_start_move, equals: true}
+          choices: []
+          costs: []
+          operations: [{op: MOVE, target: ms-marvel, max_distance: 1}]
+    - id: extended-attack-range
+      trigger: static
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: apply-legality
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - {op: APPLY_ATTACK_LEGALITY_POLICY, requirement: B-REQ-008, attacker: ms-marvel, max_graph_distance: 2, ignore_zones: true}
+
 resources: []
 persistent_state:
-- key: turn_start_space
-  type: space_ref
-  reset: turn_start
-  note: Required by Momentous Shift; current position alone cannot reconstruct whether Ms. Marvel started the turn in a different space.
+  - {key: turn_start_space, type: space_ref, reset: turn_start, capture: ms-marvel.current_space}
+
 deck:
   manifest: ../../cards/phase-4b/ms-marvel.yaml
   construction: fixed
+
 rulings:
-- id: stretchy-range
-  summary: Ms. Marvel may attack a fighter up to 2 spaces away by space distance, ignoring zones.
-  source: https://unmatched.cards/umdb/decks/ms-marvel
+  - {id: stretchy-range, source_ref: ms-marvel-umdb, summary: Ms. Marvel may attack a fighter up to two spaces away by graph distance while ignoring zones.}
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/ms-marvel
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/ms-marvel
-normalization_notes:
-- Audit correction: Stretchy's start-of-turn move is optional and is an up-to-1 movement.
-- Audit correction: Momentous Shift's turn-start comparison is backed by explicit historical state, following FIGHTER-SCHEMA-005.
-blockers:
-- id: semantic-extension-spatial-attack-range
-  reason: A reusable attack-legality modifier is required for graph-distance attacks that ignore zones. The previous attack_range_rule object was stored in an enum-typed persistent state and had no shared semantic contract.
+  - id: ms-marvel-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: ms-marvel-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/ms-marvel
+    checked_at: 2026-07-27
+    supports: [fighter_stats, stretchy_ability, deck_construction]
+  - id: ms-marvel-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/rules/ms-marvel
+    checked_at: 2026-07-27
+    supports: [stretchy_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
