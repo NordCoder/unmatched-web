@@ -25,8 +25,12 @@ ability:
   effects:
     - id: damage-hero-leaving-zone
       trigger: left_zone
-      condition: {fighter_role: opposing_hero, zone_owner: tomoe-gozen}
-      operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_fighter, amount: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: damage
+          when: {fighter_role: opposing_hero, zone_owner: tomoe-gozen}
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_fighter, amount: 1}]
 
 resources: []
 persistent_state: []
@@ -41,21 +45,9 @@ rulings:
     source_refs: [suns-origin-rules-tomoe]
 
 sources:
-  - id: suns-origin-rules-tomoe
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Attack of Opportunity, Sun's Origin fighter rules]
-  - id: tomoe-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/tomoe-gozen
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: tomoe-crosscheck
-    authority: secondary_crosscheck
-    url: https://www.unmatchedarena.com/heroes/tomoe-gozen
-    checked_at: 2026-07-27
-    supports: [component transcription crosscheck]
+  - {id: suns-origin-rules-tomoe, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Attack of Opportunity, Sun's Origin fighter rules]}
+  - {id: tomoe-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: tomoe-crosscheck, authority: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen, checked_at: 2026-07-27, supports: [component transcription crosscheck]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
