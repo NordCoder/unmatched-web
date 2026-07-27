@@ -30,25 +30,33 @@ ability:
   effects:
     - id: choose-question-state
       trigger: turn_start
+      controller: owner
+      cancellation: source_defined
       stages:
         - id: choose-state
-          choices:
-            - {id: question-state-choice, owner: controller, visibility: public, optional: false, domain: [to-be, not-to-be], bind: question_state_choice}
+          choices: [{id: question-state-choice, owner: controller, visibility: public, optional: false, domain: [to-be, not-to-be], bind: question_state_choice}]
           operations: [{op: SET_STATE, key: question_state, value: {ref: question_state_choice}}]
         - id: not-to-be-self-damage
           when: {ref: question_state_choice, equals: not-to-be}
-          choices:
-            - {id: self-damage-target, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: controller_fighters}}, bind: self_damage_target}
+          choices: [{id: self-damage-target, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: controller_fighters}}, bind: self_damage_target}]
           operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: self_damage_target}, amount: 2}]
     - id: to-be-extra-draw
       trigger: maneuver_draw
-      condition: {question_state: to-be}
-      operations: [{op: DRAW, count: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: draw
+          when: {question_state: to-be}
+          operations: [{op: DRAW, count: 1}]
     - id: not-to-be-attack-bonus
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition: {question_state: not-to-be, attacker: hamlet}
-      operations: [{op: ADD_VALUE, target: hamlet_attack, amount: 2}]
+      stages:
+        - id: apply
+          when: {question_state: not-to-be, attacker: hamlet}
+          operations: [{op: ADD_VALUE, target: hamlet_attack, amount: 2}]
 
 resources: []
 persistent_state:
@@ -68,26 +76,10 @@ rulings:
     source_refs: [hamlet-rulings]
 
 sources:
-  - id: slings-rules-hamlet
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Hamlet fighter rules, Rosencrantz and Guildenstern topology]
-  - id: hamlet-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/hamlet
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: hamlet-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/hamlet
-    checked_at: 2026-07-27
-    supports: [current Hamlet ruling index]
-  - id: worker-c-normalization-hamlet
-    authority: project_normalization
-    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
-    checked_at: 2026-07-27
-    supports: [failed-placement dependency interpretation]
+  - {id: slings-rules-hamlet, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Hamlet fighter rules, Rosencrantz and Guildenstern topology]}
+  - {id: hamlet-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/hamlet, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: hamlet-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/hamlet, checked_at: 2026-07-27, supports: [current Hamlet ruling index]}
+  - {id: worker-c-normalization-hamlet, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [failed-placement dependency interpretation]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
