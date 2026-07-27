@@ -104,7 +104,7 @@ cards:
             choices:
               - {id: choose-willow-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: willow}, bind: destination}
             costs: []
-            operations: [{op: PLACE, target: willow, destination: {ref: choice.destination}}]
+            operations: [{op: MOVE, target: willow, destination: {ref: choice.destination}}]
           - {id: discard-top, when: {state: {key: form, equals: dark-willow}}, choices: [], costs: [], operations: [{op: DISCARD, from_zone: deck, selector: {position: top}, count: 1}]}
   - id: knowledge-of-the-craft
     name: Knowledge of the Craft
@@ -141,9 +141,9 @@ cards:
         requires: [A-REQ-006]
         stages:
           - id: choose-fighter-and-space
-            when: {selector_nonempty: {kind: fighter, owner: self, state: defeated}}
+            when: {selector_nonempty: {kind: fighter, relation: friendly, state: defeated}}
             choices:
-              - {id: choose-defeated-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, state: defeated}, bind: returned_fighter}
+              - {id: choose-defeated-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: friendly, state: defeated}, bind: returned_fighter}
               - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: willow}, bind: return_space}
             costs: []
             operations:
