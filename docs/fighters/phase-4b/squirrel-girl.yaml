@@ -2,21 +2,20 @@ schema_version: 1
 id: squirrel-girl
 display_name: Squirrel Girl
 set_ids: [marvel-teen-spirit]
-status: blocked
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-002]
 movement: 2
 
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-    - id: squirrel-girl
-      display_name: Squirrel Girl
-      role: hero
-      count: 1
-      attack_type: melee
-      starting_health: 13
-      starts_on_board: true
-      summonable: false
+    - {id: squirrel-girl, display_name: Squirrel Girl, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
     - id: squirrel
       display_name: Squirrel
       role: sidekick
@@ -25,13 +24,10 @@ topology:
       starting_health: 1
       starts_on_board: false
       summonable: true
-      occupancy_class: small
-      runtime_identity: Each Squirrel token is a distinct fighter instance even though same-type Squirrels share printed statistics.
+      occupancy_requirement: B-REQ-002
+      runtime_identity: distinct_fighter_instance_per_token
 
-setup:
-  hooks: []
-  state_initialization:
-    - {key: squirrels_in_reserve, value: 8}
+setup: {hooks: [], state_initialization: []}
 
 ability:
   id: squirrel-summoning
@@ -39,78 +35,129 @@ ability:
   effects:
     - id: start-turn-squirrel-placement
       trigger: turn_start
-      optional: true
-      condition: {legal_small_fighter_space_adjacent_to_squirrel-girl_exists: true}
-      branches:
-        - condition: {reserve_count: {squirrel: greater_than_0}}
-          operations:
-            - {op: SUMMON, pool: squirrel, destination_rule: legal_small_fighter_space_adjacent_to_squirrel-girl}
-        - condition: {reserve_count: {squirrel: 0}}
-          choices: [{owner: controller, choose: squirrel_on_battlefield}]
-          operations:
-            - {op: PLACE, target: chosen_squirrel, destination_rule: legal_small_fighter_space_adjacent_to_squirrel-girl}
-      evidence_status: uncertain
-      interpretation_note: "Project interpretation follows current reference/index/secondary FAQ behavior and does not require the destination to be empty, but the printed official Teen Spirit rulebook does say 'empty'. No exact authoritative correcting erratum has been captured, so this destination rule remains explicitly uncertain."
-      normalization_blocker: Current occupancy rules cannot define the legal shared-space destination domain for small fighters.
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: decide
+          when: always
+          choices:
+            - id: use_go_nuts
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: boolean, meaning: resolve_go_nuts}
+              bind: use_go_nuts
+          costs: []
+          operations: []
+        - id: choose-reserve-destination
+          when: {bound: use_go_nuts, equals: true, reserve_count: {squirrel: greater_than_0}}
+          choices:
+            - id: squirrel_destination
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: space, selector: adjacent_space_compatible_with_small_fighter_occupancy, requirement: B-REQ-002}
+              bind: squirrel_destination
+          costs: []
+          operations: []
+        - id: summon
+          when: {bound: squirrel_destination, exists: true}
+          choices: []
+          costs: []
+          operations: [{op: SUMMON, pool: squirrel, destination: {bound: squirrel_destination}, requirement: B-REQ-002}]
+        - id: choose-reposition
+          when: {bound: use_go_nuts, equals: true, reserve_count: {squirrel: 0}}
+          choices:
+            - id: squirrel_to_reposition
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: fighter, selector: own_squirrel_on_battlefield}
+              bind: squirrel_to_reposition
+            - id: reposition_destination
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: space, selector: adjacent_space_compatible_with_small_fighter_occupancy, requirement: B-REQ-002}
+              bind: reposition_destination
+          costs: []
+          operations: []
+        - id: reposition
+          when: {all_bound: [squirrel_to_reposition, reposition_destination]}
+          choices: []
+          costs: []
+          operations: [{op: PLACE, target: {bound: squirrel_to_reposition}, destination: {bound: reposition_destination}, requirement: B-REQ-002}]
 
 resources:
-  - id: squirrel-reserve
-    kind: token_pool
-    visibility: public
-    initial: 8
-
-persistent_state:
-  - key: squirrels_in_reserve
-    type: integer
-    reset: never
+  - {id: squirrel-reserve, kind: token_pool, visibility: public, initial: 8}
+persistent_state: []
 
 deck:
   manifest: ../../cards/phase-4b/squirrel-girl.yaml
   construction: fixed
 
 rulings:
-  - id: squirrel-girl-no-starting-squirrels
-    summary: No Squirrels are placed during setup; the eight tokens begin off-board.
-    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
-  - id: squirrel-girl-summon-is-optional
-    summary: At the start of each turn the controller may use the Squirrel placement ability; it is not mandatory.
-    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
-  - id: squirrel-girl-reposition-when-reserve-empty
-    summary: If all eight Squirrels are already on the battlefield, the start-turn ability may reposition one existing Squirrel adjacent to Squirrel Girl instead of taking a token from reserve.
-    source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
-  - id: squirrel-girl-empty-space-erratum
-    summary: "UNCERTAIN: the project follows the current interpretation that Go Nuts may place a Squirrel in an adjacent space allowed by small-fighter occupancy, including a space containing an opposing fighter or up to three Squirrels. The printed official rulebook requires an empty space, while current reference/index wording omits 'empty' and secondary FAQ explicitly calls the printed word erroneous."
-    evidence_status: uncertain
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: squirrel-girl-shared-damage-propagation
-    summary: "Official ruling: if a small fighter takes damage, all small fighters of the same type in that space take an equal amount. Since Squirrels have 1 health, any positive damage defeats every Squirrel in that space. Up to four small fighters may share a space and they are adjacent to fighters they share it with."
-    authority: official_ruling
-    source: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72
-  - id: squirrel-girl-shared-damage-attribution-normalization
-    summary: "Project normalization: every Squirrel that actually receives the propagated damage counts as a damaged fighter, and the originating effect is credited with the damage to every resulting recipient. Example: 1 damage to one of four co-located Squirrels results in four damaged fighters and 4 total damage, while provenance records which recipient was the primary target and which recipients were added by the small-fighter propagation rule."
-    authority: project_interpretation
-    evidence_status: resolved_by_project_normalization
-    source: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72
+  - {id: squirrel-small-fighter-damage, source_ref: squirrel-official-damage-ruling, summary: If one small fighter takes damage, every small fighter of the same type in that space takes the same amount; Squirrels have one health.}
+  - {id: squirrel-shared-occupancy, source_ref: squirrel-official-rulebook, summary: Small fighters may share spaces under the published capacity and coexistence rules.}
+
+interpretations:
+  - id: squirrel-go-nuts-empty-correction
+    affects: [start-turn-squirrel-placement]
+    status: project_normalization
+    confidence: medium
+    behavior: Go Nuts may choose an adjacent destination permitted by small-fighter occupancy even when that space is compatibly occupied; the printed word empty is not enforced.
+    source_refs: [squirrel-official-rulebook, squirrel-rulings-index, squirrel-secondary-faq, squirrel-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
+  - id: squirrel-propagated-damage-counting
+    affects: [small_fighter_damage_events]
+    status: project_normalization
+    confidence: high
+    behavior: Every Squirrel that receives propagated damage counts as a damaged fighter and contributes its received amount to total damage caused by the originating effect; provenance distinguishes the primary target from propagated recipients.
+    source_refs: [squirrel-official-damage-ruling, squirrel-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
 
 sources:
-  - type: official_product
+  - id: squirrel-official-product
+    authority: official
     url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
-  - type: official_rulebook
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: squirrel-official-rulebook
+    authority: official
     url: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
-  - type: published_database
+    checked_at: 2026-07-27
+    supports: [small_fighter_rules, printed_go_nuts_empty_wording]
+  - id: squirrel-umdb
+    authority: published_umdb
     url: https://unmatched.cards/umdb/decks/squirrel-girl
-  - type: current_rulings_index
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, deck_construction]
+  - id: squirrel-official-damage-ruling
+    authority: official_ruling
+    url: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72
+    checked_at: 2026-07-27
+    supports: [damage_propagation, four_small_fighter_capacity, shared_space_adjacency]
+  - id: squirrel-rulings-index
+    authority: secondary_cross_check
     url: https://www.the-unmatched.club/heroes/squirrel-girl
-  - type: current_secondary_faq
+    checked_at: 2026-07-27
+    supports: [current_go_nuts_wording_cross_check]
+  - id: squirrel-secondary-faq
+    authority: secondary_cross_check
     url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [go_nuts_empty_correction_claim]
+  - id: squirrel-project-normalization
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-b-licensed/docs/phase-4b/worker-b-report.md
+    checked_at: 2026-07-27
+    supports: [go_nuts_behavior, propagated_damage_counting]
 
-normalization_notes:
-  - Official Teen Spirit rules define Squirrels as small fighters: opposing and small fighters may move through each other, a small fighter may share a space with another fighter, and up to four small fighters may occupy one space in addition to an ordinary fighter.
-  - A small fighter sharing a space with another fighter is adjacent to that fighter.
-  - Official ruling evidence confirms that when a small fighter takes damage, every small fighter of the same type in that space takes an equal amount; this propagation rule is no longer an evidence gap.
-  - Project damage attribution counts every Squirrel that receives propagated damage as a damaged fighter and attributes those damage applications to the originating effect while retaining primary-target versus propagated-recipient provenance.
-  - Removal of the printed Go Nuts 'empty' restriction remains explicitly UNCERTAIN: current project behavior follows modern reference/index/secondary-FAQ wording, but an exact authoritative correcting erratum has not been captured.
-
-blockers:
-  - id: semantic-extension-small-fighter-occupancy
-    reason: Small-fighter shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, same-type co-located damage propagation/provenance and a summon/place legality domain that can target an occupied space require reusable runtime semantics. The Go Nuts non-empty destination interpretation is additionally marked evidence-uncertain.
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
