@@ -47,12 +47,13 @@ cards:
         cancellation: cancelable
         requires: [A-REQ-003]
         stages:
-          - id: choose-destination
+          - id: choose-fog-and-destination
             when: {position: {fighter: invisible-man, on_component_type: fog}}
             choices:
-              - {id: choose-fog-destination, owner: controller, visibility: public, optional: false, domain: {kind: space, legal_for_component: fog, excludes: [current_fog_space]}, bind: destination}
+              - {id: choose-current-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self, same_space_as: invisible-man}, bind: chosen_fog}
+              - {id: choose-fog-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, destination_rule: any_other_legal_space}, bind: destination}
             costs: []
-            operations: [{op: MOVE_COMPONENT, target: {selector: {kind: component, type: fog, owner: self, same_space_as: invisible-man}}, destination: {ref: choice.destination}, requires: A-REQ-003}]
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, requires: A-REQ-003}]
   - {id: emerge-from-mist, name: Emerge from Mist, quantity: 2, usable_by: [invisible-man], type: attack, printed_value: 3, boost: 2, effects: [{id: emerge-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {fighter: invisible-man, started_turn_on_component_type: fog}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
   - id: coded-notes
     name: Coded Notes
@@ -153,7 +154,7 @@ cards:
             when: always
             choices:
               - {id: choose-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
-              - {id: choose-destination, owner: controller, visibility: public, optional: false, domain: {kind: space, legal_for_component: fog, excludes: [current_component_space]}, bind: destination}
+              - {id: choose-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, destination_rule: any_other_legal_space}, bind: destination}
             costs: []
             operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, requires: A-REQ-003}]
           - {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
@@ -219,11 +220,17 @@ cards:
               - op: DEAL_EFFECT_DAMAGE
                 target: {ref: choice.target_fighter}
                 amount: {expr: if, condition: {position: {fighter: invisible-man, on_component_type: fog}}, then: 3, else: 1}
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
           - id: opponent-moves-fog
             when: always
             choices:
-              - {id: choose-fog, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
-              - {id: choose-destination, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, max_distance: 2}, bind: destination}
+              - {id: choose-fog, owner: {ref: choice.chosen_opponent}, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-destination, owner: {ref: choice.chosen_opponent}, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, max_distance: 2}, bind: destination}
             costs: []
             operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, max_distance: 2, requires: A-REQ-003}]
   - id: covert-preparation
