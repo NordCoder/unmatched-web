@@ -29,9 +29,13 @@ ability:
   effects:
     - id: attack-before-maneuver-bonus
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition: {attacker: golden-bat, maneuver_actions_taken_this_turn: 0}
-      operations: [{op: ADD_VALUE, target: golden_bat_attack, amount: 2}]
+      stages:
+        - id: apply
+          when: {attacker: golden-bat, maneuver_actions_taken_this_turn: 0}
+          operations: [{op: ADD_VALUE, target: golden_bat_attack, amount: 2}]
 
 resources: []
 persistent_state:
@@ -44,21 +48,9 @@ deck:
 
 rulings: []
 sources:
-  - id: tta-set-rules-golden-bat
-    authority: official_set_rules
-    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
-    checked_at: 2026-07-27
-    supports: [competitive hero context]
-  - id: golden-bat-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/golden-bat
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: golden-bat-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/golden-bat
-    checked_at: 2026-07-27
-    supports: [current hero ruling index]
+  - {id: tta-set-rules-golden-bat, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf, checked_at: 2026-07-27, supports: [competitive hero context]}
+  - {id: golden-bat-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/golden-bat, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: golden-bat-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/golden-bat, checked_at: 2026-07-27, supports: [current hero ruling index]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
