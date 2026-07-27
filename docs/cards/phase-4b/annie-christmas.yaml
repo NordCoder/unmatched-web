@@ -1,28 +1,111 @@
 schema_version: 1
 fighter_id: annie-christmas
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-012, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: lagniappe, name: Lagniappe, quantity: 3, usable_by: [annie-christmas], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{trigger: immediately, choices: [{owner: controller, choose: self_damage_amount, options: [0, 1, 2]}], operations: [{op: DEAL_EFFECT_DAMAGE, target: annie-christmas, amount: chosen_self_damage}, {op: DRAW, count: chosen_self_damage}]}]}
-  - {id: bottom-dealing, name: Bottom Dealing, quantity: 2, usable_by: [charlie], type: attack, printed_value: 3, boost: 2, tags: [], effects: [{trigger: during_combat, operations: [{op: REVEAL, source: own_deck_bottom, selector: 1, capture: revealed}, {op: ADD_VALUE, target: this_card, amount: captured.revealed.boost_or_0}], choices: [{owner: controller, choose: destination, options: [deck_top, deck_bottom]}], followup: [{op: MOVE_CARD, from_zone: revealed, to_zone: chosen_destination, selector: captured.revealed}]}]}
-  - {id: better-together, name: Better Together, quantity: 4, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {own_combat_fighter_adjacent_to_friendly: true}, operations: [{op: RECOVER, target: own_combat_fighter_and_adjacent_friendly_fighters, amount: 1}]}]}
-  - {id: keep-your-hands-to-yourself, name: Keep Your Hands to Yourself, quantity: 3, usable_by: [annie-christmas], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_combat_fighter, max_distance: 2}]}]}
-  - {id: long-shot, name: Long Shot, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{trigger: during_combat, condition: {opposing_fighter_adjacent: false}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: quite-a-pair, name: Quite a Pair, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: immediately, optional: true, choices: [{owner: controller, choose: two_same_name_cards_in_hand, visibility: revealed_if_chosen}], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card, condition: {valid_pair_revealed: true}}]}]}
-  - {id: the-turn-and-the-river, name: The Turn and the River, quantity: 2, usable_by: [charlie], type: versatile, printed_value: 2, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
-  - {id: striking-beauty, name: Striking Beauty, quantity: 2, usable_by: [annie-christmas], type: versatile, printed_value: 1, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_rule: 2_if_won_else_1}]}]}
-  - {id: slick-talker, name: Slick Talker, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, tags: [], effects: [{trigger: immediately, optional: true, operations: [{op: SWAP, a: annie-christmas, b: charlie, if_both_on_board: true}, {op: SET_STATE, key: combat_defender, value: other_fighter, condition: {swap_completed: true}}]}]}
-  - {id: mississippi-queen, name: Mississippi Queen, quantity: 3, usable_by: [annie-christmas], type: defense, printed_value: 2, boost: 3, tags: [health_floor], effects: [{trigger: immediately, continuous_until: turn_end, operations: [{op: TRIGGER_COMPOSITE, kind: damage_health_floor, target: annie-christmas, minimum_health: 1, preserves_damage_dealt: true, source_lifetime: turn_end}]}]}
-  - {id: a-few-more-pearls, name: A Few More Pearls, quantity: 3, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_annie, amount: 2}]}]}
-  - {id: captains-orders, name: "Captain's Orders", quantity: 2, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: PLACE, target: annie-christmas, destination: any_space_in_annie_zone}, {op: PLACE, target: another_friendly_fighter, destination: any_space_in_annie_zone}, {op: GAIN_ACTION, count: 1}]}]}
+  - id: lagniappe
+    name: Lagniappe
+    quantity: 3
+    usable_by: [annie-christmas]
+    type: attack
+    printed_value: 5
+    boost: 2
+    tags: []
+    effects:
+      - id: lagniappe-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-damage
+            choices:
+              - {id: self-damage, owner: controller, visibility: private, optional: false, domain: [0, 1, 2], bind: self_damage}
+          - id: damage-and-draw
+            operations:
+              - {op: DEAL_EFFECT_DAMAGE, target: annie-christmas, amount: {ref: self_damage}}
+              - {op: DRAW, count: {ref: self_damage}}
+  - id: bottom-dealing
+    name: Bottom Dealing
+    quantity: 2
+    usable_by: [charlie]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: bottom-dealing-during-combat
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: reveal-bottom
+            operations:
+              - {op: REVEAL, source: own_deck_bottom, selector: {count: 1}, bind_result: revealed_bottom}
+              - {op: ADD_VALUE, target: this_card, amount: {ref: revealed_bottom.boost_or_0}}
+          - id: choose-destination
+            choices:
+              - {id: destination, owner: controller, visibility: private, optional: false, domain: [deck_top, deck_bottom], bind: destination}
+          - id: replace-card
+            operations:
+              - {op: MOVE_CARD, from_zone: revealed, to_zone: {ref: destination}, selector: {ref: revealed_bottom}}
+  - {id: better-together, name: Better Together, quantity: 4, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{id: better-together-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {own_combat_fighter_adjacent_to_friendly: true}, operations: [{op: RECOVER, target: own_combat_fighter_and_adjacent_friendly_fighters, amount: 1}]}]}]}
+  - {id: keep-your-hands-to-yourself, name: Keep Your Hands to Yourself, quantity: 3, usable_by: [annie-christmas], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: keep-hands-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: each_combat_fighter, max_distance: 2}]}]}]}
+  - {id: long-shot, name: Long Shot, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: long-shot-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {opposing_fighter_adjacent: false}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - id: quite-a-pair
+    name: Quite a Pair
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: quite-a-pair-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-pair
+            choices:
+              - id: pair
+                owner: controller
+                visibility: revealed_if_chosen
+                optional: true
+                domain: {selector: {cards: controller_hand, constraint: two_same_name}}
+                bind: revealed_pair
+          - id: cancel
+            when: {ref: revealed_pair, exists: true}
+            operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+  - {id: the-turn-and-the-river, name: The Turn and the River, quantity: 2, usable_by: [charlie], type: versatile, printed_value: 2, boost: 3, tags: [], effects: [{id: turn-river-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: 2}]}]}]}
+  - {id: striking-beauty, name: Striking Beauty, quantity: 2, usable_by: [annie-christmas], type: versatile, printed_value: 1, boost: 3, tags: [], effects: [{id: striking-beauty-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: {expr: {op: if, condition: {combat_result: won}, then: 2, else: 1}}}]}]}]}
+  - {id: slick-talker, name: Slick Talker, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, tags: [], effects: [{id: slick-talker-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: optional-swap, choices: [{id: swap-choice, owner: controller, visibility: public, optional: true, domain: [swap, decline], bind: swap_choice}], operations: [{op: SWAP, a: annie-christmas, b: charlie, when: {ref: swap_choice, equals: swap}, bind_result: swap_result}]}, {id: replace-defender, when: {ref: swap_result.succeeded, equals: true}, operations: [{op: SET_STATE, key: combat_defender, value: other_fighter}]}]}]}
+  - {id: mississippi-queen, name: Mississippi Queen, quantity: 3, usable_by: [annie-christmas], type: defense, printed_value: 2, boost: 3, tags: [health_floor], effects: [{id: mississippi-queen-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: apply-floor, operations: [{op: TRIGGER_COMPOSITE, kind: damage_health_floor, target: annie-christmas, minimum_health: 1, preserves_damage_dealt: true, source_lifetime: turn_end}]}]}]}
+  - {id: a-few-more-pearls, name: A Few More Pearls, quantity: 3, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: pearls-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_annie, amount: 2}]}]}]}
+  - {id: captains-orders, name: "Captain's Orders", quantity: 2, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: captains-orders-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: PLACE, target: annie-christmas, destination: any_space_in_annie_zone}, {op: PLACE, target: another_friendly_fighter, destination: any_space_in_annie_zone}, {op: GAIN_ACTION, count: 1}]}]}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
+
 sources:
-  - https://unmatched.cards/umdb/decks/annie-christmas
-  - https://www.the-unmatched.club/heroes/annie-christmas
-  - https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01
+  - {id: annie-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/annie-christmas, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+  - {id: annie-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/annie-christmas, checked_at: 2026-07-27, supports: [current card rulings]}
+  - {id: annie-mississippi-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01, checked_at: 2026-07-27, supports: [Mississippi Queen damage semantics]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
 normalization_notes:
-  - Lagniappe self-damage resolves before the draws; Annie's static ability observes health when combat values are evaluated.
-  - Mississippi Queen is not damage prevention. Damage is still dealt for combat/result/trigger semantics; only the resulting health reduction is clamped so Annie cannot go below 1 this turn. This uses C-EXT-012.
+  - Bottom Dealing is staged because the destination choice occurs after the revealed card is known.
+  - Mississippi Queen uses C-REQ-012; damage remains dealt while resulting health is floored at 1.
