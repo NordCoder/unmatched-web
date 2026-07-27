@@ -25,23 +25,29 @@ ability:
   effects:
     - id: overflow-start-turn
       trigger: turn_start
-      condition: {resource: charged-coils, equals: 2}
-      operations:
-        - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_tesla, amount: 1}
-        - {op: MOVE, target: each_surviving_opposing_fighter_adjacent_to_tesla_after_damage, max_distance: 1, optional_per_target: true}
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: damage
+          when: {resource: charged-coils, equals: 2}
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_tesla, amount: 1}]
+        - id: optional-movement
+          when: {resource: charged-coils, equals: 2}
+          operations: [{op: MOVE, target: each_surviving_opposing_fighter_adjacent_to_tesla_after_damage, max_distance: 1, optional_per_target: true}]
     - id: recharge-end-turn
       trigger: turn_end
-      optional: true
-      condition: {resource: charged-coils, lt: 2}
-      operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount: 1, cap: 2}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: optional-charge
+          when: {resource: charged-coils, lt: 2}
+          choices: [{id: charge, owner: controller, visibility: public, optional: true, domain: [charge_one], bind: charge_choice}]
+        - id: charge
+          when: {ref: charge_choice, exists: true}
+          operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount: 1, cap: 2}]
 
 resources:
-  - id: charged-coils
-    kind: counter
-    visibility: public
-    initial: 1
-    minimum: 0
-    maximum: 2
+  - {id: charged-coils, kind: counter, visibility: public, initial: 1, minimum: 0, maximum: 2}
 persistent_state: []
 
 deck:
@@ -66,31 +72,11 @@ interpretations:
     replacement_condition: Replace this normalization if an exact publisher/designer ruling explicitly defines a different one-charged-plus-declare-two resource transition.
 
 sources:
-  - id: tta-set-rules-tesla
-    authority: official_set_rules
-    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
-    checked_at: 2026-07-27
-    supports: [coil token states, charge and discharge semantics, competitive hero setup]
-  - id: tesla-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/nikola-tesla
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: tesla-underfunded-ruling
-    authority: official_ruling
-    url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
-    checked_at: 2026-07-27
-    supports: [legal underfunded two-coil declaration, no tier downgrade, intentional fizzle]
-  - id: tesla-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/nikola-tesla
-    checked_at: 2026-07-27
-    supports: [Electrical Overflow rulings]
-  - id: worker-c-normalization
-    authority: project_normalization
-    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
-    checked_at: 2026-07-27
-    supports: [selected partial-discharge normalization and evidence qualifier]
+  - {id: tta-set-rules-tesla, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf, checked_at: 2026-07-27, supports: [coil token states, charge and discharge semantics, competitive hero setup]}
+  - {id: tesla-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: tesla-underfunded-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e, checked_at: 2026-07-27, supports: [legal underfunded two-coil declaration, no tier downgrade, intentional fizzle]}
+  - {id: tesla-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/nikola-tesla, checked_at: 2026-07-27, supports: [Electrical Overflow rulings]}
+  - {id: worker-c-normalization, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [selected partial-discharge normalization and evidence qualifier]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
@@ -104,4 +90,4 @@ validation:
 normalization_notes:
   - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
   - charged-coils is the single authoritative runtime resource.
-  - End-turn charging is optional, and each legal fighter movement from Electrical Overflow is independently optional.
+  - End-turn charging and each legal Electrical Overflow movement are optional.
