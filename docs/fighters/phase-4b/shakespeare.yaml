@@ -8,7 +8,7 @@ verification:
   semantics: verified
   integration: requires_shared_extension
   policy: not_applicable
-requires: [C-REQ-001]
+requires: [C-REQ-001, C-REQ-013]
 movement: 2
 
 topology:
@@ -26,10 +26,18 @@ ability:
   effects:
     - id: add-played-combat-card-to-line
       trigger: combat_cleanup
-      operations: [{op: TRIGGER_COMPOSITE, kind: ordered_card_sequence_append, zone: line, card: own_played_combat_card}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: append
+          operations: [{op: TRIGGER_COMPOSITE, kind: ordered_card_sequence_append, zone: line, card: own_played_combat_card}]
     - id: evaluate-line-syllables
       trigger: after_card_enters_line
-      operations: [{op: TRIGGER_COMPOSITE, kind: thresholded_ordered_sequence_completion, zone: line, metric: syllables, exact_threshold: 10}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: evaluate
+          operations: [{op: TRIGGER_COMPOSITE, kind: thresholded_ordered_sequence_completion, zone: line, metric: syllables, exact_threshold: 10}]
 
 resources:
   - id: line
@@ -53,21 +61,9 @@ rulings:
     source_refs: [slings-rules-shakespeare]
 
 sources:
-  - id: slings-rules-shakespeare
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Line lifecycle, syllable completion, Shakespeare fighter rules]
-  - id: shakespeare-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/william-shakespeare
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: shakespeare-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/shakespeare
-    checked_at: 2026-07-27
-    supports: [current Shakespeare ruling index]
+  - {id: slings-rules-shakespeare, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Line lifecycle, syllable completion, Shakespeare fighter rules]}
+  - {id: shakespeare-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/william-shakespeare, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: shakespeare-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/shakespeare, checked_at: 2026-07-27, supports: [current Shakespeare ruling index]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
