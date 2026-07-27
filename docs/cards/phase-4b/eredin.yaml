@@ -1,13 +1,34 @@
 schema_version: 1
 fighter_id: eredin
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-011, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
-  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1}
+  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1, insertion_policy: replace_current}
 
 cards:
-  - {id: backhand, name: Backhand, quantity: 3, usable_by: [eredin], type: attack, printed_value: 4, boost: 3, tags: [], effects: [{trigger: after_combat, branches: [{condition: {enraged: false}, operations: [{op: MOVE_CARD, from_zone: opponent.hand, to_zone: opponent.deck_top, selector: random_card}]}, {condition: {enraged: true}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}]}
+  - id: backhand
+    name: Backhand
+    quantity: 3
+    usable_by: [eredin]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects:
+      - id: backhand-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: normal, when: {ref: persistent.enraged, equals: false}, operations: [{op: MOVE_CARD, from_zone: opponent.hand, to_zone: opponent.deck_top, selector: random_card}]}
+          - {id: enraged, when: {ref: persistent.enraged, equals: true}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}
   - id: foul-purpose
     name: Foul Purpose
     quantity: 2
@@ -17,15 +38,37 @@ cards:
     boost: 2
     tags: [declaration_override]
     play_rules:
-      condition: {enraged: true}
-      optional_override: {visibility: face_up_when_committed, target: fighter_in_any_space}
+      condition: {ref: persistent.enraged, equals: true}
+      optional_override:
+        visibility: face_up_when_committed
+        target: {selector: {fighters: opposing_fighters, range: any_space}}
     effects:
-      - trigger: after_combat
-        optional: true
-        choices: [{owner: controller, choose: living_red_rider, capture: rider_to_defeat}]
-        costs: [{op: DEFEAT, target: captured.rider_to_defeat}]
-        operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]
-  - {id: brutal-strike, name: Brutal Strike, quantity: 3, usable_by: [eredin], type: attack, printed_value: 2, boost: 3, tags: [], cancellation: protected, effects: [{trigger: during_combat, condition: {opposing_card_has_immediately_effect: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+      - id: foul-purpose-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-rider
+            choices: [{id: rider, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: {definition_id: red-rider, controller: self, status: on_board}}}, bind: rider_to_defeat}]
+          - id: pay-and-return
+            when: {ref: rider_to_defeat, exists: true}
+            costs: [{op: DEFEAT, target: {ref: rider_to_defeat}}]
+            operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]
+  - id: brutal-strike
+    name: Brutal Strike
+    quantity: 3
+    usable_by: [eredin]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: brutal-during
+        trigger: during_combat
+        controller: owner
+        cancellation: protected
+        stages:
+          - {id: resolve, when: {opposing_card_has_immediately_effect: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}
   - id: unyielding-hordes
     name: Unyielding Hordes
     quantity: 3
@@ -33,16 +76,70 @@ cards:
     type: attack
     printed_value: 1
     boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: hordes-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-rider
+            choices: [{id: rider, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: {definition_id: red-rider, controller: self, status: defeated}}}, bind: rider_to_return}]
+          - id: choose-space
+            when: {ref: rider_to_return, exists: true}
+            choices: [{id: space, owner: controller, visibility: public, optional: false, domain: {selector: {spaces: any}}, bind: return_space}]
+          - id: return
+            when: {ref: rider_to_return, exists: true}
+            operations: [{op: RETURN_FIGHTER, target: {ref: rider_to_return}, destination: {ref: return_space}, health_rule: source_defined_full_token_health}]
+      - id: hordes-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: add
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {fighters: friendly_fighters, adjacent_to: opposing_combat_fighter, exclude: own_combat_fighter}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
     tags: []
     effects:
-      - trigger: immediately
-        choices:
-          - {owner: controller, choose: defeated_red_rider, capture: rider_to_return}
-          - {owner: controller, choose: battlefield_space, capture: return_space}
-        operations: [{op: RETURN_FIGHTER, target: captured.rider_to_return, destination: captured.return_space, health_rule: source_defined_full_token_health}]
-      - {trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_adjacent_to_opposing_combat_fighter}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{owner: controller, choose: combat_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: wild-hunt, name: Wild Hunt, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_controller_fighter, amount_rule: 2_if_enraged_else_1}]}]}
+      - id: skirmish-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose
+            when: {combat_result: won}
+            choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: combat_fighters}}, bind: selected_fighter}]
+          - {id: move, when: {ref: selected_fighter, exists: true}, operations: [{op: MOVE, target: {ref: selected_fighter}, max_distance: 2}]}
+  - id: wild-hunt
+    name: Wild Hunt
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: wild-hunt-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: damage
+            operations:
+              - op: DEAL_EFFECT_DAMAGE
+                target: {selector: {fighters: opposing_fighters, adjacent_to_at_least_one: {fighters: controller_fighters}}}
+                amount: {expr: {op: if, condition: {ref: persistent.enraged}, then: 2, else: 1}}
   - id: icy-guile
     name: Icy Guile
     quantity: 3
@@ -52,13 +149,29 @@ cards:
     boost: 1
     tags: [evidence_qualified_self_defeat]
     effects:
-      - {trigger: immediately, condition: {enraged: true}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
-      - trigger: during_combat
-        optional: true
-        choices:
-          - {owner: controller, choose: living_red_rider, includes_current_combat_fighter: true, capture: rider_to_defeat}
-        costs: [{op: DEFEAT, target: captured.rider_to_defeat}]
-        operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+      - id: icy-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: {ref: persistent.enraged, equals: true}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+      - id: icy-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-rider
+            choices:
+              - id: rider
+                owner: controller
+                visibility: public
+                optional: true
+                domain: {selector: {fighters: {definition_id: red-rider, controller: self, status: on_board}}, includes_current_combat_fighter: true}
+                bind: rider_to_defeat
+          - id: pay-and-ignore
+            when: {ref: rider_to_defeat, exists: true}
+            costs: [{op: DEFEAT, target: {ref: rider_to_defeat}}]
+            operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
   - id: implacable
     name: Implacable
     quantity: 3
@@ -68,8 +181,18 @@ cards:
     boost: 3
     tags: [dynamic_combat_type]
     play_rules:
-      additional_type_when: {enraged: attack}
-    effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}]
+      additional_type:
+        when: {ref: persistent.enraged, equals: true}
+        value: attack
+    effects:
+      - id: implacable-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-boost
+            choices: [{id: boost-card, owner: controller, visibility: private, optional: true, domain: {selector: {zone: hand, owner: self}}, bind: boost_card}]
+          - {id: boost, when: {ref: boost_card, exists: true}, operations: [{op: BOOST, target: this_card, source: {ref: boost_card}, count: 1}]}
   - id: portal-defense
     name: Portal Defense
     quantity: 2
@@ -77,28 +200,98 @@ cards:
     type: defense
     printed_value: 0
     boost: 1
-    tags: [defender_replacement]
+    tags: [defender_replacement, staged_resolution]
     effects:
-      - trigger: immediately
-        choices: [{owner: controller, choose: adjacent_friendly_fighter, capture: replacement_defender}]
-        operations:
-          - {op: SWAP, a: eredin, b: captured.replacement_defender}
-          - {op: SET_STATE, key: combat_defender, value: captured.replacement_defender, condition: {swap_completed: true}}
-      - {trigger: after_combat, condition: {enraged: true}, operations: [{op: DRAW, count: 2}]}
-  - {id: might-of-aen-elle, name: Might Of The Aen Elle, quantity: 2, usable_by: [eredin], type: scheme, printed_value: null, boost: 2, tags: [ongoing_scheme], effects: [{trigger: scheme, operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: static, continuous: true, while_in_zone: ongoing-schemes, operations: [{op: PREVENT_DAMAGE, target: eredin, scope: all_except_combat_and_exhaustion}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {controller_attacked_this_turn: false}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
-  - {id: close-for-the-kill, name: Close For The Kill, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 4, tags: [], effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}, {op: MOVE, target: each_controller_fighter, max_distance: 3, may_move_through_opposing: true}]}]}
+      - id: portal-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-replacement
+            choices: [{id: replacement, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: friendly_fighters, adjacent_to: eredin}}, bind: replacement_defender}]
+          - id: swap
+            operations: [{op: SWAP, a: eredin, b: {ref: replacement_defender}, bind_result: defender_swap}]
+          - id: replace-defender
+            when: {ref: defender_swap.succeeded, equals: true}
+            operations: [{op: SET_STATE, key: combat_defender, value: {ref: replacement_defender}}]
+      - id: portal-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: {ref: persistent.enraged, equals: true}, operations: [{op: DRAW, count: 2}]}
+  - id: might-of-aen-elle
+    name: Might Of The Aen Elle
+    quantity: 2
+    usable_by: [eredin]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [ongoing_scheme]
+    effects:
+      - id: might-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw-action, operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}]}
+          - {id: enter-ongoing, operations: [{op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}
+      - id: might-static
+        trigger: static
+        controller: owner
+        cancellation: source_defined
+        while_in_zone: ongoing-schemes
+        continuous: true
+        stages: [{id: protect, operations: [{op: PREVENT_DAMAGE, target: eredin, scope: all_except_combat_and_exhaustion}]}]
+      - id: might-turn-end
+        trigger: turn_end
+        controller: owner
+        cancellation: source_defined
+        while_in_zone: ongoing-schemes
+        stages:
+          - {id: discard, when: {controller_attacked_this_turn: false}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}
+  - id: close-for-the-kill
+    name: Close For The Kill
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 4
+    tags: []
+    effects:
+      - id: close-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            operations: [{op: DRAW, count: 2}, {op: MOVE, target: {selector: {fighters: controller_fighters}}, max_distance: 3, may_move_through_opposing: true}]
+
+interpretations:
+  - id: eredin-icy-guile-self-defeat
+    affects: [eredin, icy-guile, red-rider]
+    status: derived
+    confidence: high
+    behavior: The currently attacking Red Rider is a legal target for Icy Guile's cost because the published text says a Red Rider and supplies no another exclusion. If it defeats itself, IGNORE_VALUE resolves and the already-started combat continues under ordinary combat rules unless the defeat ended the game.
+    source_refs: [eredin-deck-index, core-combat-continuation, worker-c-normalization-eredin]
+    replacement_condition: Replace if an exact publisher/designer ruling explicitly excludes the current combat fighter or terminates this combat after the self-defeat.
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
-  - https://unmatched.cards/umdb/decks/eredin
-  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
-  - https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
-  - https://www.the-unmatched.club/heroes/eredin
+  - {id: witcher-rf-rules-eredin, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Eredin and ongoing-scheme rules]}
+  - {id: eredin-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/eredin, checked_at: 2026-07-27, supports: [published card metadata and Icy Guile wording]}
+  - {id: core-combat-continuation, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat-card resolution after fighter defeat]}
+  - {id: eredin-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/eredin, checked_at: 2026-07-27, supports: [current Eredin rulings]}
+  - {id: worker-c-normalization-eredin, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [selected Icy Guile normalization]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - Foul Purpose and Implacable modify card legality/type at declaration time, before ordinary cancellation windows; they use the generic combat-play-mode proposal.
-  - Foul Purpose and Icy Guile explicitly choose the living Red Rider that is defeated as their cost; runtime fighter identity cannot be inferred after defeat.
-  - "Recommended integration behavior (high confidence): Icy Guile's 'a Red Rider' includes the currently attacking Red Rider because the published effect supplies no 'another' exclusion. If that Rider defeats itself during the already-started combat, the card effect and combat continue under the ordinary core rule that a played combat card still resolves when its fighter is defeated, unless the defeat ends the game. No exact-case publisher ruling naming Icy Guile self-defeat was found."
-  - Wild Hunt and Close For The Kill say "your fighters" and therefore use only fighters controlled by the card controller; teammate fighters do not count merely because they are friendly.
-  - Portal Defense may replace Eredin with a teammate's adjacent friendly fighter in team play; C-EXT-003 must keep replacement-defender controller separate from defense-card controller.
-  - Eredin's +1 is a derived static bonus while every Rider is defeated; returning a Rider removes it immediately.
+  - Foul Purpose and Implacable use declaration-time combat legality/type overrides under C-REQ-003.
+  - Portal Defense preserves replacement-fighter controller separately from the committed defense-card owner/controller.
+  - Enraged is derived and source-lifetime; returning a Rider removes its modifiers immediately.
