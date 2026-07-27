@@ -1,59 +1,87 @@
 schema_version: 1
 id: bullseye
 display_name: Bullseye
-set_ids:
-- marvel-hells-kitchen
-status: blocked
+set_ids: [marvel-hells-kitchen]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-008]
 movement: 2
+
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: bullseye
-    display_name: Bullseye
-    role: hero
-    count: 1
-    attack_type: ranged
-    starting_health: 14
-    starts_on_board: true
-    summonable: false
+    - {id: bullseye, display_name: Bullseye, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
+
 setup:
   hooks: []
   state_initialization:
-  - key: won_combat_earlier_this_turn
-    value: false
+    - {key: won_combat_earlier_this_turn, value: false}
+
 ability:
   id: worlds-greatest-assassin
   controller: owner
   effects:
-  - id: extended-attack-range
-    trigger: static
-    continuous: true
-    normalization_blocker: Bullseye may attack by graph distance up to 5 while ignoring zones. Phase 4A has no reusable graph-distance attack-legality modifier; the previous structured object stored in enum-typed state had no shared contract.
+    - id: extended-attack-range
+      trigger: static
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: apply-legality
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: APPLY_ATTACK_LEGALITY_POLICY
+              requirement: B-REQ-008
+              attacker: bullseye
+              max_graph_distance: 5
+              ignore_zones: true
+
 resources: []
 persistent_state:
-- key: turn_start_space
-  type: space_ref
-  reset: turn_start
-  note: Required by card conditions that compare Bullseye's current space to the space where he started the turn.
-- key: won_combat_earlier_this_turn
-  type: boolean
-  reset: turn_start
-  note: Historical combat-engine snapshot. It becomes true only after a combat has fully resolved and Bullseye is its final winner, including a winner changed by Arrogant But Effective; therefore the current combat cannot satisfy its own "already won" predicate.
+  - key: turn_start_space
+    type: space_ref
+    reset: turn_start
+    capture: bullseye.current_space
+  - key: won_combat_earlier_this_turn
+    type: boolean
+    reset: turn_start
+    update_rule: Set true only after a combat fully resolves with Bullseye as final winner; the current combat cannot satisfy its own prior-win predicate.
+
 deck:
   manifest: ../../cards/phase-4b/bullseye.yaml
   construction: fixed
+
 rulings: []
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/bullseye
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/bullseye
-normalization_notes:
-- Bullseye's published special ability is only the extended attack range; prior-combat history is engine state required by his deck, not an additional hero ability.
-- Audit correction: turn-start position and prior-win history are explicit persistent state instead of being reconstructed from current board/combat state.
-blockers:
-- id: semantic-extension-spatial-attack-range
-  reason: A reusable attack-legality modifier is required for graph-distance attacks that ignore zones. The previous attack_range_rule object was stored in an enum-typed persistent state and was not defined by the shared Phase 4A semantic contract.
+  - id: bullseye-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: bullseye-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/bullseye
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, deck_construction]
+  - id: bullseye-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/bullseye
+    checked_at: 2026-07-27
+    supports: [ability_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
