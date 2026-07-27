@@ -4,7 +4,7 @@ display_name: Loki
 set_ids:
 - battle-of-legends-vol-3
 status: partial
-reason: multiplayer_trick_destination_authority_unresolved
+reason: multiplayer_noncombat_trick_recipient_unresolved
 movement: 2
 topology:
   type: single_hero
@@ -61,8 +61,19 @@ rulings:
 - id: loki-trick-boost
   summary: TRICK cards have no BOOST value and cannot provide a positive BOOST unless a source explicitly overrides that fact.
   source: https://www.the-unmatched.club/rules/loki
+- id: loki-end-turn-cleanup
+  summary: Loki-owned TRICK cards still use their special cleanup destination when a card effect ends the turn; END_TURN jumps to Cleanup rather than bypassing it.
+  source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
+- authority: official_set
+  url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Core-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  note: Current Free-for-All rule clarifies that "your opponent" on a combat-card effect means the other player in that combat; it does not supply a recipient for Loki's fighter-ability cleanup after a non-combat TRICK scheme.
+- authority: reference
+  url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  checked_at: '2026-07-27'
+  note: Current Unmatched Reference v10 records the official END_TURN/Cleanup ruling and Loki card clarifications sourced from the Restoration Games rulings corpus.
 - authority: reference
   url: https://www.youtube.com/watch?v=6fP2amMnphI
   checked_at: '2026-07-26'
@@ -79,6 +90,7 @@ sources:
 normalization_notes:
 - Opponent-held TRICK cards preserve owner_player=Loki while current_zone and zone controller change.
 - Cleanup disposition depends on who played the Loki-owned TRICK; ownership alone is not sufficient to select the destination.
-- In 1v1 the destination opponent is unambiguous. In 2v2/FFA the published ability says an opponent's hand but no authoritative recipient-selection rule was found for a Loki-played non-combat TRICK; this is a real multiplayer evidence gap and the reason fighter status is partial.
-- The current rulings index confirms an official END_TURN × TRICK ruling exists; its global cleanup integration is orchestrator-owned rather than a reason to invent a fighter-local control-flow rule.
+- A targeted web search across current Club rulings, current Reference, official Core Rules, indexed BGG material and other current transcriptions found no authoritative rule naming the recipient of a Loki-played non-combat TRICK in 2v2/FFA when multiple opponents are eligible. Svadilfari's Lure is the concrete unresolved case; this narrow multiplayer evidence gap is why Loki remains partial.
+- The official FFA combat-card rule does not close that scheme/hero-ability gap because it is explicitly scoped to effects on combat cards.
+- END_TURN interaction is no longer an evidence gap: current Reference states that Loki's TRICK still reaches the opponent hand during Cleanup even when the turn was ended.
 - The movement-value bonus is a proposed generic extension; corpus verification does not require modifying the shared model on this worker branch.
