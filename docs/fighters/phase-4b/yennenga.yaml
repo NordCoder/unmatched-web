@@ -5,7 +5,7 @@ display_name: Yennenga
 set_ids: [battle-of-legends-vol-2]
 status: partial
 verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
-requires: [A-REQ-010, A-REQ-011]
+requires: [A-REQ-010, A-REQ-011, A-REQ-012]
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -33,7 +33,7 @@ ability:
               optional: true
               domain:
                 kind: damage_allocation
-                eligible_recipients: {kind: fighter, owner: self, fighter_id: archer, zone_relation: same_zone_as_yennenga}
+                eligible_recipients: {kind: fighter, owner: self, fighter_id: archer, zone_relation: {same_zone_as: yennenga}}
                 per_recipient_max: {ref: recipient.remaining_health}
               bind: archer_allocations
           costs: []
@@ -46,7 +46,7 @@ interpretations: []
 sources:
   - {id: yennenga-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
   - {id: yennenga-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/yennenga, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, volley_cards]}
-  - {id: yennenga-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [damage_allocation_cap, volley_defeat_rule]}
+  - {id: yennenga-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [damage_allocation_cap, volley_defeat_rule, current_combat_attacker_replacement]}
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
   usable_by: pass
