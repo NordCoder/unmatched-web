@@ -20,6 +20,7 @@ cards:
   effects:
   - id: twelve-place
     trigger: after_combat
+    optional: true
     condition: {state_set: john_henry_paths_used_this_turn, cardinality_gte: 4}
     choices:
     - {id: fighter, owner: controller, visibility: public, optional: false, domain: combat_fighters, bind: target}
@@ -111,5 +112,6 @@ sources:
 normalization_notes:
 - All 12 definitions reconcile to 30 cards.
 - Hammer threshold reads cardinality of authoritative path_ref_set state.
+- Twelve-Pound Hammer preserves the printed optional may-place effect at the whole-effect level.
 - Hear That Cold Steel Ring uses D-REQ-003 restricted immediate action credit.
 - Knock Them Silly is explicit cross-window state plus PREVENT_OPERATION under D-REQ-001; Deeds of Valor uses generic PREVENT_DAMAGE rather than an opaque cap composite.
