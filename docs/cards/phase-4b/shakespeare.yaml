@@ -58,3 +58,4 @@ normalization_notes:
   - completion_effects are full normalized effect records and may contain controller choices, dependencies, and operations; they are not bare operation lists.
   - Completion effects are not ordinary combat-card effects and remain eligible when the final card's ordinary effects were canceled.
   - Again resolves its optional first-card return after ordinary After Combat processing but before cleanup appends the current card to the Line.
+  - After a Line completion effect resolves, cleanup discards only card instances still present in the Line. A completion effect such as Deceive that moves its own instance to hand must not have that card discarded again from a stale pre-effect snapshot.
