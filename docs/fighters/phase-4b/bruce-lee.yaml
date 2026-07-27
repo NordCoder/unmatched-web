@@ -28,7 +28,7 @@ setup:
   - key: bruce_lee_attack_bonus_this_turn
     value: 0
 ability:
-  id: be-water-my-friend
+  id: fleet-of-foot
   controller: owner
   effects:
   - id: end-turn-step
@@ -69,3 +69,4 @@ sources:
 normalization_notes:
 - One canonical fighter lineage covers the 2019 standalone release and the later Bruce Lee vs. Muhammad Ali membership.
 - Official design history states the returning Bruce Lee deck could not change; no duplicate fighter definition is created.
+- The canonical special-ability name is Fleet of Foot; the previous semantic id incorrectly used a card/theme phrase.
