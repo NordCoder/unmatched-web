@@ -162,7 +162,7 @@ validation:
   integration: REQUIRES_SHARED_EXTENSION
   fan_content: PASS
 sources:
-- {id: stars-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars_Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', supports: [upgrade_row_rules, action_rules], durability: durable}
+- {id: stars-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', supports: [upgrade_row_rules, action_rules], durability: durable}
 - {id: stars-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
 - {id: rosie-club, authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
 normalization_notes:
