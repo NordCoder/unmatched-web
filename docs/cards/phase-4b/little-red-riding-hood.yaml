@@ -177,8 +177,8 @@ cards:
               - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
             costs: []
             operations: []
-          - {id: pelt-recover, when: {choice: {ref: choice.effective_basket_item, equals: pelt}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 4}]}
-          - {id: other-recover, when: {choice: {ref: choice.effective_basket_item, not_equals: pelt}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 2}]}
+          - {id: wolf-recover, when: {choice: {ref: choice.effective_basket_item, equals: wolf}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 4}]}
+          - {id: other-recover, when: {choice: {ref: choice.effective_basket_item, not_equals: wolf}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 2}]}
   - id: stones-in-the-belly
     name: Stones in the Belly
     quantity: 3
