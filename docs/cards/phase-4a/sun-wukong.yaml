@@ -113,7 +113,7 @@ cards:
     boost: 2
     effects:
       - trigger: during_combat
-        operations: [{op: PREVENT_DAMAGE, target: own_combat_fighter, scope: all_damage_during_combat_window}]
+        operations: [{op: PREVENT_DAMAGE, target: own_combat_fighter, scope: combat_damage}]
       - trigger: after_combat
         optional: true
         choices: [{owner: controller, choose: battlefield_space}]
