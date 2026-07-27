@@ -1,16 +1,22 @@
 schema_version: 1
 fighter_id: oda-nobunaga
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-010]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: student-of-war, name: Student of War, quantity: 2, usable_by: [oda-nobunaga], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count_rule: combat_damage_dealt_to_opposing_fighter}]}]}
-  - {id: lightning-and-thunder, name: Lightning and Thunder, quantity: 3, usable_by: [honor-guard], type: attack, printed_value: 4, boost: 1, tags: [flanking], effects: [{trigger: immediately, condition: {opposing_fighter_flanked: true}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}]}]}
-  - {id: fire-and-flames, name: Fire and Flames, quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 3, tags: [flanking], effects: [{trigger: during_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: sun-and-moon, name: Sun and Moon, quantity: 2, usable_by: [honor-guard], type: attack, printed_value: 2, boost: 1, tags: [flanking], effects: [{trigger: during_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
-  - {id: momentous-shift, name: Momentous Shift, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: during_combat, condition: {own_fighter_current_space_not_equal_turn_start_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: battle-maneuvers, name: Battle Maneuvers, quantity: 4, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: MOVE, target: each_controller_fighter, max_distance: 2}]}]}
-  - {id: patience-and-strategy, name: Patience and Strategy, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, tags: [flanking], effects: [{trigger: after_combat, condition: {opposing_fighter_flanked: true}, operations: [{op: RECOVER, target: own_combat_fighter, amount: 2}]}]}
+  - {id: student-of-war, name: Student of War, quantity: 2, usable_by: [oda-nobunaga], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{id: student-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: {ref: combat.damage_dealt_to_opposing_fighter}}]}]}]}
+  - {id: lightning-and-thunder, name: Lightning and Thunder, quantity: 3, usable_by: [honor-guard], type: attack, printed_value: 4, boost: 1, tags: [flanking], effects: [{id: lightning-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {predicate: flanked, target: opposing_combat_fighter, controller: self}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}, {id: lightning-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}]}]}]}
+  - {id: fire-and-flames, name: Fire and Flames, quantity: 3, usable_by: any, type: attack, printed_value: 3, boost: 3, tags: [flanking], effects: [{id: fire-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {predicate: flanked, target: opposing_combat_fighter, controller: self}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - {id: sun-and-moon, name: Sun and Moon, quantity: 2, usable_by: [honor-guard], type: attack, printed_value: 2, boost: 1, tags: [flanking], effects: [{id: sun-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {predicate: flanked, target: opposing_combat_fighter, controller: self}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}]}
+  - {id: momentous-shift, name: Momentous Shift, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: shift-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {expr: {op: neq, left: {ref: own_combat_fighter.current_space}, right: {ref: persistent.turn_start_space_by_fighter[own_combat_fighter.instance_id]}}}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - {id: battle-maneuvers, name: Battle Maneuvers, quantity: 4, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: maneuvers-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: 1}, {op: MOVE, target: {selector: {fighters: controller_fighters}}, max_distance: 2}]}]}]}
+  - {id: patience-and-strategy, name: Patience and Strategy, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, tags: [flanking], effects: [{id: patience-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {predicate: flanked, target: opposing_combat_fighter, controller: self}, operations: [{op: RECOVER, target: own_combat_fighter, amount: 2}]}]}]}
   - id: spring-the-trap
     name: Spring the Trap
     quantity: 3
@@ -20,23 +26,55 @@ cards:
     boost: 2
     tags: [defender_replacement]
     effects:
-      - trigger: immediately
-        optional: true
-        choices: [{owner: controller, choose: adjacent_friendly_fighter, capture: replacement_defender}]
-        operations:
-          - {op: SWAP, a: own_combat_fighter, b: captured.replacement_defender}
-          - {op: SET_STATE, key: combat_defender, value: captured.replacement_defender, condition: {swap_completed: true}}
-      - {trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}
-  - {id: pragmatism, name: Pragmatism, quantity: 3, usable_by: [oda-nobunaga], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: reinforce, name: Reinforce, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: two_distinct_branches, options: [recover_all_friendly, draw_two, gain_action]}], operations: [{op: RECOVER, target: each_friendly_fighter, amount: 1, condition: {recover_all_friendly_selected: true}}, {op: DRAW, count: 2, condition: {draw_two_selected: true}}, {op: GAIN_ACTION, count: 1, condition: {gain_action_selected: true}}]}]}
-  - {id: demon-king-of-the-sixth-heaven, name: Demon King of the Sixth Heaven, quantity: 2, usable_by: [oda-nobunaga], type: scheme, printed_value: null, boost: 3, tags: [flanking], effects: [{trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_flanked_fighter, amount: 2}]}]}
+      - id: spring-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-replacement
+            choices:
+              - {id: replacement, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: friendly_fighters, adjacent_to: own_combat_fighter}}, bind: replacement_defender}
+          - id: swap
+            when: {ref: replacement_defender, exists: true}
+            operations: [{op: SWAP, a: own_combat_fighter, b: {ref: replacement_defender}, bind_result: defender_swap}]
+          - id: replace-defender
+            when: {ref: defender_swap.succeeded, equals: true}
+            operations: [{op: SET_STATE, key: combat_defender, value: {ref: replacement_defender}}]
+      - {id: spring-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
+  - {id: pragmatism, name: Pragmatism, quantity: 3, usable_by: [oda-nobunaga], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{id: pragmatism-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: reinforce
+    name: Reinforce
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: reinforce-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-two
+            choices: [{id: modes, owner: controller, visibility: public, optional: false, domain: {choose: 2, from: [recover_all_friendly, draw_two, gain_action]}, bind: selected_modes}]
+          - {id: recover, when: {expr: {op: contains, set: {ref: selected_modes}, value: recover_all_friendly}}, operations: [{op: RECOVER, target: {selector: {fighters: friendly_fighters}}, amount: 1}]}
+          - {id: draw, when: {expr: {op: contains, set: {ref: selected_modes}, value: draw_two}}, operations: [{op: DRAW, count: 2}]}
+          - {id: action, when: {expr: {op: contains, set: {ref: selected_modes}, value: gain_action}}, operations: [{op: GAIN_ACTION, count: 1}]}
+  - {id: demon-king-of-the-sixth-heaven, name: Demon King of the Sixth Heaven, quantity: 2, usable_by: [oda-nobunaga], type: scheme, printed_value: null, boost: 3, tags: [flanking], effects: [{id: demon-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, predicate: {flanked_by_controller: true}}}, amount: 2}]}]}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
-  - https://unmatched.cards/umdb/decks/oda-nobunaga
-  - https://restorationgames.com/shop/suns-origin-unmatched/
+  - {id: suns-origin-rules-oda, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [flanking and fighter rules]}
+  - {id: oda-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/oda-nobunaga, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - flanked is a board predicate: at least two fighters controlled by the same player are adjacent to the target fighter.
-  - Battle Maneuvers says "your fighters" and therefore moves only fighters controlled by the card controller, not a teammate's merely-friendly fighters.
-  - Spring the Trap may select a teammate's adjacent friendly fighter in team play; the replacement defender's fighter controller may therefore differ from the controller/owner of the already-played defense card. C-EXT-003 must preserve those identities separately.
+  - Flanking counts fighters controlled by Oda's player, not merely friendly teammate fighters.
+  - Battle Maneuvers targets controller fighters; Spring the Trap intentionally uses friendly fighters and can cross player control in team play.
