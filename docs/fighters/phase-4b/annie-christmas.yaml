@@ -35,10 +35,14 @@ rulings:
   - id: annie-static-bonus-not-cancelable
     summary: Necklace of Pearls is a character ability/static bonus, not an effect on the combat card, so ordinary effect cancellation does not cancel it.
     source: https://www.the-unmatched.club/heroes/annie-christmas
+  - id: mississippi-queen-damage-still-dealt
+    summary: Mississippi Queen clamps Annie's health at 1 but does not convert incoming damage into prevented damage; damage still counts as dealt for rules that observe damage dealt.
+    source: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01
 
 sources:
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/annie-christmas}
   - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/annie-christmas}
+  - {type: official_ruling, url: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01}
   - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
 
 normalization_notes:
