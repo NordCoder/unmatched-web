@@ -141,7 +141,13 @@ cards:
                 owner: controller
                 visibility: private
                 optional: false
-                domain: {selector: {cards: {ref: viewed_hand}, card_filter: {type_in: [attack, versatile]}}}
+                domain:
+                  selector:
+                    cards: {ref: viewed_hand}
+                    card_filter:
+                      type_in: [attack, versatile]
+                      playable_by: {ref: combat.original_attacking_fighter}
+                      legal_in_current_combat: true
                 bind: replacement_attack_card
           - id: replace
             when: {ref: replacement_attack_card, exists: true}
@@ -273,6 +279,6 @@ validation:
   integration: requires_shared_extension
   fan_content: pass
 normalization_notes:
-  - Do My Bidding uses return -> inspect -> dependent replacement choice -> same-combat replacement stages.
+  - Do My Bidding uses return -> inspect -> replacement choice constrained to cards legally playable by the original attacking fighter in the current combat -> same-combat replacement stages.
   - Spymaster's Ruse models the opponent-selected reveal set before Philippa's controller selects the discard set.
   - Backup Plan requires exact health assignment; Polymorphy is a source-lifetime movement modifier.
