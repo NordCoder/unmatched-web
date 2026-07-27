@@ -67,7 +67,7 @@ cards:
         cancellation: cancelable
         stages:
           - id: draw
-            when: {ref: persistent.left_space_this_turn_by_fighter[own_combat_fighter.instance_id], equals: false}
+            when: {ref: "persistent.left_space_this_turn_by_fighter[own_combat_fighter.instance_id]", equals: false}
             operations: [{op: DRAW, count: 1}]
   - {id: wily-fighting, name: Wily Fighting, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: wily-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, adjacent_to: own_combat_fighter}}, amount: 1}]}]}]}
   - id: harrying-strike
