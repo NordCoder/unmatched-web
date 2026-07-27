@@ -1,76 +1,91 @@
 schema_version: 1
 id: black-widow
 display_name: Black Widow
-set_ids:
-- marvel-for-king-and-country
+set_ids: [marvel-for-king-and-country]
 status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
 movement: 2
+
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-  - id: black-widow
-    display_name: Black Widow
-    role: hero
-    count: 1
-    attack_type: ranged
-    starting_health: 13
-    starts_on_board: true
-    summonable: false
-  - id: maria-hill
-    display_name: Maria Hill
-    role: sidekick
-    count: 1
-    attack_type: ranged
-    starting_health: 6
-    starts_on_board: true
-    summonable: false
+    - {id: black-widow, display_name: Black Widow, role: hero, count: 1, attack_type: ranged, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: maria-hill, display_name: Maria Hill, role: sidekick, count: 1, attack_type: ranged, starting_health: 6, starts_on_board: true, summonable: false}
+
 setup:
   hooks:
-  - stage: pre_shuffle_deck_setup
-    operations:
-    - op: MOVE_CARD
-      from_zone: deck_pool
-      to_zone: hand
-      selector:
-        definition_id: the-moscow-protocol
-    - op: SHUFFLE
-      zone: deck
-    - op: DRAW
-      count: 5
+    - id: seed-moscow-protocol
+      stage: pre_shuffle_deck_setup
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: seed
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - {op: MOVE_CARD, from_zone: deck_pool, to_zone: hand, selector: {definition_id: the-moscow-protocol}}
+            - {op: SHUFFLE, zone: deck}
+            - {op: DRAW, count: 5}
   state_initialization:
-  - key: opposing_fighter_took_damage_this_turn
-    value: false
+    - {key: opposing_fighter_took_damage_this_turn, value: false}
+    - {key: black_widow_starting_space, value_ref: match_setup.black_widow_starting_space}
+
 ability:
   id: missions
   controller: owner
   effects:
-  - id: record-opposing-fighter-damage
-    trigger: fighter_damaged
-    condition:
-      damaged_fighter_relation: opposing
-    operations:
-    - op: SET_STATE
-      key: opposing_fighter_took_damage_this_turn
-      value: true
+    - id: record-opposing-fighter-damage
+      trigger: fighter_damaged
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: record
+          when: {damaged_fighter_relation: opposing}
+          choices: []
+          costs: []
+          operations: [{op: SET_STATE, key: opposing_fighter_took_damage_this_turn, value: true}]
+
 resources: []
 persistent_state:
-- key: opposing_fighter_took_damage_this_turn
-  type: boolean
-  reset: turn_start
-  note: Required by The Moscow Protocol. It records whether any opposing fighter has taken any damage during the current turn, regardless of source.
+  - {key: opposing_fighter_took_damage_this_turn, type: boolean, reset: turn_start}
+  - {key: black_widow_starting_space, type: space_ref, reset: never}
+
 deck:
   manifest: ../../cards/phase-4b/black-widow.yaml
   construction: fixed
+
 rulings: []
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/black-widow
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/black-widow
-normalization_notes:
-- Black Widow's published pool is 31 cards; Moscow Protocol begins in hand, then the remaining 30 are shuffled and five are drawn.
-- Mission acquisition reveals from the deck until a mission is found, moves that mission to hand, and shuffles the other revealed cards back; it does nothing if no mission remains in deck.
-- Audit correction: The Moscow Protocol's turn-history predicate is backed by explicit resettable state instead of an undeclared derived condition.
+  - id: black-widow-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: black-widow-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/black-widow
+    checked_at: 2026-07-27
+    supports: [fighter_stats, mission_ability, deck_construction, mission_cards]
+  - id: black-widow-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/rules/black-widow
+    checked_at: 2026-07-27
+    supports: [mission_setup_cross_check, starting_space_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 31, game_deck_count: 31, quantity_sum: 31}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
