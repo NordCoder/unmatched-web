@@ -119,17 +119,17 @@ cards:
         controller: owner
         cancellation: cancelable
         stages:
-          - id: choose-target
-            when: {state: {key: form, equals: hyde}}
-            choices:
-              - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: jekyll-and-hyde}, bind: target_fighter}
-            costs: []
-            operations: []
           - id: reveal-top
             when: {state: {key: form, equals: hyde}}
             choices: []
             costs: []
             operations: [{op: REVEAL, source: deck, count: 1, bind_result: revealed_top}]
+          - id: choose-target
+            when: {result_exists: {ref: result.revealed_top.card}}
+            choices:
+              - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: jekyll-and-hyde}, bind: target_fighter}
+            costs: []
+            operations: []
           - id: damage-by-boost
             when: {result_exists: {ref: result.revealed_top.card}}
             choices: []
