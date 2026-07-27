@@ -33,96 +33,228 @@ Official Rulings Archive:
 - Blocking evidence gaps: **0**
 - Fan-patch contamination: **none found**
 
-`verified` in this Worker A corpus means **published content/evidence and the fighter-specific normalized representation are verified to the level recorded here**. It does **not** mean the current shared DSL/runtime is developer-ready for every referenced selector, binding, batch operation or cross-fighter interaction. Those integration-contract gaps are listed separately below and belong to the Phase 4B orchestrator/shared-model pass.
+`verified` in this Worker A corpus means **published content/evidence and fighter-specific normalization are verified to the level recorded here**. It does **not** mean the current shared DSL/runtime is developer-ready for every selector, binding, batch operation or cross-fighter interaction. Shared integration-contract gaps are listed separately below.
 
 ## Fighter results
 
 | Fighter | Result | Primary note |
 | --- | --- | --- |
 | `alice` | verified | Big/Small state and 30-card deck reconcile. |
-| `king-arthur` | blocked | `The Holy Grail` requires exact health assignment. |
+| `king-arthur` | blocked | `The Holy Grail` requires exact health assignment; `Prophecy` choice dependency is now explicit. |
 | `medusa` | verified | Multi-Harpy topology and deck reconcile. |
 | `sinbad` | verified | Voyage/discard-state semantics sourced and normalized. |
 | `robin-hood` | verified | Outlaw topology, Hit and Run and multiplayer `Steal From the Rich` flow recorded. |
 | `bigfoot` | verified | End-turn zone condition and optional draw recorded. |
-| `robert-muldoon` | blocked | Positioned trap lifecycle plus movement interruption need shared support. |
-| `invisible-man` | blocked | Fog positioning/dynamic movement adjacency and `Vanish` off-board lifetime need shared support. |
-| `jekyll-and-hyde` | verified | Form state and card legality are sourced; choice dependencies are now explicit in the manifest. |
-| `buffy` | verified | 35→30 construction, setup stages and Xander-only `Right-hand Man` semantics are resolved. |
-| `willow` | blocked | `Resurrect` requires exact post-return health assignment. |
-| `spike` | blocked | Positioned Shadows and blind-BOOST result transformation need shared support. |
+| `robert-muldoon` | blocked | Positioned trap lifecycle plus movement-entry interruption need shared support; trap lifecycle is consistently `available → board → box`. |
+| `invisible-man` | blocked | Fog positioning/dynamic movement adjacency and `Vanish` undefeated off-board lifetime need shared support; ordered `Vanish` resolution is now explicit. |
+| `jekyll-and-hyde` | verified | Form state and card legality are sourced; choice dependencies are explicit. |
+| `buffy` | verified | 35→30 construction, setup stages, Xander-only `Right-hand Man`, `Cartwheel Kick`, and all-or-none `Slayer's Strength` semantics are resolved. |
+| `willow` | blocked | `Resurrect` requires exact post-return health assignment; `Love and Loss` printed order is now preserved. |
+| `spike` | blocked | Positioned Shadows and conditional blind-BOOST multiplication need shared support. |
 | `angel` | verified | Angel/Faith topology and card distribution reconcile. |
-| `little-red-riding-hood` | blocked | `What Big Ears You Have` conditionally changes legal combat-card mode. |
-| `beowulf` | verified | Rage is represented as one canonical resource counter. |
-| `deadpool` | blocked | Dynamic attack mode plus digital-adaptation policy are unresolved. |
-| `yennenga` | blocked | Movement-path capture and partial pending-damage allocation need shared support. |
+| `little-red-riding-hood` | blocked | Conditional combat-card mode plus Basket-as-zone-component support are missing from the shared model. |
+| `beowulf` | verified | Rage is one canonical resource; `Ancient Heirloom` printed clause order is explicit. |
+| `deadpool` | blocked | Dynamic attack mode plus digital-adaptation policy are unresolved; ordinary deterministic card semantics have been hardened. |
+| `yennenga` | blocked | `Stallion Charge` path capture and partial pending-damage allocation need shared support; `Surprise Volley`/`Shield Formation` are corrected. |
 
 Verified: **9** — `alice`, `medusa`, `sinbad`, `robin-hood`, `bigfoot`, `jekyll-and-hyde`, `buffy`, `angel`, `beowulf`.  
 Blocked: **8** — `king-arthur`, `robert-muldoon`, `invisible-man`, `willow`, `spike`, `little-red-riding-hood`, `deadpool`, `yennenga`.
 
-## Normalization cleanup completed
+# Completed normalization corrections
 
-The post-research logic audit produced the following manifest-level corrections that were safe to make without editing shared semantic files.
+## Source-hardening corrections
+
+The source-hardening pass corrected:
+
+- Alice `Manxome Foe` discard semantics;
+- Alice `Claws That Catch` type;
+- Bigfoot optional end-turn draw;
+- Buffy setup order;
+- Spike Shadow reuse when all three are already on board;
+- Yennenga VOLLEY defeat condition;
+- Angel `Wisdom of Ages` type;
+- Medusa `Snipe` type;
+- Buffy `Right-hand Man`: Xander-only; adjacency changes value only.
+
+No correction came from fan balance patches.
+
+## First logic-audit corrections
 
 ### Regroup replacement semantics
 
-All **11 Worker A decks containing published `Regroup`** now encode mutually exclusive combat-result branches:
+All **11 Worker A decks containing published `Regroup`** use mutually exclusive branches:
 
 - won combat → `DRAW 2`;
 - did not win → `DRAW 1`.
 
-The previous `DRAW 1` plus a second conditional `DRAW 1` representation was removed because the published card says `draw 2 instead`; separate draw effects can change exhaustion/event accounting even when the normal hand result happens to be the same.
+This preserves the published `draw 2 instead` semantics rather than representing it as two independent draw effects.
 
 Affected: Alice, King Arthur, Medusa, Sinbad, Robin Hood, Bigfoot, InGen, Buffy, Willow, Spike, Angel.
 
 ### Buffy
 
-- `Cartwheel Kick`: removed effect-level optionality. `MOVE up to 3` already permits zero movement; the following adjacent damage still resolves.
-- `Insight`: explicitly chooses an opponent before looking at and selecting a card from that opponent's hand.
-- setup is split into canonical `CHARACTER_CONFIGURATION` and `DECK_CONSTRUCTION` hooks.
-- `Right-hand Man` remains Xander-only; adjacency to Buffy changes only its combat value.
+- `Cartwheel Kick`: only movement is optional through `up to 3`; adjacent damage still resolves.
+- `Insight`: explicitly chooses an opponent before hand inspection/discard.
+- setup uses `CHARACTER_CONFIGURATION` and `DECK_CONSTRUCTION`.
 
 ### Robin Hood
 
-`Steal From the Rich` now records the full multiplayer flow:
-
-1. draw 1;
-2. owner chooses an opponent;
-3. chosen opponent privately chooses whether to discard one card;
-4. if they do not discard, owner draws one more.
+`Steal From the Rich` records the multiplayer flow: draw 1 → choose opponent → chosen opponent privately discards or declines → owner draws one more if they decline.
 
 ### Willow
 
-`Hacker` now records the actual top-or-bottom disposition after the private look/choice rather than ending after `REQUEST_CHOICE`.
+`Hacker` records the actual top-or-bottom disposition after the private look/choice.
 
 ### Jekyll & Hyde
 
-- `Strange Case` now declares the adjacent-fighter choice before using `chosen_fighter`.
-- `Calming Research` now declares the 0..3 draw-count choice and the subsequent keep-one choice over cards drawn by that effect. Shared integration still needs a typed result-binding convention for identifiers such as `chosen_draw_count` and `cards_drawn_by_this_effect`.
-
-### Setup hook normalization
-
-Worker-local setup stages now use the canonical shared hook names where applicable:
-
-- Alice → `POST_PLACEMENT_CONFIGURATION`;
-- Invisible Man → `POST_PLACEMENT_CONFIGURATION`;
-- Buffy → `CHARACTER_CONFIGURATION` + `DECK_CONSTRUCTION`.
+- `Strange Case` declares its adjacent-fighter choice.
+- `Calming Research` declares draw-count and keep-one choices.
 
 ### Duplicate mutable state cleanup
 
-Removed duplicate counters that represented the same gameplay resource twice:
-
-- Beowulf Rage now lives only in `resources.rage`;
-- Muldoon trap availability is derived from trap-token instance lifecycle, not a separate `traps_available` integer;
-- Spike Shadow availability is derived from Shadow-token instance lifecycle, not a separate `shadows_available` integer.
-
-Muldoon traps explicitly require lifecycle `available → board → box`; traps moved to the box are not reusable.
+- Beowulf Rage exists only as `resources.rage`.
+- Muldoon trap availability derives from token lifecycle.
+- Spike Shadow availability derives from token lifecycle.
 
 ### Yennenga damage allocation
 
-The previous generic `REDIRECT_DAMAGE` operation was removed from `Shield of the Archers` because it cannot faithfully represent the published rule. Yennenga needs partial allocation of one pending damage event across zero or more eligible Archers, capped by each Archer's remaining health, with the unallocated remainder still applied to Yennenga without changing the original damage type.
+The previous plain `REDIRECT_DAMAGE` approximation was removed. Yennenga requires partial allocation of one pending damage event across eligible Archers, with per-Archer health caps and residual damage staying on Yennenga without changing damage type/event identity.
 
-## 1. Evidence blockers
+# Second logic-audit corrections
+
+## Yennenga
+
+### `Surprise Volley`
+
+Corrected from a false AFTER COMBAT/VOLLEY interpretation to its published IMMEDIATELY semantics:
+
+- optionally return a defeated Archer to the opposing fighter's zone;
+- if returned, that Archer becomes the attacker in the **current combat**;
+- if no Archer is returned, gain 1 action;
+- absence of a defeated Archer must not create an empty mandatory choice that blocks the gain-action branch.
+
+### `Shield Formation`
+
+Corrected card identity and timing:
+
+- canonical name: `Shield Formation`;
+- timing: `IMMEDIATELY`;
+- combat opponent may discard one card;
+- only if they do not discard does Yennenga's owner attempt to return a defeated Archer to Yennenga's zone.
+
+### Multiplayer relation
+
+`Pin the Prey` now scopes its discard to the current combat opponent rather than an arbitrary opponent.
+
+## Buffy — `Slayer's Strength`
+
+The manifest no longer allows an arbitrary subset of adjacent fighters.
+
+Published semantics are represented as one optional all-or-none effect choice:
+
+- if used, attempt to move **all** fighters adjacent to Buffy;
+- then deal 1 damage only to fighters actually moved.
+
+## Willow — `Love and Loss`
+
+The card is now one ordered Scheme resolution:
+
+1. draw 2;
+2. if Dark Willow, discard the top 2 cards;
+3. choose a sidekick in Willow's zone;
+4. deal 3 damage to that sidekick.
+
+The DARK clause is no longer an independently reorderable same-timing Scheme effect.
+
+## Invisible Man
+
+### `Vanish`
+
+`Vanish` is now one ordered resolution:
+
+1. recover 1;
+2. remove Invisible Man without defeating him;
+3. schedule source-owned return at the start of the next turn;
+4. if played as action 1, end the turn **after** those preceding steps.
+
+The off-board/return primitives remain engine-blocked, but `END_TURN` can no longer preempt the earlier printed steps through same-timing reordering.
+
+### Choice closure
+
+Added explicit definitions for:
+
+- `Coded Notes` choose-two-and-order dependency;
+- `Confound` opponent-discard-or-owner-Fog-movement dependency.
+
+## Deadpool
+
+### `Excuse me while I grow some limbs.`
+
+Corrected to replacement-style branches:
+
+- won → combat opponent discards 2;
+- did not win → combat opponent discards 1.
+
+It is no longer represented as two independent discard effects.
+
+### `They Have An Amazing Buffet`
+
+Preserves printed order:
+
+1. recover 2;
+2. then test whether Deadpool is at full health;
+3. if yes, Deadpool takes 2 damage.
+
+### Multiplayer relation
+
+Combat-card uses of `opponent` are explicitly scoped to the current combat opponent where relevant, distinct from Scheme effects that intentionally choose any opponent.
+
+## Beowulf — `The Ancient Heirloom`
+
+The two DURING COMBAT clauses are represented as one ordered source effect rather than independently reorderable same-timing effects:
+
+1. optionally spend 2 Rage to make value 5;
+2. optionally spend 1 Rage to BOOST;
+3. either or both clauses may be used.
+
+`Golden Drinking Horn` also records precommitted distinct choices plus owner-selected resolution order; shared choice serialization still needs to formalize this centrally.
+
+## Robert Muldoon
+
+Removed stale `supply` terminology from `Remote Detonation` and the proposed component semantics.
+
+Canonical trap lifecycle is consistently:
+
+`available → board → box`
+
+A returned/triggered trap is not reusable from the box. `Remote Detonation` returns its selected trap to the box and participates in Muldoon's draw-on-trap-return ability.
+
+## King Arthur — `Prophecy`
+
+Closed the dangling `prophecy_keep_two` reference:
+
+- look at top 4;
+- choose exactly 2 for hand;
+- leave the other 2 on top;
+- owner chooses the order of those remaining 2.
+
+## Little Red Riding Hood
+
+### Setup hook
+
+The old ad-hoc `before_shuffle` stage was replaced with canonical `BEFORE_STARTING_HAND` for the start-of-game Basket initialization.
+
+### Wild Basket binding
+
+A wild Basket now binds to exactly **one** effective item for the current source resolution. It must not independently satisfy multiple Basket-item branches in the same resolution.
+
+`Never Leave the Path` therefore resolves exactly one of its wolf / knife / pelt branches when the Basket is wild.
+
+### Basket runtime gap
+
+The Basket is not an action card but physically occupies the ordered discard zone and can be the top discard object. Worker A records this source fact but does not invent a shared runtime primitive for it.
+
+# 1. Evidence blockers
 
 **None.**
 
@@ -132,71 +264,83 @@ No assigned fighter remains blocked because a required published rule/card fact 
 
 **Deadpool:** official Mondo material establishes first-party release provenance and published UmDb supplies the complete 30-card corpus. A first-party online full card-text/rulebook dump was not located. This is weaker primary card-level provenance than ordinary Restoration rulebook sets, but it does not block deck/card reconstruction.
 
-## 2. Engine blockers
+# 2. Engine blockers
 
-### Exact health semantics
+## Exact health semantics
 
 Affected:
 - King Arthur — `The Holy Grail`;
 - Willow — `Resurrect`.
 
-Need two related but distinct semantics:
+Need:
 
 - exact health assignment on an undefeated fighter;
-- atomic return/revive with source-defined exact health, so a resurrected fighter does not pass through an invalid intermediate health state.
+- atomic return/revive with source-defined exact health, avoiding an invalid intermediate health state.
 
-### Positioned special components
+## Positioned special components
 
 Affected:
 - Muldoon — traps;
 - Invisible Man — Fog;
 - Spike — Shadows.
 
-Need reusable token/component instances with identity, owner/controller, lifecycle/location, space, placement/movement rules, occupancy/stacking policy and selectors.
+Need reusable component instances with identity, owner/controller, lifecycle/location, space, placement/movement rules, occupancy/stacking policy and selectors.
 
-Invisible Man additionally needs scoped dynamic adjacency: Fog spaces are mutually adjacent for Invisible Man's **movement only**, not for attacks or generic adjacency.
+Invisible Man additionally needs scoped dynamic adjacency: Fog spaces are mutually adjacent for Invisible Man's **movement only**.
 
-### Movement-entry interruption
+## Movement-entry interruption
 
 Affected: Muldoon traps.
 
-Need movement/placement entry events plus protected interruption semantics capable of stopping a move immediately when a trap is entered. Official rules also trigger traps when an opposing fighter is placed into the trap space by another effect/player.
+Need movement/placement entry events plus protected interruption semantics capable of stopping a move immediately when a trap is entered. Opposing fighters can also trigger traps when placed into the trap space by an effect.
 
-### Temporary undefeated off-board / dormancy
+## Temporary undefeated off-board / dormancy
 
 Affected: Invisible Man — `Vanish`.
 
-Need undefeated `off_board` state, source-owned return timing and a deterministic interaction between the return hook and dormant-player turn handling.
+Need undefeated `off_board` state, source-owned return timing and deterministic interaction between return hooks and dormant-player turn handling.
 
-### Conditional combat-card / attack mode
+## Conditional combat-card / attack mode
 
 Affected:
-- Little Red Riding Hood — `What Big Ears You Have`;
+- Little Red — `What Big Ears You Have`;
 - Deadpool — `Xavier Institute Faculty`.
 
 Need declarative play-mode/attack-mode permissions without mutating immutable printed metadata.
 
-### Blind BOOST result transformation
+## Blind BOOST result transformation
 
 Affected: Spike — `Always Surprising`.
 
 Need a transform hook over the resolved blind-BOOST amount before it is applied.
 
-### Movement-path capture/query
+## Movement-path capture/query
 
 Affected: Yennenga — `Stallion Charge`.
 
 Need an ordered traversed-space path for a specific movement resolution and selectors over fighters/spaces crossed by that move.
 
-### Partial pending-damage allocation
+## Partial pending-damage allocation
 
-Affected: Yennenga — `Shield of the Archers`.
+Affected: Yennenga — `Shield of the Archers` fighter ability.
 
-Need allocation of one pending damage event among multiple recipients with per-recipient caps, residual damage on the original target, and preservation of the original damage type/event identity.
+Need allocation of one pending damage event among multiple recipients with per-recipient caps, residual damage on the original target, and preservation of original damage type/event identity.
 
-## 3. Other blockers
+## Non-action component in an ordered card zone
 
-### Deadpool digital-adaptation policy
+Affected: Little Red's Basket.
+
+Need a runtime component that:
+
+- is not counted as an action card;
+- can occupy the discard pile as a real ordered-zone object;
+- can be the current top discard object;
+- exposes its printed wild symbol to Basket resolution;
+- remains distinguishable from normal card instances for deck-count/exhaustion rules.
+
+# 3. Other blockers
+
+## Deadpool digital-adaptation policy
 
 Published Deadpool effects depend on external/physical facts such as player names, food, spoken/noise actions, set ownership, mirror presence, sleeve/card-writing state, clothing, wagers and subjective board colour.
 
@@ -209,24 +353,24 @@ The project needs one central policy deciding whether each external predicate/ac
 
 Only after that policy is chosen should the shared engine expose generic external-predicate/player-confirmation primitives.
 
-## Cross-cutting integration-contract gaps
+# Cross-cutting integration-contract gaps
 
 These are **not evidence gaps** and are intentionally not patched by Worker A because they belong in shared schema/mechanics files owned by the Phase 4B orchestrator.
 
-### Runtime identity / namespaces
+## Runtime identity / namespaces
 
-Definition IDs such as `feint`, state keys such as `form`, and fighter IDs such as `alice` are only locally unambiguous. Integration needs explicit scoping/runtime identity so mirror matches and different decks using the same card title cannot collide.
+Definition IDs such as `feint`, state keys such as `form`, and fighter IDs such as `alice` are only locally unambiguous. Integration needs explicit scoping/runtime identity so mirror matches and different decks using the same local IDs cannot collide.
 
-At minimum the shared runtime should distinguish:
+At minimum distinguish:
 
 - fighter definition vs fighter instance;
 - card definition vs card instance;
 - owner/player scope;
 - fighter-local state/resource scope.
 
-### Typed selectors, expressions and result binding
+## Typed selectors, expressions and result binding
 
-Worker manifests necessarily use operands such as:
+Worker manifests use operands such as:
 
 - `discarded_card_boost`;
 - `combat_damage_taken`;
@@ -235,13 +379,28 @@ Worker manifests necessarily use operands such as:
 - `cards_drawn_by_this_effect`;
 - `source_found_zone`.
 
-The shared model needs a typed convention for operation outputs, bindings, expressions and selectors rather than relying on free-form strings interpreted by implementation code.
+The shared model needs typed operation outputs, bindings, expressions and selectors instead of implementation-defined free-form strings.
 
-### Choice contract / hidden information
+## Typed player relations
 
-The shared model needs a normative shape for chooser, choice domain, visibility, output binding, reconnect state and dependent consequences. Worker A now makes the most important multiplayer choices explicit, but the generic serialization contract still needs to be promoted centrally.
+The runtime must distinguish at least:
 
-### Batch / multi-target ordering
+- `combat_opponent` — the other player participating in the current combat;
+- `chosen_opponent` — any opponent selected by a Scheme/effect.
+
+These collapse to the same player in 1v1 but not in 3–4 player games.
+
+## Choice contract / hidden information
+
+Need a normative shape for chooser, choice domain, visibility, output binding, reconnect state and dependent consequences.
+
+Choice bundles also need central rules for:
+
+- precommitting selected options/parameters before resolution where required;
+- owner-selected resolution order where the published/ruling semantics grant it;
+- preserving private information until the correct reveal boundary.
+
+## Batch / multi-target ordering
 
 Operations such as `MOVE each_friendly_fighter` and damage to multiple fighters need shared rules for:
 
@@ -252,33 +411,44 @@ Operations such as `MOVE each_friendly_fighter` and damage to multiple fighters 
 
 This becomes critical once traps, transformation-on-damage and other cross-fighter triggers compose.
 
-### Setup-selected active roster
+## Setup-selected active roster
 
-Buffy chooses exactly one sidekick. Integration must make it impossible for generic selectors to treat the unselected Giles/Xander definition as an active, defeated or targetable fighter for the match.
+Buffy chooses exactly one sidekick. Generic selectors must not treat the unselected Giles/Xander definition as active, defeated or targetable for that match.
 
-### Deterministic randomness / replay
+## Deterministic randomness / replay
 
-Random discard and similar effects need server-authoritative random resolution recorded in match history so reconnect/replay does not re-roll an already resolved random event.
+Random discard and similar effects need server-authoritative random results recorded in match history so reconnect/replay never re-rolls a resolved event.
 
-### Effect defaults and control-flow vocabulary
+## Effect defaults and control-flow vocabulary
 
-Shared schema should explicitly define defaults for omitted effect fields and either promote or replace manifest constructs such as `branches`, `normalization_blocker`, dynamic destination/result identifiers and source-defined composite metadata.
+Shared schema should explicitly define defaults for omitted effect fields and either promote or replace manifest constructs such as:
 
-### Cross-fighter deterministic fixtures
+- `branches`;
+- `normalization_blocker`;
+- source-defined composites;
+- dynamic destination/result identifiers;
+- ordered optional clauses.
 
-Before Phase 4B becomes developer-ready, integration should add fixtures for at least:
+# Cross-fighter deterministic fixtures required before developer-ready
+
+At minimum:
 
 - Muldoon trap × effect movement/placement;
-- Muldoon trap × Yennenga movement path;
+- Muldoon trap × Yennenga `Stallion Charge` path;
 - Fog movement adjacency × traps;
 - Yennenga partial allocation × multi-target/simultaneous damage;
+- Yennenga `Surprise Volley` combat-participant replacement × Momentous Shift/history-sensitive effects;
 - Invisible Man `Vanish` × dormant turn/return timing;
 - Little Red Basket × discard manipulation;
+- Little Red wild Basket × multi-branch card resolution;
 - Buffy selectable sidekick × generic fighter selectors;
+- Buffy `Slayer's Strength` × partial movement impossibility;
+- Beowulf `Ancient Heirloom` × value-set/BOOST ordering;
 - `Regroup` × near-empty deck/exhaustion;
-- mirror matches to prove ID/state isolation.
+- mirror matches to prove ID/state isolation;
+- 3–4 player combat-opponent vs chosen-opponent isolation.
 
-## Files and scope
+# Files and scope
 
 Worker A owns exactly **35 files**:
 
@@ -288,11 +458,10 @@ Worker A owns exactly **35 files**:
 
 No shared schema, mechanics, rules, set registry, ambiguity register, research plan or README file is modified by this branch.
 
-## Worker 4B-A Handoff
+# Worker 4B-A Handoff
 
 Branch: `phase-4b-worker-a-classics`  
 Authorized Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Head immediately before this report consolidation: `360d39d696dc9fedc7d6ba1f9b89e895a3c00f5c`  
 Exact final Head: read after this final report write and supplied in the delivery response.  
 Assigned fighters: **17**  
 Verified: **9**  
@@ -300,7 +469,7 @@ Blocked: **8**
 Quantity validation: **PASS (17/17)**  
 Current UmDb structure/type validation: **PASS (17/17)**  
 Blocking evidence gaps: **0**  
-Engine blocker families: **8**  
+Engine blocker families: **9**  
 Other policy blockers: **1** — Deadpool digital adaptation  
 Cross-cutting integration-contract gaps: **documented above; shared files intentionally untouched**  
 Files in Worker A scope: **35**  
