@@ -1,10 +1,12 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: king-arthur
 display_name: King Arthur
 set_ids: [battle-of-legends-vol-1]
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-006]
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,24 +20,29 @@ ability:
   effects:
     - id: arthur-attack-boost
       trigger: combat_card_commit
-      condition: {attacker: king-arthur}
-      optional: true
-      operations: [{op: BOOST, target: own_attack_card, card_or_blind_source: chosen_hand_card}]
-      note: The BOOST card is committed face-down with the attack and follows current cancellation rulings.
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose-boost-card
+          when: {combat: {attacker: king-arthur}}
+          choices:
+            - {id: choose-boost-card, owner: controller, visibility: committed_hidden, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+          costs: []
+          operations:
+            - {op: BOOST, target: own_attack_card, source: {ref: choice.boost_card}}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/king-arthur.yaml, construction: fixed}
-rulings:
-  - id: arthur-boost-cancellation
-    summary: Current rulings treat the ability BOOST as part of the attack resolution; when the opposing effect cancels it, the committed BOOST card is discarded without adding its BOOST value. Excalibur has no printed effects to cancel, so an attempted effect cancellation does not cancel Arthur's ability BOOST.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
-blocker:
-  reason: absolute_health_assignment_not_in_shared_effect_model
-  affected_card: the-holy-grail
-  report: ../../phase-4b/worker-a-report.md
+  - {id: arthur-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: arthur-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: arthur-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [boost_cancellation, holy_grail_health_semantics]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
