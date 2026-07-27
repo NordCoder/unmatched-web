@@ -113,8 +113,8 @@ cards:
           - id: choose-discards
             when: {bound: legalese_mode, equals: both_discard_one}
             choices:
-              - {id: controller_discard, owner: controller, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: up_to_1_limited_by_hand_size}, min: 0, max: 1, distinct: true, order_matters: false, bind: controller_discard}
-              - {id: opponent_discard, owner: combat_opponent, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: up_to_1_limited_by_hand_size}, min: 0, max: 1, distinct: true, order_matters: false, bind: opponent_discard}
+              - {id: controller_discard, owner: controller, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: exactly_1_limited_by_hand_size}, distinct: true, order_matters: false, bind: controller_discard}
+              - {id: opponent_discard, owner: combat_opponent, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: exactly_1_limited_by_hand_size}, distinct: true, order_matters: false, bind: opponent_discard}
             costs: []
             operations: []
           - id: discard-mode
@@ -146,6 +146,7 @@ cards:
             operations:
               - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: MOVE, scope: rest_of_turn}}
               - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: PLACE, scope: rest_of_turn}}
+              - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: SWAP, scope: rest_of_turn}}
   - id: sensational
     name: Sensational
     quantity: 3
