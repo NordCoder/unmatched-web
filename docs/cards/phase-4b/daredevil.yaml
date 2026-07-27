@@ -64,7 +64,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: [daredevil]
-    type: versatile
+    type: defense
     printed_value: 3
     boost: 2
     tags: []
@@ -90,7 +90,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: [daredevil]
-    type: defense
+    type: versatile
     printed_value: 2
     boost: 1
     tags: []
@@ -136,22 +136,12 @@ cards:
     boost: 2
     tags: []
     effects:
-      - id: grappling-hook-place
+      - id: grappling-hook-move
         trigger: after_combat
         controller: controller
         cancellation: cancelable
         stages:
-          - id: choose-space
-            when: always
-            choices:
-              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_daredevil_zone}, bind: destination}
-            costs: []
-            operations: []
-          - id: place
-            when: {bound: destination, exists: true}
-            choices: []
-            costs: []
-            operations: [{op: PLACE, target: daredevil, destination: {bound: destination}}]
+          - {id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: daredevil, max_distance: 2}]}
   - id: breather
     name: Breather
     quantity: 3
