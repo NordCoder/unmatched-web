@@ -175,7 +175,7 @@ cards:
   - id: one-inch-punch-damage
     trigger: scheme
     choices:
-    - {id: choose-adjacent-opponent, owner: controller, visibility: public, optional: false, domain: adjacent_opposing_fighters, bind: target}
+    - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: fighters_adjacent_to_bruce_lee, bind: target}
     operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 2}]
   - {id: one-inch-punch-return, trigger: cleanup_replacement, condition: {fighter_defeated_by_this_card: true}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}
 - id: nunchaku
@@ -242,4 +242,5 @@ sources:
 normalization_notes:
 - All 17 definitions reconcile to 30 cards.
 - Six Jeet Kune Do cards are tagged for retrieval semantics.
+- One-Inch Punch targets any fighter adjacent to Bruce Lee; defeat-dependent return semantics are unchanged.
 - No fan /decks/ namespace is used.
