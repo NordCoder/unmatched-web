@@ -31,7 +31,6 @@ resources: []
 persistent_state:
   - {key: ancient_leshen_attacked_this_turn, type: boolean, reset: turn_start}
   - {key: left_space_this_turn_by_fighter, type: fighter_instance_boolean_map, reset: turn_start}
-  - {key: leshen_temporarily_off_board_until_turn_start, type: boolean, reset: never}
 
 deck:
   manifest: ../../cards/phase-4b/ancient-leshen.yaml
@@ -53,4 +52,4 @@ sources:
 normalization_notes:
   - Ancient Leshen and Wolves have different base move values (1 and 3 respectively); movement is fighter-definition data, not a permanent SET_STATE mutation. This uses C-EXT-011.
   - Per-turn movement history is keyed by runtime fighter instance; a shared boolean would conflate the Leshen and two Wolves. This uses C-EXT-010.
-  - Vanish Into Murder removes a living hero from the battlefield without defeating it, then schedules a return. The generic temporary-off-board extension is proposed in the Worker C report.
+  - Vanish Into Murder's temporary-off-board state is owned by the C-EXT-007 scheduled-removal context; no parallel boolean mirror is authoritative.
