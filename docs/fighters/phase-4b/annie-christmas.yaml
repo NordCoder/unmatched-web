@@ -26,9 +26,13 @@ ability:
   effects:
     - id: underdog-attack-bonus
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition: {attacker: annie-christmas, annie_health_less_than_defender: true}
-      operations: [{op: ADD_VALUE, target: annie_attack, amount: 2}]
+      stages:
+        - id: apply
+          when: {attacker: annie-christmas, annie_health_less_than_defender: true}
+          operations: [{op: ADD_VALUE, target: annie_attack, amount: 2}]
 
 resources: []
 persistent_state: []
@@ -46,21 +50,9 @@ rulings:
     source_refs: [annie-mississippi-ruling]
 
 sources:
-  - id: annie-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/annie-christmas
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: annie-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/annie-christmas
-    checked_at: 2026-07-27
-    supports: [Necklace of Pearls ruling index]
-  - id: annie-mississippi-ruling
-    authority: official_ruling
-    url: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01
-    checked_at: 2026-07-27
-    supports: [Mississippi Queen damage-preserving health floor]
+  - {id: annie-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/annie-christmas, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: annie-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/annie-christmas, checked_at: 2026-07-27, supports: [Necklace of Pearls ruling index]}
+  - {id: annie-mississippi-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01, checked_at: 2026-07-27, supports: [Mississippi Queen damage-preserving health floor]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
