@@ -1,24 +1,160 @@
 schema_version: 1
 fighter_id: titania
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-002, C-REQ-003, C-REQ-011, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
-  - {id: glamour-deck, owner: self, visibility: private_order}
-  - {id: active-glamour, owner: self, visibility: public}
+  - {id: glamour-deck, owner: self, visibility: private_order, contents: glamour_runtime_instances}
+  - {id: active-glamour, owner: self, visibility: public, max_active: 1}
   - {id: glamour-discard, owner: self, visibility: public}
 
 cards:
-  - {id: queen-of-the-fairies, name: Queen Of The Fairies, quantity: 2, usable_by: [titania], type: attack, printed_value: 2, boost: 3, tags: [], effects: [{trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_cards_in_glamour_discard}]}]}
-  - {id: met-by-moonlight, name: Met By Moonlight, quantity: 3, usable_by: [oberon], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: PLACE, target: oberon, destination: space_adjacent_to_titania}]}]}
-  - {id: as-wise-as-beautiful, name: As Wise As Beautiful, quantity: 3, usable_by: [titania], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, choices: [{owner: controller, choose: branch, options: [draw_one, discard_glamour_draw_two]}], branches: [{condition: {chosen_branch: draw_one}, operations: [{op: DRAW, count: 1}]}, {condition: {chosen_branch: discard_glamour_draw_two}, costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}], operations: [{op: DRAW, count: 2}]}]}]}
-  - {id: whisked-away, name: Whisked Away, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}], optional: true, costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}], followup: [{op: PLACE, target: own_combat_fighter, destination: any_space}]}]}
-  - {id: the-moon-looks-down, name: The Moon Looks Down, quantity: 2, usable_by: [titania], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, choices: [{owner: controller, choose: card_in_glamour_discard}], operations: [{op: MOVE_CARD, from_zone: glamour-discard, to_zone: glamour-deck_bottom, selector: chosen_card}]}]}
-  - {id: fairy-song, name: Fairy Song, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: during_combat, optional: true, costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: parting-gift, name: Parting Gift, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, optional: true, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_in_combat, amount: 2}]}]}
-  - {id: but-a-dream, name: But A Dream, quantity: 2, usable_by: [titania], type: defense, printed_value: 0, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}, {op: MOVE_CARD, from_zone: resolving_opposing_combat_card, to_zone: owner_hand, selector: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
-  - {id: protection-of-the-fairy-woods, name: Protection Of The Fairy Woods, quantity: 3, usable_by: any, type: defense, printed_value: 2, boost: 1, tags: [], effects: [{trigger: immediately, optional: true, costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: a-momentary-glance, name: A Momentary Glance, quantity: 2, usable_by: [titania], type: scheme, printed_value: null, boost: 4, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: fighter_in_titania_zone}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
+  - id: queen-of-the-fairies
+    name: Queen Of The Fairies
+    quantity: 2
+    usable_by: [titania]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: queen-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {zone: glamour-discard, owner: self}
+  - {id: met-by-moonlight, name: Met By Moonlight, quantity: 3, usable_by: [oberon], type: attack, printed_value: 5, boost: 2, tags: [], effects: [{id: moonlight-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: PLACE, target: oberon, destination: space_adjacent_to_titania}]}]}]}
+  - id: as-wise-as-beautiful
+    name: As Wise As Beautiful
+    quantity: 3
+    usable_by: [titania]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: wise-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [draw_one, discard_glamour_draw_two], bind: mode}]
+          - {id: draw-one, when: {ref: mode, equals: draw_one}, operations: [{op: DRAW, count: 1}]}
+          - id: discard-and-draw
+            when: {ref: mode, equals: discard_glamour_draw_two}
+            costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}]
+            operations: [{op: DRAW, count: 2}]
+  - id: whisked-away
+    name: Whisked Away
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: [staged_resolution]
+    effects:
+      - id: whisked-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}]}
+          - id: optional-discard
+            choices: [{id: discard-active, owner: controller, visibility: public, optional: true, domain: [discard_active_glamour], bind: discard_active}]
+          - id: discard-and-place
+            when: {ref: discard_active, exists: true}
+            costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}]
+            operations: [{op: PLACE, target: own_combat_fighter, destination: any_space}]
+  - id: the-moon-looks-down
+    name: The Moon Looks Down
+    quantity: 2
+    usable_by: [titania]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: moon-looks-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-glamour
+            choices: [{id: glamour, owner: controller, visibility: public, optional: false, domain: {selector: {zone: glamour-discard, owner: self}}, bind: selected_glamour}]
+          - {id: return, when: {ref: selected_glamour, exists: true}, operations: [{op: MOVE_CARD, from_zone: glamour-discard, to_zone: glamour-deck_bottom, selector: {ref: selected_glamour}}]}
+  - id: fairy-song
+    name: Fairy Song
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: fairy-song-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-discard
+            choices: [{id: discard-active, owner: controller, visibility: public, optional: true, domain: [discard_active_glamour], bind: discard_active}]
+          - id: apply
+            when: {ref: discard_active, exists: true}
+            costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}]
+            operations: [{op: SET_VALUE, target: this_card, value: 5}]
+  - {id: parting-gift, name: Parting Gift, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{id: parting-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: optional-damage, choices: [{id: use, owner: controller, visibility: public, optional: true, domain: [deal_damage], bind: use_effect}]}, {id: damage, when: {ref: use_effect, exists: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_in_combat, amount: 2}]}]}]}
+  - {id: but-a-dream, name: But A Dream, quantity: 2, usable_by: [titania], type: defense, printed_value: 0, boost: 2, tags: [], effects: [{id: dream-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}, {op: MOVE_CARD, from_zone: resolving_opposing_combat_card, to_zone: owner_hand, selector: opposing_combat_card}]}]}, {id: dream-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, operations: [{op: DRAW, count: 1}]}]}]}
+  - id: protection-of-the-fairy-woods
+    name: Protection Of The Fairy Woods
+    quantity: 3
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: protection-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-discard
+            choices: [{id: discard-active, owner: controller, visibility: public, optional: true, domain: [discard_active_glamour], bind: discard_active}]
+          - id: apply
+            when: {ref: discard_active, exists: true}
+            costs: [{op: MOVE_CARD, from_zone: active-glamour, to_zone: glamour-discard, selector: active_card}]
+            operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
+  - id: a-momentary-glance
+    name: A Momentary Glance
+    quantity: 2
+    usable_by: [titania]
+    type: scheme
+    printed_value: null
+    boost: 4
+    tags: []
+    effects:
+      - id: glance-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose
+            choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters, in_zone_of: titania}}, bind: target_fighter}]
+          - {id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: target_fighter}, amount: 2}]}
   - id: gift-of-the-fair-folk
     name: Gift Of The Fair Folk
     quantity: 3
@@ -26,19 +162,24 @@ cards:
     type: scheme
     printed_value: null
     boost: 2
-    tags: []
+    tags: [staged_resolution]
     effects:
-      - trigger: scheme
-        choices: [{owner: controller, choose: two_distinct_branches, options: [recover_one, draw_two, move_two]}]
-        branches:
-          - condition: {recover_one_selected: true}
-            choices: [{owner: controller, choose: one_fighter, capture: recovery_target}]
-            operations: [{op: RECOVER, target: captured.recovery_target, amount: 2}]
-          - condition: {draw_two_selected: true}
-            operations: [{op: DRAW, count: 2}]
-          - condition: {move_two_selected: true}
-            choices: [{owner: controller, choose: two_fighters, capture: movement_targets}]
-            operations: [{op: MOVE, target: captured.movement_targets, max_distance: 2}]
+      - id: gift-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-two
+            choices: [{id: modes, owner: controller, visibility: public, optional: false, domain: {choose: 2, from: [recover_one, draw_two, move_two]}, bind: selected_modes}]
+          - id: choose-recovery
+            when: {expr: {op: contains, set: {ref: selected_modes}, value: recover_one}}
+            choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters}}, bind: recovery_target}]
+          - {id: recover, when: {ref: recovery_target, exists: true}, operations: [{op: RECOVER, target: {ref: recovery_target}, amount: 2}]}
+          - {id: draw, when: {expr: {op: contains, set: {ref: selected_modes}, value: draw_two}}, operations: [{op: DRAW, count: 2}]}
+          - id: choose-movement
+            when: {expr: {op: contains, set: {ref: selected_modes}, value: move_two}}
+            choices: [{id: fighters, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters}, max: 2}, bind: movement_targets}]
+          - {id: move, when: {ref: movement_targets, exists: true}, operations: [{op: MOVE, target: {ref: movement_targets}, max_distance: 2}]}
   - id: what-fools-these-mortals-be
     name: What Fools These Mortals Be
     quantity: 2
@@ -46,31 +187,73 @@ cards:
     type: scheme
     printed_value: null
     boost: 2
-    tags: []
+    tags: [staged_resolution]
     effects:
-      - trigger: scheme
-        choices: [{owner: controller, choose: opponent, capture: chosen_opponent}]
-        operations: [{op: LOOK_AT, source: captured.chosen_opponent.hand, selector: all, viewer: controller, capture: viewed_hand}]
-        choices_after: [{owner: controller, choose: card_from_captured_viewed_hand, capture: chosen_card}]
-        followup:
-          - {op: MOVE_CARD, from_zone: captured.chosen_opponent.hand, to_zone: captured.chosen_opponent.deck, selector: captured.chosen_card}
-          - {op: SHUFFLE, zone: captured.chosen_opponent.deck}
+      - id: fools-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            choices: [{id: opponent, owner: controller, visibility: public, optional: false, domain: {selector: opponents}, bind: selected_opponent}]
+          - id: inspect
+            operations: [{op: LOOK_AT, source: {ref: selected_opponent.hand}, selector: all, viewer: controller, bind_result: viewed_hand}]
+          - id: choose-card
+            choices: [{id: card, owner: controller, visibility: private, optional: false, domain: {ref: viewed_hand}, bind: selected_card}]
+          - id: replace-and-shuffle
+            when: {ref: selected_card, exists: true}
+            operations:
+              - {op: MOVE_CARD, from_zone: {ref: selected_opponent.hand}, to_zone: {ref: selected_opponent.deck}, selector: {ref: selected_card}}
+              - {op: SHUFFLE, zone: {ref: selected_opponent.deck}}
 
-external_definitions:
-  - {id: glamour-of-greed, kind: glamour, effects: [{trigger: turn_end, optional: true, operations: [{op: DRAW, count: 1}]}]}
-  - {id: glamour-of-invisibility, kind: glamour, effects: [{trigger: static, continuous: true, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_rule_modifier, target: friendly_fighters, rule: may_move_through_opposing_fighters, value: true, source_lifetime: active_glamour}]}]}
-  - {id: glamour-of-jealousy, kind: glamour, effects: [{trigger: before_defense_card_commit, optional: true, condition: {defender: [titania, oberon]}, operations: [{op: SWAP, a: titania, b: oberon}, {op: SET_STATE, key: combat_defender, value: other_fighter, condition: {swap_completed: true}}]}]}
-  - {id: glamour-of-love, kind: glamour, effects: [{trigger: maneuver_before_fighter_movement, optional: true, choices: [{owner: controller, choose: opposing_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 1}]}]}
-  - {id: glamour-of-rhyme, kind: glamour, effects: [{trigger: after_scheme, operations: [{op: GAIN_ACTION, count: 1}]}]}
-  - {id: glamour-of-sleep, kind: glamour, effects: [{trigger: replacement, continuous: true, operations: [{op: PREVENT_DAMAGE, target: friendly_fighters, scope: all_non_combat_damage}]}]}
+auxiliary_cards:
+  - id: glamour-of-greed
+    kind: glamour
+    effects: [{id: greed-end, trigger: turn_end, controller: owner, cancellation: source_defined, stages: [{id: optional-draw, choices: [{id: draw, owner: controller, visibility: public, optional: true, domain: [draw_one], bind: draw_choice}]}, {id: draw, when: {ref: draw_choice, exists: true}, operations: [{op: DRAW, count: 1}]}]}]
+  - id: glamour-of-invisibility
+    kind: glamour
+    effects: [{id: invisibility-static, trigger: static, controller: owner, cancellation: source_defined, continuous: true, stages: [{id: apply, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_rule_modifier, target: friendly_fighters, rule: may_move_through_opposing_fighters, value: true, source_lifetime: active_glamour}]}]}]
+  - id: glamour-of-jealousy
+    kind: glamour
+    effects:
+      - id: jealousy-precommit
+        trigger: before_defense_card_commit
+        controller: owner
+        cancellation: source_defined
+        stages:
+          - id: optional-swap
+            when: {defender: [titania, oberon]}
+            choices: [{id: swap, owner: controller, visibility: public, optional: true, domain: [swap_defender], bind: swap_choice}]
+          - {id: swap, when: {ref: swap_choice, exists: true}, operations: [{op: SWAP, a: titania, b: oberon, bind_result: jealousy_swap}]}
+          - {id: replace-defender, when: {ref: jealousy_swap.succeeded, equals: true}, operations: [{op: SET_STATE, key: combat_defender, value: other_fighter}]}
+  - id: glamour-of-love
+    kind: glamour
+    effects:
+      - id: love-maneuver
+        trigger: maneuver_before_fighter_movement
+        controller: owner
+        cancellation: source_defined
+        stages:
+          - id: optional-target
+            choices: [{id: fighter, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: opposing_fighters}}, bind: target_fighter}]
+          - {id: move, when: {ref: target_fighter, exists: true}, operations: [{op: MOVE, target: {ref: target_fighter}, max_distance: 1}]}
+  - {id: glamour-of-rhyme, kind: glamour, effects: [{id: rhyme-after-scheme, trigger: after_scheme, controller: owner, cancellation: source_defined, stages: [{id: action, operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+  - {id: glamour-of-sleep, kind: glamour, effects: [{id: sleep-replacement, trigger: replacement, controller: owner, cancellation: source_defined, continuous: true, stages: [{id: prevent, operations: [{op: PREVENT_DAMAGE, target: friendly_fighters, scope: all_non_combat_damage}]}]}]}
 
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, external_definition_count: 6}
+external_definitions: []
 sources:
-  - https://unmatched.cards/umdb/decks/titania
-  - https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
-  - https://www.the-unmatched.club/heroes/titania
+  - {id: slings-rules-titania, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Glamour lifecycle and Titania rules]}
+  - {id: titania-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/titania, checked_at: 2026-07-27, supports: [published action deck and six Glamour definitions]}
+  - {id: titania-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/titania, checked_at: 2026-07-27, supports: [current Titania rulings]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, external_gameplay_cards: 6}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - The six Glamours are external gameplay cards with runtime instances in their own shuffled deck; they do not count toward the 30-card action deck.
-  - The auxiliary-deck runtime lifecycle and the pre-defense-card Glamour of Jealousy interrupt are proposed as generic semantics in the Worker C report.
-  - Gift Of The Fair Folk uses branch-local target choices; What Fools These Mortals Be chooses a card only after its controller has looked at the selected opponent's hand.
-  - Glamour of Invisibility uses the reusable continuous rule-modifier proposal rather than permanently mutating fighter state.
+  - auxiliary_cards are six gameplay card definitions instantiated into glamour-deck; external_definitions is intentionally empty so procedural behavior is not hidden there.
+  - What Fools These Mortals Be uses inspect -> dependent choice -> move/shuffle stages.
+  - Glamour of Jealousy uses pre-commit participant replacement; Glamour of Invisibility uses a source-lifetime continuous rule modifier.
