@@ -2,7 +2,13 @@ schema_version: 1
 id: hamlet
 display_name: Hamlet
 set_ids: [slings-and-arrows]
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-013]
 movement: 2
 
 topology:
@@ -24,12 +30,16 @@ ability:
   effects:
     - id: choose-question-state
       trigger: turn_start
-      choices: [{owner: controller, choose: question_state, options: [to-be, not-to-be]}]
-      operations: [{op: SET_STATE, key: question_state, value: chosen_question_state}]
-      branches:
-        - condition: {chosen_question_state: not-to-be}
-          choices: [{owner: controller, choose: one_own_fighter, capture: self_damage_target}]
-          operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.self_damage_target, amount: 2}]
+      stages:
+        - id: choose-state
+          choices:
+            - {id: question-state-choice, owner: controller, visibility: public, optional: false, domain: [to-be, not-to-be], bind: question_state_choice}
+          operations: [{op: SET_STATE, key: question_state, value: {ref: question_state_choice}}]
+        - id: not-to-be-self-damage
+          when: {ref: question_state_choice, equals: not-to-be}
+          choices:
+            - {id: self-damage-target, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: controller_fighters}}, bind: self_damage_target}
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: self_damage_target}, amount: 2}]
     - id: to-be-extra-draw
       trigger: maneuver_draw
       condition: {question_state: to-be}
@@ -42,7 +52,7 @@ ability:
 
 resources: []
 persistent_state:
-  - {key: question_state, type: enum, reset: never}
+  - {key: question_state, type: enum, reset: never, visibility: public}
   - {key: hamlet_took_damage_this_turn, type: boolean, reset: turn_start}
 
 deck:
@@ -52,15 +62,41 @@ deck:
 rulings:
   - id: rg-single-fighter
     summary: Rosencrantz & Guildenstern are one sidekick fighter despite the two-name display label.
-    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
-  - id: not-to-be-damages-friendly
-    summary: Choosing NOT TO BE immediately requires dealing 2 damage to one of Hamlet's own fighters.
-    source: https://www.the-unmatched.club/heroes/hamlet
+    source_refs: [slings-rules-hamlet]
+  - id: not-to-be-damages-own-fighter
+    summary: Choosing NOT TO BE requires dealing 2 damage to one fighter controlled by Hamlet's player.
+    source_refs: [hamlet-rulings]
 
 sources:
-  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/hamlet}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/hamlet}
+  - id: slings-rules-hamlet
+    authority: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+    checked_at: 2026-07-27
+    supports: [Hamlet fighter rules, Rosencrantz and Guildenstern topology]
+  - id: hamlet-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/hamlet
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: hamlet-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/heroes/hamlet
+    checked_at: 2026-07-27
+    supports: [current Hamlet ruling index]
+  - id: worker-c-normalization-hamlet
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
+    checked_at: 2026-07-27
+    supports: [failed-placement dependency interpretation]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
-  - question_state is the single authoritative public enum state. The physical TO BE / NOT TO BE token is a presentation of that state, not a second independently mutable resource.
+  - question_state is the single authoritative public enum state; the physical token is presentation only.
