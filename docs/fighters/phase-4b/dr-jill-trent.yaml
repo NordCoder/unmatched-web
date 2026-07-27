@@ -36,13 +36,7 @@ ability:
       condition: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
       operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
 
-resources:
-  - id: active-gadget-token
-    kind: counter
-    visibility: public
-    initial: none
-    values: [none, hypnoray-blaster, ultrabiotic-tonic]
-
+resources: []
 persistent_state:
   - {key: active_gadget, type: enum, reset: never}
 
@@ -65,3 +59,4 @@ sources:
 
 normalization_notes:
   - Competitive hero behavior only. Adventures enemies and scenario systems are intentionally excluded.
+  - active_gadget is the single authoritative public enum state. The physical two-sided gadget token is a presentation of that state, not a second independently mutable resource.
