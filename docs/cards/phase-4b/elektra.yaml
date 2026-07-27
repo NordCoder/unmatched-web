@@ -79,7 +79,7 @@ cards:
           - id: choose-return
             when: {defeated_the_hand_exists: true}
             choices:
-              - {id: hand_fighter, owner: controller, visibility: public, optional: true, domain: {kind: fighter, selector: defeated_the_hand, count: 1}, bind: hand_fighter}
+              - {id: hand_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: defeated_the_hand, count: 1}, bind: hand_fighter}
               - {id: return_space, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: space_in_elektra_zone, enabled_when: {bound: hand_fighter, exists: true}}, bind: return_space}
             costs: []
             operations: []
