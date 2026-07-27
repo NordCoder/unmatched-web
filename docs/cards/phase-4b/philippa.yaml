@@ -1,20 +1,122 @@
 schema_version: 1
 fighter_id: philippa
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-008, C-REQ-011, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
-  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1}
+  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1, insertion_policy: replace_current}
 
 cards:
-  - {id: regicide, name: Regicide, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, tags: [], effects: [{trigger: during_combat, condition: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
-  - {id: lightning-bolt, name: Lightning Bolt, quantity: 3, usable_by: [philippa], type: attack, printed_value: 3, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {maneuver_actions_taken_this_turn: 0}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_philippa_zone, amount: 1}]}]}
-  - {id: owlform, name: Owlform, quantity: 3, usable_by: [philippa], type: attack, printed_value: 3, boost: 3, tags: [], effects: [{trigger: during_combat, choices: [{owner: controller, choose: any_number_cards_from_hand, capture: discarded_cards}], operations: [{op: DISCARD, controller: controller, from: hand, selector: captured.discarded_cards, count: all_chosen}, {op: ADD_VALUE, target: this_card, amount_rule: count_captured.discarded_cards}]}]}
-  - {id: chain-lightning, name: Chain Lightning, quantity: 2, usable_by: [philippa], type: attack, printed_value: 2, boost: 3, tags: [], effects: [{trigger: after_combat, choices: [{owner: controller, choose: zone_containing_philippa}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_chosen_zone, amount: 1}]}]}
-  - {id: cunning, name: Cunning, quantity: 2, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, controller: opponent, optional: true, costs: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_card, count: 1}], if_declined: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]}]}
-  - {id: redanian-plot, name: Redanian Plot, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: immediately, controller: opponent, optional: true, costs: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_card, count: 1}], if_declined: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
-  - {id: spellbreaker, name: Spellbreaker, quantity: 3, usable_by: [philippa], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: END_TURN}]}]}
-  - {id: paralyzing-fetters, name: Paralyzing Fetters, quantity: 2, usable_by: [philippa], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value_from: opposing_combat_card.printed_value, lock: true, scope: current_combat}]}]}
+  - {id: regicide, name: Regicide, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, tags: [], effects: [{id: regicide-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}]}
+  - id: lightning-bolt
+    name: Lightning Bolt
+    quantity: 3
+    usable_by: [philippa]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: lightning-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: damage
+            when: {maneuver_actions_taken_this_turn: 0}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, in_zone_of: philippa}}, amount: 1}]
+  - id: owlform
+    name: Owlform
+    quantity: 3
+    usable_by: [philippa]
+    type: attack
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: owlform-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discards
+            choices:
+              - {id: cards, owner: controller, visibility: private, optional: false, domain: {selector: {zone: hand, owner: self}, cardinality: any}, bind: discarded_cards}
+          - id: discard-and-add
+            operations:
+              - {op: DISCARD, controller: controller, from: hand, selector: {ref: discarded_cards}, count: all_chosen}
+              - {op: ADD_VALUE, target: this_card, amount: {expr: {op: count, value: {ref: discarded_cards}}}}
+  - id: chain-lightning
+    name: Chain Lightning
+    quantity: 2
+    usable_by: [philippa]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: chain-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-zone
+            choices: [{id: zone, owner: controller, visibility: public, optional: false, domain: {selector: {zones: containing_fighter, fighter: philippa}}, bind: chosen_zone}]
+          - {id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, in_zone: {ref: chosen_zone}}}, amount: 1}]}
+  - id: cunning
+    name: Cunning
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: [opponent_choice]
+    effects:
+      - id: cunning-after
+        trigger: after_combat
+        controller: opponent
+        cancellation: cancelable
+        stages:
+          - id: choose-payment
+            choices:
+              - {id: card, owner: controller, visibility: private, optional: true, domain: {selector: {zone: hand, owner: controller}}, bind: payment_card}
+          - id: pay
+            when: {ref: payment_card, exists: true}
+            costs: [{op: DISCARD, controller: controller, from: hand, selector: {ref: payment_card}, count: 1}]
+          - id: declined-damage
+            when: {ref: payment_card, exists: false}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]
+  - id: redanian-plot
+    name: Redanian Plot
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: [opponent_choice]
+    effects:
+      - id: redanian-immediately
+        trigger: immediately
+        controller: opponent
+        cancellation: cancelable
+        stages:
+          - id: choose-payment
+            choices:
+              - {id: card, owner: controller, visibility: private, optional: true, domain: {selector: {zone: hand, owner: controller}}, bind: payment_card}
+          - id: pay
+            when: {ref: payment_card, exists: true}
+            costs: [{op: DISCARD, controller: controller, from: hand, selector: {ref: payment_card}, count: 1}]
+          - id: declined-ignore
+            when: {ref: payment_card, exists: false}
+            operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
+  - {id: spellbreaker, name: Spellbreaker, quantity: 3, usable_by: [philippa], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: spellbreaker-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}, {id: spellbreaker-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: end-turn, operations: [{op: END_TURN}]}]}]}
+  - {id: paralyzing-fetters, name: Paralyzing Fetters, quantity: 2, usable_by: [philippa], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{id: fetters-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: SET_VALUE, target: opposing_combat_card, value_from: opposing_combat_card.printed_value, lock: true, scope: current_combat}]}]}]}
   - id: do-my-bidding
     name: Do My Bidding
     quantity: 2
@@ -22,20 +124,66 @@ cards:
     type: defense
     printed_value: 3
     boost: 3
-    tags: []
+    tags: [staged_resolution, combat_card_replacement]
     effects:
-      - trigger: immediately
-        operations:
-          - {op: MOVE_CARD, from_zone: resolving_opposing_attack_card, to_zone: owner_hand, selector: opposing_attack_card}
-          - {op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller, capture: viewed_hand}
-        nested_choice:
-          owner: controller
-          choose: attack_or_versatile_card_from_captured_opponent_hand
-          capture: replacement_attack_card
-          then:
-            - {op: REPLACE_COMBAT_CARD, side: attacker, card: captured.replacement_attack_card, controller: opponent, resolution_rule: source_defined_replacement_card_enters_current_combat_and_resolves_eligible_effects}
-  - {id: blinding-dust, name: Blinding Dust, quantity: 2, usable_by: [philippa], type: defense, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, optional: true, costs: [{op: DISCARD, controller: controller, from: hand, selector: chosen_card, count: 1, capture: discarded_card}], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: captured.discarded_card.boost_or_0}]}]}
-  - {id: backup-plan, name: Backup Plan, quantity: 2, usable_by: [philippa], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: branch, options: [set_health_to_five, draw_three]}], branches: [{condition: {chosen_branch: set_health_to_five}, operations: [{op: TRIGGER_COMPOSITE, kind: set_health_exact, target: philippa, value: 5}]}, {condition: {chosen_branch: draw_three}, operations: [{op: DRAW, count: 3}]}]}]}
+      - id: bidding-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: return-attack
+            operations: [{op: MOVE_CARD, from_zone: resolving_opposing_attack_card, to_zone: owner_hand, selector: opposing_attack_card}]
+          - id: inspect-hand
+            operations: [{op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller, bind_result: viewed_hand}]
+          - id: choose-replacement
+            choices:
+              - id: replacement
+                owner: controller
+                visibility: private
+                optional: false
+                domain: {selector: {cards: {ref: viewed_hand}, card_filter: {type_in: [attack, versatile]}}}
+                bind: replacement_attack_card
+          - id: replace
+            when: {ref: replacement_attack_card, exists: true}
+            operations: [{op: REPLACE_COMBAT_CARD, side: attacker, card: {ref: replacement_attack_card}, controller: opponent, resolution_rule: source_defined_replacement_card_enters_current_combat_and_resolves_eligible_effects}]
+  - id: blinding-dust
+    name: Blinding Dust
+    quantity: 2
+    usable_by: [philippa]
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: blinding-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discard
+            choices: [{id: card, owner: controller, visibility: private, optional: true, domain: {selector: {zone: hand, owner: self}}, bind: discarded_card}]
+          - id: pay-and-damage
+            when: {ref: discarded_card, exists: true}
+            costs: [{op: DISCARD, controller: controller, from: hand, selector: {ref: discarded_card}, count: 1}]
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: {ref: discarded_card.boost_or_0}}]
+  - id: backup-plan
+    name: Backup Plan
+    quantity: 2
+    usable_by: [philippa]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [exact_health_assignment]
+    effects:
+      - id: backup-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [set_health_to_five, draw_three], bind: mode}]
+          - {id: set-health, when: {ref: mode, equals: set_health_to_five}, operations: [{op: TRIGGER_COMPOSITE, kind: set_health_exact, target: philippa, value: 5}]}
+          - {id: draw, when: {ref: mode, equals: draw_three}, operations: [{op: DRAW, count: 3}]}
   - id: spymasters-ruse
     name: "Spymaster's Ruse"
     quantity: 2
@@ -43,30 +191,88 @@ cards:
     type: scheme
     printed_value: null
     boost: 2
-    tags: [ordered_effect_stages]
+    tags: [staged_resolution]
     effects:
-      - trigger: scheme
-        operations:
-          - op: TRIGGER_COMPOSITE
-            kind: ordered_effect_stages
-            stages:
-              - choices: [{owner: controller, choose: opponent, capture: chosen_opponent}]
-              - choices: [{owner: captured.chosen_opponent, choose: cards_from_own_hand, count_rule: min_4_current_hand_size, capture: cards_to_reveal}]
-                operations: [{op: REVEAL, source: captured.chosen_opponent.hand, selector: captured.cards_to_reveal, capture: revealed_cards}]
-              - choices: [{owner: controller, choose: cards_from_captured_revealed_cards, count_rule: min_2_captured_revealed_count, capture: cards_to_discard}]
-                operations:
-                  - {op: DISCARD, controller: captured.chosen_opponent, from: hand, selector: captured.cards_to_discard, count: all_chosen}
-                  - {op: DRAW, controller: captured.chosen_opponent, count: 2}
-  - {id: polymorphy, name: Polymorphy, quantity: 2, usable_by: [philippa], type: scheme, printed_value: null, boost: 3, tags: [ongoing_scheme], effects: [{trigger: scheme, operations: [{op: PLACE, target: philippa, destination: any_space}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: static, continuous: true, while_in_zone: ongoing-schemes, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: philippa, attribute: move_value, set_value: 5, source_lifetime: while_source_in_zone}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {philippa_shares_no_zone_with_opposing_fighter: true}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
+      - id: ruse-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            choices: [{id: opponent, owner: controller, visibility: public, optional: false, domain: {selector: opponents}, bind: selected_opponent}]
+          - id: opponent-selects-reveal
+            choices:
+              - id: reveal-cards
+                owner: {ref: selected_opponent}
+                visibility: private
+                optional: false
+                domain: {selector: {zone: hand, owner: {ref: selected_opponent}}, cardinality: {expr: {op: min, values: [4, {ref: selected_opponent.hand_size}]}}}
+                bind: cards_to_reveal
+          - id: reveal
+            operations: [{op: REVEAL, source: {ref: selected_opponent.hand}, selector: {ref: cards_to_reveal}, bind_result: revealed_cards}]
+          - id: controller-selects-discard
+            choices:
+              - id: discard-cards
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {selector: {cards: {ref: revealed_cards}}, cardinality: {expr: {op: min, values: [2, {expr: {op: count, value: {ref: revealed_cards}}}]}}}
+                bind: cards_to_discard
+          - id: discard-and-draw
+            operations:
+              - {op: DISCARD, controller: {ref: selected_opponent}, from: hand, selector: {ref: cards_to_discard}, count: all_chosen}
+              - {op: DRAW, controller: {ref: selected_opponent}, count: 2}
+  - id: polymorphy
+    name: Polymorphy
+    quantity: 2
+    usable_by: [philippa]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: [ongoing_scheme, continuous_modifier]
+    effects:
+      - id: polymorphy-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: place, operations: [{op: PLACE, target: philippa, destination: any_space}]}
+          - {id: enter-ongoing, operations: [{op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}
+      - id: polymorphy-static
+        trigger: static
+        controller: owner
+        cancellation: source_defined
+        while_in_zone: ongoing-schemes
+        continuous: true
+        stages: [{id: modifier, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: philippa, attribute: move_value, set_value: 5, source_lifetime: while_source_in_zone}]}]
+      - id: polymorphy-turn-end
+        trigger: turn_end
+        controller: owner
+        cancellation: source_defined
+        while_in_zone: ongoing-schemes
+        stages:
+          - id: discard
+            when:
+              expr:
+                op: equals
+                left: {expr: {op: count, selector: {fighters: opposing_fighters, shares_zone_with: philippa}}}
+                right: 0
+            operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
 sources:
-  - https://unmatched.cards/umdb/decks/philippa
-  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
-  - https://www.the-unmatched.club/rules/philippa
+  - {id: witcher-rf-rules-philippa, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Philippa and ongoing-scheme rules]}
+  - {id: philippa-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/philippa, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+  - {id: philippa-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/philippa, checked_at: 2026-07-27, supports: [current Philippa rulings]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - Backup Plan's health branch is exact assignment, not RECOVER; set_health_exact is proposed as a generic composite in the Worker C report.
-  - Do My Bidding now follows the established Phase 4A Dracula replacement-combat pattern: return the attack, inspect the resulting hand, then choose and replace inside the same combat.
-  - Spymaster's Ruse requires ordered dependent choices: the chosen opponent selects the 4 cards they reveal (or all if fewer), then Philippa's controller selects exactly 2 of the revealed cards when possible, then the opponent draws 2. This uses C-EXT-013.
-  - Polymorphy's move value 5 is a continuous source-lifetime modifier and must disappear when the ongoing scheme leaves play; it uses C-EXT-011 rather than permanent SET_STATE mutation.
+  - Do My Bidding uses return -> inspect -> dependent replacement choice -> same-combat replacement stages.
+  - Spymaster's Ruse models the opponent-selected reveal set before Philippa's controller selects the discard set.
+  - Backup Plan requires exact health assignment; Polymorphy is a source-lifetime movement modifier.
