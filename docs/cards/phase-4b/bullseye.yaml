@@ -113,7 +113,7 @@ cards:
         cancellation: cancelable
         stages:
           - id: choose-target
-            when: {opposing_combat_fighter_defeated_by_this_attack: false}
+            when: {opposing_combat_fighter_defeated: false}
             choices:
               - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: fighter_in_opposing_combat_fighter_current_zone}, bind: damage_target}
             costs: []
