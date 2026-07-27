@@ -19,7 +19,8 @@ ability:
   effects:
   - id: lay-track
     trigger: start_turn
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_place_track_token, destination_rule: space_in_john_henry_zone}]
+    operations:
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_place_track_token, destination_rule: space_in_john_henry_zone, if_token_off_board: place_off_board_token, if_all_tokens_on_board: relocate_one_deployed_token}
   - id: track-movement-cost
     trigger: static
     continuous: true
@@ -29,22 +30,34 @@ ability:
     trigger: john_henry_moves
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_record_distinct_paths_traversed_this_turn, state: john_henry_distinct_paths_used_this_turn}]
 resources:
-- {id: track-tokens, kind: token_pool, visibility: public, initial: 10}
+- id: track-tokens
+  kind: token_pool
+  visibility: public
+  initial: 10
+  runtime_state:
+    per_token_states: [off_board, deployed]
+    initial_state: off_board
+    deployed_anchor: space_ref
+    summon_rule: place_off_board_token_if_available_else_relocate_one_deployed_token
 persistent_state:
 - {key: john_henry_distinct_paths_used_this_turn, type: integer, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/john-henry.yaml
   construction: fixed
 rulings:
+- id: track-summon-supply-exhaustion
+  summary: At start of turn, summon a track token in John Henry's zone. If a token is off the board, place one of those; if all ten are already on the board, take one deployed token and place it instead.
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 - id: opponent-movement-track-benefit
   summary: An opponent moving John Henry does not gain his track-token movement benefit.
-  source: https://www.the-unmatched.club/heroes/john-henry
+  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
+- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', note: Establishes track placement/reuse, movement benefit and distinct-path Hammer semantics.}
 - {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms track-token movement semantics.}
 - {authority: reference, url: https://www.the-unmatched.club/heroes/john-henry, checked_at: '2026-07-27', note: Visual card corpus and current ruling index.}
 normalization_notes:
+- Track placement is complete source data: when all ten tokens are deployed, the start-turn summon relocates an existing deployed token instead of failing.
 - The track movement-cost override is controller-sensitive; forced movement controlled by an opponent does not receive the discount.
-- Positioned track tokens and distinct-path history remain source-defined composites pending shared path-resource semantics.
-- All competitive fighter behavior needed by the 30-card corpus is represented.
+- Positioned track tokens and reconnect-safe distinct-path identity remain source-defined composites pending shared path-resource/path_ref-set semantics.
+- The scalar john_henry_distinct_paths_used_this_turn is retained only as a derived count for current card conditions; an authoritative set of path identities is still required for replay/reconnect validation.
