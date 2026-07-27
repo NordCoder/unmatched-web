@@ -38,6 +38,14 @@ resources:
     deployed_anchor: path_ref
     occupancy_rule: at_most_one_foot_soldier_per_path
     removal_destination: supply
+    path_lifecycle_rule:
+      disappearing_path: token_remains_deployed_on_original_path_ref
+      while_path_absent:
+        counts_as_deployed: true
+        participates_in_shredder_adjacency_effects: false
+        participates_in_normal_path_effects: false
+      if_path_returns: resume_normal_path_token_semantics
+      if_path_never_returns: remain_deployed_but_inactive_for_path_adjacency_semantics
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/shredder.yaml
@@ -49,14 +57,19 @@ rulings:
 - id: shredder-path-token-rulings
   summary: Foot Soldiers occupy paths. Only an opposing hero moving during a boosted maneuver may remove traversed Foot Soldiers; sidekicks and effect movement cannot. Removed tokens return to supply.
   source: https://www.the-unmatched.club/rules/shredder
+- id: shredder-removable-paths
+  summary: On Heorot, a Foot Soldier stays deployed when its door-path disappears. While the path is absent it does not count for Shredder adjacency effects, but it still counts as deployed for Perplexing Tactics. If the door reopens, normal Foot Soldier semantics resume. Point Pleasant uses the same absent-path behavior, except a removed path there never returns.
+  source: https://www.the-unmatched.club/tools/disputes/2aa122db-53b9-4875-862e-766540449240
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
 - {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Current competitive Hero Deck reference confirms Bebop & Rocksteady are one seven-health sidekick component.}
 - {authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27'}
+- {authority: official_ruling_transcription, url: https://www.the-unmatched.club/tools/disputes/2aa122db-53b9-4875-862e-766540449240, checked_at: '2026-07-27', note: Official Archive-authority verdict manually transcribed by the project owner because the indexed retrieval surface did not expose the verdict body to Worker D.}
 normalization_notes:
 - Bebop & Rocksteady are one canonical sidekick fighter instance with one token and one 7-health dial; modeling Bebop and Rocksteady as two independently damageable fighters is invalid.
 - The combined sidekick is summonable because Back to Work can return it after defeat.
 - Every deployed Foot Soldier is a concrete token instance anchored to a path_ref; a scalar deployed count is derived state only.
-- Foot Soldier edge/path semantics remain source-defined composites pending shared path_ref integration.
-- The current rulings index has an official ruling for Foot Soldiers on paths that leave the gamestate, but its verdict body still needs authoritative transcription into shared battlefield integration.
+- A deployed Foot Soldier survives disappearance of its path_ref. The token remains deployed for count-based effects such as Perplexing Tactics but is dormant for adjacency/path effects while that path is absent. If the path returns, the existing token becomes effective on that path again without redeployment.
+- Point Pleasant follows the same disappearing-path rule, but a path removed there never returns; competitive setup may independently omit those bridge paths under current map rules.
+- Foot Soldier edge/path semantics remain source-defined composites pending shared path_ref lifecycle integration; the gameplay evidence is now complete.
 - Adventures villain deck, threat state, initiative logic and scenario AI are excluded.
