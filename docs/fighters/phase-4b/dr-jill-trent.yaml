@@ -2,7 +2,13 @@ schema_version: 1
 id: dr-jill-trent
 display_name: Dr. Jill Trent
 set_ids: [tales-to-amaze]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-013]
 movement: 2
 
 topology:
@@ -23,14 +29,14 @@ ability:
   effects:
     - id: choose-active-gadget
       trigger: turn_start
-      choices: [{owner: controller, choose: gadget, options: [hypnoray-blaster, ultrabiotic-tonic]}]
-      operations: [{op: SET_STATE, key: active_gadget, value: chosen_gadget}]
+      choices: [{id: gadget, owner: controller, visibility: public, optional: false, domain: [hypnoray-blaster, ultrabiotic-tonic], bind: active_gadget_choice}]
+      operations: [{op: SET_STATE, key: active_gadget, value: {ref: active_gadget_choice}}]
     - id: hypnoray-blaster
       trigger: during_combat
       condition: {attacker: dr-jill-trent, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
       operations:
-        - {op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed_card}
-        - {op: ADD_VALUE, target: own_attack_card, amount: captured.revealed_card.boost_or_0}
+        - {op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed_card}
+        - {op: ADD_VALUE, target: own_attack_card, amount: {ref: revealed_card.boost_or_0}}
     - id: ultrabiotic-tonic
       trigger: after_combat
       condition: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
@@ -38,7 +44,7 @@ ability:
 
 resources: []
 persistent_state:
-  - {key: active_gadget, type: enum, reset: never}
+  - {key: active_gadget, type: enum, reset: never, visibility: public}
 
 deck:
   manifest: ../../cards/phase-4b/dr-jill-trent.yaml
@@ -47,16 +53,37 @@ deck:
 rulings:
   - id: no-gadget-before-first-turn
     summary: Before Jill has taken her first turn, no gadget is active; the first choice occurs at the start of that turn.
-    source: https://www.the-unmatched.club/rules/dr-jill-trent
+    source_refs: [jill-rulings]
   - id: gadgets-use-printed-values
     summary: Gadget comparisons use printed combat-card values; an undefended attack treats the absent defense printed value as 0.
-    source: https://www.the-unmatched.club/rules/dr-jill-trent
+    source_refs: [jill-rulings]
 
 sources:
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/dr-jill-trent}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/rules/dr-jill-trent}
-  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+  - id: tta-set-rules-jill
+    authority: official_set_rules
+    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
+    checked_at: 2026-07-27
+    supports: [competitive hero setup and gadget component context]
+  - id: jill-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/dr-jill-trent
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: jill-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/rules/dr-jill-trent
+    checked_at: 2026-07-27
+    supports: [gadget timing and printed-value rulings]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
   - Competitive hero behavior only. Adventures enemies and scenario systems are intentionally excluded.
-  - active_gadget is the single authoritative public enum state. The physical two-sided gadget token is a presentation of that state, not a second independently mutable resource.
+  - active_gadget is the single authoritative public enum state; the physical gadget token is presentation only.
