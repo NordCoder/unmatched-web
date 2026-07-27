@@ -29,9 +29,13 @@ ability:
   effects:
     - id: repeat-attack-bonus
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition: {attacker: ancient-leshen, ancient_leshen_attacked_earlier_this_turn: true}
-      operations: [{op: ADD_VALUE, target: leshen_attack, amount: 3}]
+      stages:
+        - id: apply
+          when: {attacker: ancient-leshen, ancient_leshen_attacked_earlier_this_turn: true}
+          operations: [{op: ADD_VALUE, target: leshen_attack, amount: 3}]
 
 resources: []
 persistent_state:
@@ -51,31 +55,11 @@ rulings:
     source_refs: [witcher-sas-rules-leshen]
 
 sources:
-  - id: witcher-sas-rules-leshen
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Leshen and Wolf movement, Summon rules, Witcher ongoing schemes]
-  - id: leshen-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/ancient-leshen
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus, Vanish Into Murder sequence]
-  - id: leshen-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/ancient-leshen
-    checked_at: 2026-07-27
-    supports: [current Ancient Leshen ruling index]
-  - id: dormant-rule-changes
-    authority: official_ruling
-    url: https://www.the-unmatched.club/rules/rule-changes
-    checked_at: 2026-07-27
-    supports: [dormant-player checkpoint and restrictions]
-  - id: worker-c-normalization-leshen
-    authority: project_normalization
-    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
-    checked_at: 2026-07-27
-    supports: [dormant return and draw interpretation]
+  - {id: witcher-sas-rules-leshen, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Leshen and Wolf movement, Summon rules, Witcher ongoing schemes]}
+  - {id: leshen-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ancient-leshen, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus, Vanish Into Murder sequence]}
+  - {id: leshen-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/ancient-leshen, checked_at: 2026-07-27, supports: [current Ancient Leshen ruling index]}
+  - {id: dormant-rule-changes, authority: official_ruling, url: https://www.the-unmatched.club/rules/rule-changes, checked_at: 2026-07-27, supports: [dormant-player checkpoint and restrictions]}
+  - {id: worker-c-normalization-leshen, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [dormant return and draw interpretation]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
