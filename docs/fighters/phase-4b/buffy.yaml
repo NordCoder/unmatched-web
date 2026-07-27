@@ -26,7 +26,7 @@ setup:
     - stage: DECK_CONSTRUCTION
       operations:
         - {op: CONSTRUCT_DECK, base_card_count: 25, selected_group_from_state: selected_sidekick, selected_group_card_count: 5, final_count: 30}
-  state_initialization: [{key: selected_sidekick, value: setup_choice}]
+  state_initialization: []
 ability:
   id: slayer
   controller: owner
