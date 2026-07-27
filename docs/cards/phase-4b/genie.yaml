@@ -1,262 +1,295 @@
 schema_version: 1
 fighter_id: genie
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
 cards:
-- id: careful-what-you-wish-for
-  name: Careful What You Wish For
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: attack
-  printed_value: 4
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition:
-      combat_result: lost
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: adjacent_opposing_fighter
-      amount: 1
-- id: your-wish-is-my-command
-  name: Your Wish Is My Command
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: attack
-  printed_value: 3
-  boost: 1
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition:
-      combat_result: won
-    optional: true
-    costs:
-    - op: DISCARD
-      from_zone: hand
-      selector:
-        count: 2
-      cost_semantics: true
-    operations:
-    - op: GAIN_ACTION
-      count: 1
-    dependency: action_only_if_two_card_discard_cost_was_paid
-- id: imprisoned-wrath
-  name: Imprisoned Wrath
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: attack
-  printed_value: 3
-  boost: 1
-  tags: []
-  effects:
-  - trigger: after_combat
-    optional: true
-    costs:
-    - op: DISCARD
-      from_zone: hand
-      selector:
-        count: 2
-      cost_semantics: true
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: adjacent_opposing_fighter
-      amount: 2
-    dependency: damage_only_if_two_card_discard_cost_was_paid
-- id: i-am-freed
-  name: I Am Freed
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: attack
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: PLACE
-      target: genie
-      destination: any_empty_space
-    - op: DEAL_EFFECT_DAMAGE
-      target: each_adjacent_fighter
-      amount: 1
-- id: wishing-for-more-wishes
-  name: Wishing for More Wishes
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: DRAW
-      controller: opponent
-      count: 1
-    - op: DRAW
-      count: 3
-- id: ive-made-sultans-out-of-less
-  name: I've Made Sultans Out of Less
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: versatile
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: LOOK_AT
-      source: opponent.hand
-      selector: all
-      viewer: controller
-    - op: DISCARD
-      controller: opponent
-      from_zone: hand
-      selector: chosen_by_controller
-      count: 1
-- id: i-grant-you-death
-  name: I Grant You... Death
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: versatile
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: after_combat
-    optional: true
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: adjacent_fighter
-      amount: 1
-- id: feint
-  name: Feint
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: versatile
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-- id: this-is-no-parlor-trick
-  name: This Is No Parlor Trick
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: versatile
-  printed_value: 1
-  boost: 2
-  tags: []
-  effects:
-  - trigger: during_combat
-    operations:
-    - op: SET_VALUE
-      target: opposing_combat_card
-      value_rule: opposing_combat_card.boost_or_0
-- id: prisoners-torment
-  name: Prisoner's Torment
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: defense
-  printed_value: 1
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: DRAW
-      count_rule: combat_damage_taken
-- id: back-in-the-lamp
-  name: Back in the Lamp
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: defense
-  printed_value: 0
-  boost: 1
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: RECOVER
-      target: genie
-      amount: 4
-- id: three-wishes
-  name: Three Wishes
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - genie
-  type: scheme
-  printed_value: null
-  boost: 3
-  tags: []
-  effects:
-  - trigger: scheme
-    operations:
-    - op: GAIN_ACTION
-      count: 1
-    - op: REQUEST_CHOICE
-      definition:
-        owner: controller
-        choose_one:
-        - id: draw-five
-          operations:
-          - op: DRAW
-            count: 5
-        - id: lock-own-card-values-to-four
-          operations:
-          - op: SET_STATE
-            key: three_wishes_value_lock_active
-            value: true
-        - id: each-opponent-discards-two
-          operations:
-          - op: DISCARD
-            controller: each_opponent
-            from_zone: hand
-            selector: chosen_by_that_opponent
-            count: 2
+  - id: careful-what-you-wish-for
+    name: Careful What You Wish For
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: []
+    effects:
+      - id: careful-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {combat_result: lost}
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: adjacent_opposing_fighter, count: 1}, bind: damage_target}
+            costs: []
+            operations: []
+          - {id: damage, when: {bound: damage_target, exists: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 1}]}
+  - id: your-wish-is-my-command
+    name: Your Wish Is My Command
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: your-wish-action
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-cost
+            when: {combat_result: won, own_hand_size_gte: 2}
+            choices:
+              - {id: discard_cards, owner: controller, visibility: private, optional: true, domain: {kind: card_set, zone: own_hand}, min: 2, max: 2, distinct: true, order_matters: false, bind: discard_cards}
+            costs: []
+            operations: []
+          - id: pay
+            when: {bound: discard_cards, count: 2}
+            choices: []
+            costs: [{id: discard_cost, op: DISCARD, from_zone: hand, selector: {bound: discard_cards}, count: 2, bind: discard_paid}]
+            operations: []
+          - {id: gain-action, when: {result: discard_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
+  - id: imprisoned-wrath
+    name: Imprisoned Wrath
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: imprisoned-wrath-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-cost-and-target
+            when: {own_hand_size_gte: 2}
+            choices:
+              - {id: discard_cards, owner: controller, visibility: private, optional: true, domain: {kind: card_set, zone: own_hand}, min: 2, max: 2, distinct: true, order_matters: false, bind: discard_cards}
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: adjacent_opposing_fighter, count: 1, enabled_when: {bound: discard_cards, count: 2}}, bind: damage_target}
+            costs: []
+            operations: []
+          - id: pay
+            when: {all_bound: [discard_cards, damage_target]}
+            choices: []
+            costs: [{id: discard_cost, op: DISCARD, from_zone: hand, selector: {bound: discard_cards}, count: 2, bind: discard_paid}]
+            operations: []
+          - {id: damage, when: {result: discard_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 2}]}
+  - id: i-am-freed
+    name: I Am Freed
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: i-am-freed-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {empty_space_exists: true}
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: empty_space}, bind: destination}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: genie, destination: {bound: destination}}]}
+          - {id: damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_genie_at_stage_resolution, amount: 1}]}
+  - id: wishing-for-more-wishes
+    name: Wishing for More Wishes
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: wishing-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: draw
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, controller: combat_opponent, count: 1}
+              - {op: DRAW, count: 3}
+  - id: ive-made-sultans-out-of-less
+    name: I've Made Sultans Out of Less
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: sultans-hand-control
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: chosen_opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, selector: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - {id: inspect, when: {bound: chosen_opponent, exists: true}, choices: [], costs: [], operations: [{op: LOOK_AT, source: {player: {bound: chosen_opponent}, zone: hand}, selector: all, viewer: controller, bind: viewed_hand}]}
+          - id: choose-discard
+            when: {result: viewed_hand, count_gte: 1}
+            choices:
+              - {id: discard_card, owner: controller, visibility: private, optional: false, domain: {kind: card, from_result: viewed_hand, count: 1}, bind: discard_card}
+            costs: []
+            operations: []
+          - {id: discard, when: {bound: discard_card, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_card}, count: 1}]}
+  - id: i-grant-you-death
+    name: I Grant You... Death
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: grant-death-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: always
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: true, domain: {kind: fighter, selector: adjacent_fighter, count: 1}, bind: damage_target}
+            costs: []
+            operations: []
+          - {id: damage, when: {bound: damage_target, exists: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 1}]}
+  - id: feint
+    name: Feint
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+  - id: this-is-no-parlor-trick
+    name: This Is No Parlor Trick
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: parlor-trick-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: always, choices: [], costs: [], operations: [{op: SET_VALUE, target: opposing_combat_card, value_ref: {card: opposing_combat_card, field: boost_or_0}}]}]
+  - id: prisoners-torment
+    name: Prisoner's Torment
+    quantity: 2
+    inclusion: fixed
+    usable_by: [genie]
+    type: defense
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: prisoners-torment-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count_ref: {combat: current, field: combat_damage_taken}}]}]
+  - id: back-in-the-lamp
+    name: Back in the Lamp
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: defense
+    printed_value: 0
+    boost: 1
+    tags: []
+    effects:
+      - id: back-in-lamp-recover
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: genie, amount: 4}]}]
+  - id: three-wishes
+    name: Three Wishes
+    quantity: 3
+    inclusion: fixed
+    usable_by: [genie]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: three-wishes-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
+          - id: choose-wish
+            when: always
+            choices:
+              - {id: wish, owner: controller, visibility: public, optional: false, domain: {kind: enum, values: [draw_five, lock_values_to_four, each_opponent_discards_two]}, bind: wish}
+            costs: []
+            operations: []
+          - {id: draw-five, when: {bound: wish, equals: draw_five}, choices: [], costs: [], operations: [{op: DRAW, count: 5}]}
+          - {id: lock-values, when: {bound: wish, equals: lock_values_to_four}, choices: [], costs: [], operations: [{op: SET_STATE, key: three_wishes_value_lock_active, value: true}]}
+          - id: choose-opponent-discards
+            when: {bound: wish, equals: each_opponent_discards_two}
+            choices:
+              - id: opponent_discard_sets
+                owner: each_opponent
+                visibility: private
+                optional: false
+                domain: {kind: card_set, zone: own_hand, count_rule: up_to_2_limited_by_hand_size}
+                min: 0
+                max: 2
+                distinct: true
+                order_matters: false
+                bind: opponent_discard_sets
+            costs: []
+            operations: []
+          - {id: discard, when: {bound: opponent_discard_sets, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: each_opponent, from_zone: hand, selector: {bound: opponent_discard_sets}}]}
+
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  known_quantity_sum: 30
-  quantity_reconciles: true
-  unique_card_definitions: 12
+interpretations: []
 sources:
-- https://unmatched.cards/card-counter/the-genie
-- https://unmatched.cards/umdb/decks/the-genie
-- https://restorationgames.com/shop/unmatched-houdini-genie/
-normalization_notes:
-- Audit correction: Your Wish Is My Command and Imprisoned Wrath treat the two-card discard as an explicit cost, preserving their printed dependency.
-- Audit correction: Three Wishes now contains executable operations for all three branches; the value-lock branch sets fighter persistent state consumed by the continuous rule in the fighter manifest.
+  - {id: genie-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/the-genie, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: genie-official-product, authority: official, url: https://restorationgames.com/shop/unmatched-houdini-genie/, checked_at: 2026-07-27, supports: [set_membership]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
