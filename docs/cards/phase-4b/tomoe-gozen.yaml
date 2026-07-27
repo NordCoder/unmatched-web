@@ -1,6 +1,12 @@
 schema_version: 1
 fighter_id: tomoe-gozen
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -13,25 +19,151 @@ cards:
     boost: 4
     tags: [declaration_override]
     play_rules:
-      target: adjacent_fighter_only
+      target: {selector: {fighters: opposing_fighters, adjacent_to: tomoe-gozen}}
       visibility: face_up_when_committed
-    effects: [{trigger: after_combat, operations: [{op: END_TURN}]}]
-  - {id: five-against-thousands, name: Five Against Thousands, quantity: 2, usable_by: [tomoe-gozen], type: attack, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {tomoe_adjacent_to_opposing_fighter: true}, optional: true, costs: [{op: DISCARD, controller: controller, from: hand, selector: chosen_card, count: 1}], operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]}]}
-  - {id: fearsome-strength, name: Fearsome Strength, quantity: 2, usable_by: [tomoe-gozen], type: attack, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, optional: true, choices: [{owner: controller, choose: fighter_adjacent_to_tomoe}], operations: [{op: SWAP, a: tomoe-gozen, b: chosen_fighter}]}, {trigger: after_combat, choices: [{owner: controller, choose: fighter_adjacent_to_tomoe}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]}]}
-  - {id: a-warriors-way, name: "A Warrior's Way", quantity: 2, usable_by: [tomoe-gozen], type: attack, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3}, {op: PLACE, target: tomoe-gozen, destination: adjacent_to_opposing_combat_fighter, condition: {opposing_combat_fighter_is_hero: true}}]}]}
-  - {id: piercing-shot, name: Piercing Shot, quantity: 3, usable_by: [tomoe-gozen], type: attack, printed_value: 2, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: [tomoe-gozen], type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{owner: controller, choose: combat_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: confront-any-demon-or-god, name: Confront Any Demon or God, quantity: 2, usable_by: [tomoe-gozen], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}], condition: null, branches: [{condition: {combat_result: lost}, operations: [{op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller}, {op: DISCARD, controller: opponent, from: hand, selector: chosen_by_controller, count: 1}]}]}]}
-  - {id: a-worthy-opponent, name: A Worthy Opponent, quantity: 3, usable_by: [tomoe-gozen], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{trigger: during_combat, condition: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: flash-of-steel, name: Flash of Steel, quantity: 3, usable_by: [tomoe-gozen], type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: immediately, condition: {opposing_fighter_role: hero}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, condition: {opposing_fighter_adjacent: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
-  - {id: refuse-to-retreat, name: Refuse to Retreat, quantity: 2, usable_by: [tomoe-gozen], type: defense, printed_value: 3, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: SET_STATE, target: tomoe-gozen, key: cannot_leave_current_space, value: true, expires: turn_end}]}, {trigger: after_combat, condition: {opposing_fighter_adjacent: true}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]}]}
-  - {id: deeds-of-valor, name: Deeds of Valor, quantity: 3, usable_by: [tomoe-gozen], type: defense, printed_value: 2, boost: 2, tags: [], effects: [{trigger: during_combat, operations: [{op: PREVENT_DAMAGE, target: tomoe-gozen, scope: combat_damage_above_2_this_combat}]}]}
-  - {id: lord-kisos-final-stand, name: "Lord Kiso's Final Stand", quantity: 3, usable_by: [tomoe-gozen], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: MOVE, target: tomoe-gozen, max_distance: 3, may_move_through_sidekicks: true}], choices: [{owner: controller, choose: branch, options: [recover, gain_action]}], branches: [{condition: {chosen_branch: recover}, operations: [{op: RECOVER, target: tomoe-gozen, amount: 2}]}, {condition: {chosen_branch: gain_action}, operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+    effects: [{id: witness-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: END_TURN}]}]}]
+  - id: five-against-thousands
+    name: Five Against Thousands
+    quantity: 2
+    usable_by: [tomoe-gozen]
+    type: attack
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: five-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discard
+            when: {tomoe_adjacent_to_opposing_fighter: true}
+            choices: [{id: discard-card, owner: controller, visibility: private, optional: true, domain: {selector: {zone: hand, owner: self}}, bind: discard_card}]
+          - id: pay-and-return
+            when: {ref: discard_card, exists: true}
+            costs: [{op: DISCARD, controller: controller, from: hand, selector: {ref: discard_card}, count: 1}]
+            operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]
+  - id: fearsome-strength
+    name: Fearsome Strength
+    quantity: 2
+    usable_by: [tomoe-gozen]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: fearsome-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-swap
+            choices: [{id: fighter, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: all_fighters, adjacent_to: tomoe-gozen}}, bind: swap_target}]
+          - {id: swap, when: {ref: swap_target, exists: true}, operations: [{op: SWAP, a: tomoe-gozen, b: {ref: swap_target}}]}
+      - id: fearsome-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-damage
+            choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: all_fighters, adjacent_to: tomoe-gozen}}, bind: damage_target}]
+          - {id: damage, when: {ref: damage_target, exists: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: damage_target}, amount: 1}]}
+  - id: a-warriors-way
+    name: "A Warrior's Way"
+    quantity: 2
+    usable_by: [tomoe-gozen]
+    type: attack
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: warriors-way-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-opponent, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3}]}
+          - {id: place-tomoe, when: {opposing_combat_fighter_role: hero}, operations: [{op: PLACE, target: tomoe-gozen, destination: adjacent_to_opposing_combat_fighter}]}
+  - {id: piercing-shot, name: Piercing Shot, quantity: 3, usable_by: [tomoe-gozen], type: attack, printed_value: 2, boost: 1, tags: [], effects: [{id: piercing-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: 2}]}]}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: [tomoe-gozen]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: skirmish-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose
+            when: {combat_result: won}
+            choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: combat_fighters}}, bind: selected_fighter}]
+          - {id: move, when: {ref: selected_fighter, exists: true}, operations: [{op: MOVE, target: {ref: selected_fighter}, max_distance: 2}]}
+  - id: confront-any-demon-or-god
+    name: Confront Any Demon or God
+    quantity: 2
+    usable_by: [tomoe-gozen]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: [staged_resolution]
+    effects:
+      - id: confront-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw, operations: [{op: DRAW, count: 1}]}
+          - id: inspect-if-lost
+            when: {combat_result: lost}
+            operations: [{op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller, bind_result: viewed_hand}]
+          - id: choose-discard
+            when: {ref: viewed_hand, nonempty: true}
+            choices: [{id: card, owner: controller, visibility: private, optional: false, domain: {ref: viewed_hand}, bind: discard_card}]
+          - id: discard
+            when: {ref: discard_card, exists: true}
+            operations: [{op: DISCARD, controller: opponent, from: hand, selector: {ref: discard_card}, count: 1}]
+  - {id: a-worthy-opponent, name: A Worthy Opponent, quantity: 3, usable_by: [tomoe-gozen], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{id: worthy-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {opposing_fighter_role: hero}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - {id: flash-of-steel, name: Flash of Steel, quantity: 3, usable_by: [tomoe-gozen], type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{id: flash-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {opposing_fighter_role: hero}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}, {id: flash-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {opposing_fighter_adjacent: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}]}
+  - {id: refuse-to-retreat, name: Refuse to Retreat, quantity: 2, usable_by: [tomoe-gozen], type: defense, printed_value: 3, boost: 2, tags: [], effects: [{id: refuse-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: lock, operations: [{op: SET_STATE, target: tomoe-gozen, key: cannot_leave_current_space, value: true, expires: turn_end}]}]}, {id: refuse-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: discard, when: {opposing_fighter_adjacent: true}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]}]}]}
+  - {id: deeds-of-valor, name: Deeds of Valor, quantity: 3, usable_by: [tomoe-gozen], type: defense, printed_value: 2, boost: 2, tags: [], effects: [{id: deeds-during, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: PREVENT_DAMAGE, target: tomoe-gozen, scope: combat_damage_above_2_this_combat}]}]}]}
+  - id: lord-kisos-final-stand
+    name: "Lord Kiso's Final Stand"
+    quantity: 3
+    usable_by: [tomoe-gozen]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: kiso-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move, operations: [{op: MOVE, target: tomoe-gozen, max_distance: 3, may_move_through_sidekicks: true}]}
+          - id: choose-benefit
+            choices: [{id: benefit, owner: controller, visibility: public, optional: false, domain: [recover, gain_action], bind: benefit}]
+          - {id: recover, when: {ref: benefit, equals: recover}, operations: [{op: RECOVER, target: tomoe-gozen, amount: 2}]}
+          - {id: action, when: {ref: benefit, equals: gain_action}, operations: [{op: GAIN_ACTION, count: 1}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12}
 sources:
-  - https://unmatched.cards/umdb/decks/tomoe-gozen
-  - https://www.unmatchedarena.com/heroes/tomoe-gozen
+  - {id: suns-origin-rules-tomoe, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Tomoe rules and zone-leave semantics]}
+  - {id: tomoe-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+  - {id: tomoe-crosscheck, authority: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen, checked_at: 2026-07-27, supports: [component transcription crosscheck]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - Witness My Last Battle's target restriction and face-up commitment apply at attack declaration and are not ordinary combat-card effects. This is covered by the generic combat-play-mode proposal in the Worker C report.
+  - Witness My Last Battle's target/visibility changes are declaration-time combat legality under C-REQ-003.
+  - Confront Any Demon or God and Lord Kiso's Final Stand use ordered stages where later decisions depend on earlier resolution.
