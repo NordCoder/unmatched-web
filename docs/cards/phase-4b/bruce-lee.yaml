@@ -1,18 +1,13 @@
 schema_version: 1
 fighter_id: bruce-lee
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
-  rules: []
+verification: {evidence: verified, semantics: verified, integration: ready, policy: ready}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones:
-- id: deck
-  owner: self
-- id: hand
-  owner: self
-- id: discard
-  owner: self
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
 cards:
 - id: skirmish
   name: Skirmish
@@ -26,15 +21,10 @@ cards:
   effects:
   - id: skirmish-move
     trigger: after_combat
-    condition:
-      combat_result: won
+    condition: {combat_result: won}
     choices:
-    - owner: controller
-      choose: combat_fighter
-    operations:
-    - op: MOVE
-      target: chosen_fighter
-      max_distance: 2
+    - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: combat_fighters, bind: target}
+    operations: [{op: MOVE, target: bound.target, max_distance: 2}]
 - id: little-dragon
   name: Little Dragon
   quantity: 2
@@ -45,19 +35,8 @@ cards:
   boost: 3
   tags: []
   effects:
-  - id: little-dragon-value
-    trigger: during_combat
-    condition:
-      controller_hand_empty: true
-    operations:
-    - op: SET_VALUE
-      target: this_card
-      value: 6
-  - id: little-dragon-draw
-    trigger: after_combat
-    operations:
-    - op: DRAW
-      count: 2
+  - {id: little-dragon-value, trigger: during_combat, condition: {controller_hand_empty: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}
+  - {id: little-dragon-draw, trigger: after_combat, operations: [{op: DRAW, count: 2}]}
 - id: taste-of-blood
   name: Taste of Blood
   quantity: 1
@@ -68,13 +47,7 @@ cards:
   boost: 3
   tags: []
   effects:
-  - id: taste-of-blood-draw
-    trigger: after_combat
-    condition:
-      bruce_lee_health_lte: 5
-    operations:
-    - op: DRAW
-      count: 3
+  - {id: taste-of-blood-draw, trigger: after_combat, condition: {bruce_lee_health_lte: 5}, operations: [{op: DRAW, count: 3}]}
 - id: be-like-water
   name: Be Like Water
   quantity: 4
@@ -88,15 +61,8 @@ cards:
   - id: be-like-water-recover-jkd
     trigger: after_combat
     choices:
-    - owner: controller
-      choose: card_in_own_discard
-      filter:
-        tag: jeet-kune-do
-    operations:
-    - op: MOVE_CARD
-      from_zone: discard
-      to_zone: hand
-      selector: chosen_card
+    - {id: choose-jkd-discard, owner: controller, visibility: public, optional: false, domain: {zone: discard, filter: {tag: jeet-kune-do}}, bind: card}
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: bound.card}]
 - id: hoo-whaaaaa
   name: '"HOO! WHAAAAAA!"'
   quantity: 1
@@ -110,149 +76,77 @@ cards:
   - id: hoo-recover-jkd
     trigger: scheme
     choices:
-    - owner: controller
-      choose: card_in_own_discard
-      filter:
-        tag: jeet-kune-do
-    operations:
-    - op: MOVE_CARD
-      from_zone: discard
-      to_zone: hand
-      selector: chosen_card
-    - op: GAIN_ACTION
-      count: 1
+    - {id: choose-jkd-discard, owner: controller, visibility: public, optional: false, domain: {zone: discard, filter: {tag: jeet-kune-do}}, bind: card}
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: bound.card}, {op: GAIN_ACTION, count: 1}]
 - id: jeet-kune-do-high-straight-lead
   name: 'Jeet Kune Do: High Straight Lead'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 3
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: high-straight-lead-value
-    trigger: during_combat
-    condition:
-      either_combat_fighter_started_turn_in_different_space: true
-    operations:
-    - op: SET_VALUE
-      target: this_card
-      value: 5
-  - id: high-straight-lead-action
-    trigger: after_combat
-    operations:
-    - op: GAIN_ACTION
-      count: 1
+  - {id: high-straight-lead-value, trigger: during_combat, condition: {either_combat_fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - {id: high-straight-lead-action, trigger: after_combat, operations: [{op: GAIN_ACTION, count: 1}]}
 - id: jeet-kune-do-downward-side-kick
   name: 'Jeet Kune Do: Downward Side Kick'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 2
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: downward-side-kick-discard
-    trigger: after_combat
-    operations:
-    - op: DISCARD
-      from: opponent_hand
-      selector: random
-      count: 1
-      controller: opponent
-    - op: GAIN_ACTION
-      count: 1
+  - {id: downward-side-kick-discard, trigger: after_combat, operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 1, controller: opponent}, {op: GAIN_ACTION, count: 1}]}
 - id: jeet-kune-do-wrist-lock
   name: 'Jeet Kune Do: Wrist Lock'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 2
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: wrist-lock
-    trigger: after_combat
-    operations:
-    - op: DRAW
-      count: 1
-    - op: GAIN_ACTION
-      count: 1
+  - {id: wrist-lock, trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}]}
 - id: jeet-kune-do-intercepting-fist
   name: 'Jeet Kune Do: Intercepting Fist'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 2
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: intercepting-fist-cancel
-    trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-  - id: intercepting-fist-action
-    trigger: after_combat
-    operations:
-    - op: GAIN_ACTION
-      count: 1
+  - {id: intercepting-fist-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+  - {id: intercepting-fist-action, trigger: after_combat, operations: [{op: GAIN_ACTION, count: 1}]}
 - id: jeet-kune-do-corkscrew-finger-jab
   name: 'Jeet Kune Do: Corkscrew Finger Jab'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 2
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: corkscrew-finger-jab
-    trigger: after_combat
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: opposing_combat_fighter
-      amount: 1
-    - op: GAIN_ACTION
-      count: 1
+  - {id: corkscrew-finger-jab, trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: GAIN_ACTION, count: 1}]}
 - id: jeet-kune-do-short-lead-hook
   name: 'Jeet Kune Do: Short Lead Hook'
   quantity: 1
   inclusion: fixed
-  usable_by:
-  - bruce-lee
+  usable_by: [bruce-lee]
   type: attack
   printed_value: 3
   boost: 3
-  tags:
-  - jeet-kune-do
+  tags: [jeet-kune-do]
   effects:
-  - id: short-lead-hook-swap
-    trigger: after_combat
-    optional: true
-    operations:
-    - op: SWAP
-      a: bruce-lee
-      b: opposing_combat_fighter
-  - id: short-lead-hook-action
-    trigger: after_combat
-    operations:
-    - op: GAIN_ACTION
-      count: 1
+  - {id: short-lead-hook-swap, trigger: after_combat, optional: true, operations: [{op: SWAP, a: bruce-lee, b: opposing_combat_fighter}]}
+  - {id: short-lead-hook-action, trigger: after_combat, operations: [{op: GAIN_ACTION, count: 1}]}
 - id: bring-it-on
   name: Bring It On
   quantity: 1
@@ -266,14 +160,8 @@ cards:
   - id: bring-it-on
     trigger: scheme
     choices:
-    - owner: controller
-      choose: opposing_fighter_in_bruce_lee_zone
-    operations:
-    - op: PLACE
-      target: chosen_fighter
-      destination_rule: space_adjacent_to_bruce_lee
-    - op: GAIN_ACTION
-      count: 1
+    - {id: choose-opposing-fighter, owner: controller, visibility: public, optional: false, domain: opposing_fighters_in_bruce_lee_zone, bind: target}
+    operations: [{op: PLACE, target: bound.target, destination_rule: space_adjacent_to_bruce_lee}, {op: GAIN_ACTION, count: 1}]
 - id: one-inch-punch
   name: One-Inch Punch
   quantity: 1
@@ -287,24 +175,9 @@ cards:
   - id: one-inch-punch-damage
     trigger: scheme
     choices:
-    - owner: controller
-      choose: adjacent_opposing_fighter
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: chosen_fighter
-      amount: 2
-  - id: one-inch-punch-return
-    trigger: cleanup_replacement
-    optional: false
-    condition:
-      fighter_defeated_by_this_card: true
-    operations:
-    - op: MOVE_CARD
-      from_zone: resolution
-      to_zone: hand
-      selector: this_card
-  normalization_notes:
-  - Return-to-hand is modeled as replacement of this card's ordinary post-resolution discard when its damage defeats the target.
+    - {id: choose-adjacent-opponent, owner: controller, visibility: public, optional: false, domain: adjacent_opposing_fighters, bind: target}
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 2}]
+  - {id: one-inch-punch-return, trigger: cleanup_replacement, condition: {fighter_defeated_by_this_card: true}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}
 - id: nunchaku
   name: Nunchaku
   quantity: 2
@@ -315,17 +188,7 @@ cards:
   boost: 3
   tags: []
   effects:
-  - id: nunchaku-bonus
-    trigger: scheme
-    operations:
-    - op: SET_STATE
-      key: bruce_lee_attack_bonus_this_turn
-      value_rule: current_plus_1
-    - op: GAIN_ACTION
-      count: 1
-  normalization_notes:
-  - The turn-scoped attack bonus is persisted as historical state and applied by ordinary ADD_VALUE at each eligible Bruce
-    Lee attack.
+  - {id: nunchaku-bonus, trigger: scheme, operations: [{op: CHANGE_STATE, key: bruce_lee_attack_bonus_this_turn, delta: 1}, {op: GAIN_ACTION, count: 1}]}
 - id: momentous-shift
   name: Momentous Shift
   quantity: 3
@@ -336,14 +199,7 @@ cards:
   boost: 1
   tags: []
   effects:
-  - id: momentous-shift-value
-    trigger: during_combat
-    condition:
-      own_combat_fighter_started_turn_in_different_space: true
-    operations:
-    - op: SET_VALUE
-      target: this_card
-      value: 5
+  - {id: momentous-shift-value, trigger: during_combat, condition: {own_combat_fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}
 - id: feint
   name: Feint
   quantity: 3
@@ -354,11 +210,7 @@ cards:
   boost: 2
   tags: []
   effects:
-  - id: feint-cancel
-    trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
+  - {id: feint-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
 - id: regroup
   name: Regroup
   quantity: 3
@@ -372,31 +224,22 @@ cards:
   - id: regroup-draw
     trigger: after_combat
     branches:
-    - condition:
-        combat_result: won
-      operations:
-      - op: DRAW
-        count: 2
-    - condition:
-        combat_result_not: won
-      operations:
-      - op: DRAW
-        count: 1
+    - {condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: DRAW, count: 1}]}
 external_definitions: []
 validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 17
-  result: PASS
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: READY
+  fan_content: PASS
 sources:
-- authority: official_component
-  url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
-- authority: official_component
-  url: https://restorationgames.com/unmatched-the-ultimate-fighters-bruce-lee-vs-muhammad-ali/
-- authority: secondary_database
-  url: https://unmatched.cards/umdb/decks/bruce-lee
+- {id: bruce-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27', supports: [release_and_component_identity], durability: durable}
+- {id: bruce-design, authority: official_component, url: https://restorationgames.com/unmatched-the-ultimate-fighters-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27', supports: [returning_deck_unchanged], durability: durable}
+- {id: bruce-umdb, authority: secondary_database, url: https://unmatched.cards/umdb/decks/bruce-lee, checked_at: '2026-07-27', supports: [card_metadata, quantities, normalized_text]}
 normalization_notes:
-- All 17 published action-card definitions reconcile to 30 physical cards.
-- Six Jeet Kune Do cards are tagged for effects that retrieve a Jeet Kune Do card.
-- No fan-deck namespace was used.
+- All 17 definitions reconcile to 30 cards.
+- Six Jeet Kune Do cards are tagged for retrieval semantics.
+- No fan /decks/ namespace is used.
