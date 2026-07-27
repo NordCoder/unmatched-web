@@ -2,7 +2,13 @@ schema_version: 1
 id: nikola-tesla
 display_name: Nikola Tesla
 set_ids: [tales-to-amaze]
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-004, C-REQ-013]
 movement: 2
 
 topology:
@@ -36,7 +42,6 @@ resources:
     initial: 1
     minimum: 0
     maximum: 2
-
 persistent_state: []
 
 deck:
@@ -45,23 +50,58 @@ deck:
 
 rulings:
   - id: tesla-permissive-discharge-declaration
-    summary: A two-coil discharge option is legal with one or zero charged coils. The selected tier remains two, is not downgraded to the one-coil tier, and its dependent effect may intentionally fizzle when the declared discharge cannot be fully completed.
-    source: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
+    summary: A two-coil discharge option is legal with one or zero charged coils; the selected two-coil branch/tier remains selected and may fizzle if its full declared discharge is required.
+    source_refs: [tesla-underfunded-ruling]
   - id: tesla-overflow-move-survives-no-damage
-    summary: The two-coil start-turn ability can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
-    source: https://www.the-unmatched.club/heroes/nikola-tesla
+    summary: Electrical Overflow can still move a legal adjacent opposing fighter even when its damage was not actually dealt.
+    source_refs: [tesla-rulings]
+
+interpretations:
+  - id: tesla-underfunded-two-coil-resource-transition
+    affects: [nikola-tesla, charged-coils, coil-discharge-effects]
+    status: derived
+    confidence: high
+    behavior: With exactly one charged coil, a legal declaration to discharge two consumes the available charged coil (1 -> 0), keeps the two-coil branch/tier selected, never falls back to the one-coil tier, and permits a source-dependent effect requiring full discharge to fizzle.
+    source_refs: [tta-set-rules-tesla, tesla-underfunded-ruling, worker-c-normalization]
+    replacement_condition: Replace this normalization if an exact publisher/designer ruling explicitly defines a different one-charged-plus-declare-two resource transition.
 
 sources:
-  - {type: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/nikola-tesla}
-  - {type: official_ruling, url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e}
-  - {type: reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, note: Unmatched Reference v10 identifies the Rulings Archive as officially recognized by Restoration Games.}
-  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+  - id: tta-set-rules-tesla
+    authority: official_set_rules
+    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
+    checked_at: 2026-07-27
+    supports: [coil token states, charge and discharge semantics, competitive hero setup]
+  - id: tesla-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/nikola-tesla
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: tesla-underfunded-ruling
+    authority: official_ruling
+    url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
+    checked_at: 2026-07-27
+    supports: [legal underfunded two-coil declaration, no tier downgrade, intentional fizzle]
+  - id: tesla-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/heroes/nikola-tesla
+    checked_at: 2026-07-27
+    supports: [Electrical Overflow rulings]
+  - id: worker-c-normalization
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
+    checked_at: 2026-07-27
+    supports: [selected partial-discharge normalization and evidence qualifier]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
   - Competitive hero behavior only; no Adventures enemy/scenario state is modeled.
-  - charged-coils is the single authoritative runtime resource; no duplicate persistent state mirrors it.
+  - charged-coils is the single authoritative runtime resource.
   - End-turn charging is optional, and each legal fighter movement from Electrical Overflow is independently optional.
-  - "Recommended integration behavior (high confidence): with 1 charged coil and declared discharge 2, discharge the available coil (1 -> 0), preserve the declared two-coil branch/tier, and allow its dependent effect to fizzle when full discharge was required."
-  - "Evidence qualifier: no exact-case publisher ruling for the 1 -> 0 transition was found; the recommendation composes the official charged -> discharged coil rule with the official underfunded-declaration/fizzle ruling."
