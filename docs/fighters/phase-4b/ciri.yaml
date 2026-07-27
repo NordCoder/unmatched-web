@@ -26,10 +26,13 @@ ability:
   effects:
     - id: source-cancellation-protection
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition:
-        expr: {op: gte, left: {ref: resource.source-count}, right: 7}
-      operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_controller_action_cards}]
+      stages:
+        - id: protect
+          when: {expr: {op: gte, left: {ref: resource.source-count}, right: 7}}
+          operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_controller_action_cards}]
 
 resources:
   - id: source-count
@@ -39,10 +42,7 @@ resources:
     initial: 0
     derivation:
       expr: count
-      selector:
-        zone: discard
-        owner: self
-        card_filter: {tag: source}
+      selector: {zone: discard, owner: self, card_filter: {tag: source}}
 persistent_state: []
 
 deck:
@@ -58,26 +58,10 @@ rulings:
     source_refs: [witcher-sas-rules-ciri]
 
 sources:
-  - id: witcher-sas-rules-ciri
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Source threshold rules, cancellation protection, Witcher ongoing scheme lifecycle]
-  - id: ciri-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/ciri
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus, Source tags]
-  - id: ciri-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/ciri
-    checked_at: 2026-07-27
-    supports: [current Ciri ruling index]
-  - id: general-search-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/rules/general-rulings
-    checked_at: 2026-07-27
-    supports: [post-search deck shuffle rule]
+  - {id: witcher-sas-rules-ciri, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Source threshold rules, cancellation protection, Witcher ongoing scheme lifecycle]}
+  - {id: ciri-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ciri, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus, Source tags]}
+  - {id: ciri-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/ciri, checked_at: 2026-07-27, supports: [current Ciri ruling index]}
+  - {id: general-search-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/general-rulings, checked_at: 2026-07-27, supports: [post-search deck shuffle rule]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, source_card_copies: 13}
