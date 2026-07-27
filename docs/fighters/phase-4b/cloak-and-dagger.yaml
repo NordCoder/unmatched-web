@@ -1,69 +1,94 @@
 schema_version: 1
 id: cloak-and-dagger
 display_name: Cloak and Dagger
-set_ids:
-- marvel-teen-spirit
+set_ids: [marvel-teen-spirit]
 status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
 movement: 2
+
 topology:
   type: multiple_heroes
   loss_rule: all_heroes_defeated
   fighters:
-  - id: cloak
-    display_name: Cloak
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 8
-    starts_on_board: true
-    summonable: false
-  - id: dagger
-    display_name: Dagger
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 8
-    starts_on_board: true
-    summonable: false
-setup:
-  hooks: []
-  state_initialization: []
+    - {id: cloak, display_name: Cloak, role: hero, count: 1, attack_type: melee, starting_health: 8, starts_on_board: true, summonable: false}
+    - {id: dagger, display_name: Dagger, role: hero, count: 1, attack_type: melee, starting_health: 8, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
 ability:
   id: umbra-and-refraction
   controller: owner
   effects:
-  - id: umbra
-    trigger: after_combat
-    condition:
-      attacker: cloak
-      combat_damage_dealt_gte: 2
-    operations:
-    - op: DISCARD
-      controller: opponent
-      from_zone: hand
-      selector: chosen_by_opponent
-      count: 1
-  - id: refraction
-    trigger: after_combat
-    condition:
-      attacker: dagger
-      combat_damage_dealt_gte: 2
-    operations:
-    - op: GAIN_ACTION
-      count: 1
+    - id: umbra
+      trigger: after_combat
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: choose-discard
+          when: {attacker: cloak, combat_damage_dealt_gte: 2}
+          choices:
+            - id: opponent_discard
+              owner: combat_opponent
+              visibility: private
+              optional: false
+              domain: {kind: card, zone: combat_opponent_hand, count: 1}
+              bind: opponent_discard
+          costs: []
+          operations: []
+        - id: discard
+          when: {bound: opponent_discard, exists: true}
+          choices: []
+          costs: []
+          operations: [{op: DISCARD, controller: combat_opponent, from_zone: hand, selector: {bound: opponent_discard}, count: 1}]
+    - id: refraction
+      trigger: after_combat
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: gain-action
+          when: {attacker: dagger, combat_damage_dealt_gte: 2}
+          choices: []
+          costs: []
+          operations: [{op: GAIN_ACTION, count: 1}]
+
 resources: []
 persistent_state: []
+
 deck:
   manifest: ../../cards/phase-4b/cloak-and-dagger.yaml
   construction: fixed
+
 rulings:
-- id: multiple-heroes-loss
-  summary: The character is not defeated when only Cloak or only Dagger is defeated; both heroes must be defeated.
-  source: https://www.the-unmatched.club/heroes/cloak-dagger
+  - {id: multiple-heroes-loss, source_ref: cloak-dagger-rulings-index, summary: The character is defeated only when both Cloak and Dagger are defeated.}
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/cloak-and-dagger
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/cloak-dagger
+  - id: cloak-dagger-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-teen-spirit-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: cloak-dagger-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/cloak-and-dagger
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, deck_construction]
+  - id: cloak-dagger-rulings-index
+    authority: official_ruling_index
+    url: https://www.the-unmatched.club/heroes/cloak-dagger
+    checked_at: 2026-07-27
+    supports: [multiple_hero_loss, card_interactions]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
