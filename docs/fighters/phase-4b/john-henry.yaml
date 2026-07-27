@@ -2,7 +2,13 @@ schema_version: 1
 id: john-henry
 display_name: John Henry
 set_ids: [stars-and-stripes]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-003, D-REQ-004, D-REQ-007]
 movement: 2
 topology:
   type: single_hero
@@ -12,52 +18,89 @@ topology:
 setup:
   hooks: []
   state_initialization:
-  - {key: john_henry_distinct_paths_used_this_turn, value: 0}
+  - {key: john_henry_paths_used_this_turn, value: []}
 ability:
   id: steel-driving-man
   controller: owner
   effects:
   - id: lay-track
     trigger: start_turn
+    requires: [D-REQ-007]
+    choices:
+    - {id: choose-track-destination, owner: controller, visibility: public, optional: false, domain: open_spaces_in_john_henry_zone, bind: destination}
     operations:
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_place_track_token, destination_rule: space_in_john_henry_zone, if_token_off_board: place_off_board_token, if_all_tokens_on_board: relocate_one_deployed_token}
+    - op: CHANGE_STATE
+      resource: track-tokens
+      transition: deploy_or_relocate_one
+      destination: bound.destination
   - id: track-movement-cost
     trigger: static
     continuous: true
     condition: {movement_controller: owner}
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_movement_space_cost_override, target: john-henry, marked_spaces: track_tokens}]
+    requires: [D-REQ-004, D-REQ-007]
+    modifier:
+      kind: movement_space_cost
+      target: john-henry
+      marked_spaces_resource: track-tokens
+      rule: entering_or_moving_through_marked_space_does_not_count_toward_distance_as_published
   - id: record-distinct-paths
     trigger: john_henry_moves
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_record_distinct_paths_traversed_this_turn, state: john_henry_distinct_paths_used_this_turn}]
+    requires: [D-REQ-007]
+    operations:
+    - op: CHANGE_STATE
+      key: john_henry_paths_used_this_turn
+      transition: union_with_traversed_path_refs
 resources:
 - id: track-tokens
   kind: token_pool
   visibility: public
   initial: 10
   runtime_state:
+    requires: [D-REQ-007]
     per_token_states: [off_board, deployed]
     initial_state: off_board
     deployed_anchor: space_ref
-    summon_rule: place_off_board_token_if_available_else_relocate_one_deployed_token
+    transition:
+      deploy_or_relocate_one: use_off_board_token_if_available_else_choose_deployed_token_to_relocate
 persistent_state:
-- {key: john_henry_distinct_paths_used_this_turn, type: integer, reset: turn_start}
+- {key: john_henry_paths_used_this_turn, type: path_ref_set, reset: turn_start}
 deck:
   manifest: ../../cards/phase-4b/john-henry.yaml
   construction: fixed
 rulings:
 - id: track-summon-supply-exhaustion
-  summary: At start of turn, summon a track token in John Henry's zone. If a token is off the board, place one of those; if all ten are already on the board, take one deployed token and place it instead.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  summary: At start of turn place an off-board track token if available; if all ten are deployed, relocate one deployed token instead.
+  source_ref: stars-rules
 - id: opponent-movement-track-benefit
-  summary: An opponent moving John Henry does not gain his track-token movement benefit.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  summary: An opponent moving John Henry does not receive his track movement benefit.
+  source_ref: stars-rules
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', note: Establishes track placement/reuse, movement benefit and distinct-path Hammer semantics.}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms track-token movement semantics.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/john-henry, checked_at: '2026-07-27', note: Visual card corpus and current ruling index.}
+- id: stars-rules
+  authority: official_set_rules
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, track_placement_reuse, movement_benefit, distinct_path_hammer_semantics]
+  durability: durable
+- id: stars-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: john-henry-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/john-henry
+  checked_at: '2026-07-27'
+  supports: [card_visual_corpus, rulings_index]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- Track placement is complete source data: when all ten tokens are deployed, the start-turn summon relocates an existing deployed token instead of failing.
-- The track movement-cost override is controller-sensitive; forced movement controlled by an opponent does not receive the discount.
-- Positioned track tokens and reconnect-safe distinct-path identity remain source-defined composites pending shared path-resource/path_ref-set semantics.
-- The scalar john_henry_distinct_paths_used_this_turn is retained only as a derived count for current card conditions; an authoritative set of path identities is still required for replay/reconnect validation.
+- The authoritative historical state is a path_ref_set, not a scalar count; cards derive count from set cardinality.
+- Track token identity and placement/reuse are explicit under D-REQ-007.
+- Movement discount is contextual and owner-controlled under D-REQ-004.
