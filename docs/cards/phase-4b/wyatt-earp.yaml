@@ -1,11 +1,10 @@
 schema_version: 1
 fighter_id: wyatt-earp
-status: verified
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-003]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
-card_zones:
-- {id: deck, owner: self}
-- {id: hand, owner: self}
-- {id: discard, owner: self}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
 cards:
 - {id: you-just-gonna-stand-there-and-bleed, name: You Just Gonna Stand There and Bleed?, quantity: 3, inclusion: fixed, usable_by: [wyatt-earp], type: attack, printed_value: 5, boost: 1, tags: [], effects: []}
 - id: i-have-two-guns-one-for-each-of-you
@@ -18,10 +17,11 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: after_combat
+  - id: two-guns
+    trigger: after_combat
     condition: {opponent_played_combat_card: true}
-    choices: [{owner: controller, choose: opposing_fighter_in_doc_holliday_zone_other_than_combat_fighter, capture: target}]
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount_rule: opposing_combat_card_printed_value}]
+    choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters_in_doc_holliday_zone_except_combat_fighter, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount_rule: opposing_combat_card_printed_value}]
 - id: second-shot
   name: Second Shot
   quantity: 2
@@ -32,35 +32,13 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: during_combat
+  - id: second-shot-boost
+    trigger: during_combat
     optional: true
-    choices: [{owner: controller, choose: card_in_hand_for_boost}]
-    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
-- id: fan-the-hammer
-  name: Fan the Hammer
-  quantity: 2
-  inclusion: fixed
-  usable_by: [wyatt-earp]
-  type: attack
-  printed_value: 1
-  boost: 3
-  tags: []
-  effects:
-  - trigger: cleanup_replacement
-    condition: {opposing_combat_fighter_defeated: true}
-    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]
-- id: youre-a-daisy-if-you-do
-  name: You're a Daisy If You Do
-  quantity: 2
-  inclusion: fixed
-  usable_by: [doc-holliday]
-  type: versatile
-  printed_value: 4
-  boost: 3
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations: [{op: DRAW, count: 2}]
+    choices: [{id: card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- {id: fan-the-hammer, name: Fan the Hammer, quantity: 2, inclusion: fixed, usable_by: [wyatt-earp], type: attack, printed_value: 1, boost: 3, tags: [], effects: [{id: fan-return, trigger: cleanup_replacement, condition: {opposing_combat_fighter_defeated: true}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}]}
+- {id: youre-a-daisy-if-you-do, name: "You're a Daisy If You Do", quantity: 2, inclusion: fixed, usable_by: [doc-holliday], type: versatile, printed_value: 4, boost: 3, tags: [], effects: [{id: daisy-draw, trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
 - id: a-marshal-and-an-outlaw
   name: A Marshal and an Outlaw
   quantity: 3
@@ -71,7 +49,8 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: after_combat
+  - id: marshal-outlaw
+    trigger: after_combat
     branches:
     - {condition: {this_card_played_as: defense}, operations: [{op: DRAW, count: 1}]}
     - {condition: {this_card_played_as: attack}, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 1, controller: opponent}]}
@@ -85,10 +64,11 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: after_combat
+  - id: huckleberry
+    trigger: after_combat
     condition: {combat_result: won}
-    choices: [{owner: controller, choose: opposing_fighter_in_own_combat_fighter_zone, capture: target}]
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 1}]
+    choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters_in_own_combat_fighter_zone, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 1}]
 - id: gunfight-at-the-ok-corral
   name: Gunfight at the O.K. Corral
   quantity: 2
@@ -99,24 +79,20 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: after_combat
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_alternating_damage_choices, sequence: [controller, opponent, controller], amount_each: 1, target_rule: any_fighter}]
-- id: better-swear-me-in
-  name: Better Swear Me In
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: versatile
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: immediately
-    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
-  - trigger: after_combat
-    operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}]
-    choices: [{owner: controller, choose: disposition, options: [leave_on_top, move_to_bottom]}]
-    followup: [{op: MOVE_CARD, from_zone: opponent_deck_top, to_zone: opponent_deck, selector: captured.revealed_card, position: bottom, condition: {chosen_disposition: move_to_bottom}}]
+  - id: gunfight
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: controller-first
+      choices: [{id: target-1, owner: controller, visibility: public, optional: false, domain: current_fighters, bind: target_1}]
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target_1, amount: 1}]
+    - id: opponent-second
+      choices: [{id: target-2, owner: combat_opponent, visibility: public, optional: false, domain: current_fighters_after_prior_stage, bind: target_2}]
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target_2, amount: 1}]
+    - id: controller-third
+      choices: [{id: target-3, owner: controller, visibility: public, optional: false, domain: current_fighters_after_prior_stage, bind: target_3}]
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target_3, amount: 1}]
+- {id: better-swear-me-in, name: Better Swear Me In, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: swear-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {id: swear-reveal, trigger: after_combat, stages: [{id: reveal, operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, bind: card}]}, {id: choose, choices: [{id: disposition, owner: controller, visibility: public, optional: false, domain: [leave_on_top, move_to_bottom], bind: disposition}]}, {id: dispose, operations: [{op: MOVE_CARD, from_zone: opponent_deck_top, to_zone: opponent_deck, selector: bound.card, position: bottom, condition: {bound.disposition: move_to_bottom}}]}]}]}
 - id: bring-em-to-justice
   name: Bring 'Em to Justice
   quantity: 3
@@ -127,10 +103,11 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: during_combat
-    operations:
-    - {op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}
-    - {op: ADD_VALUE, target: this_card, amount_rule: twice_captured_revealed_card_boost}
+  - id: justice
+    trigger: during_combat
+    stages:
+    - {id: reveal, operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, bind: card}]}
+    - {id: add, operations: [{op: ADD_VALUE, target: this_card, amount_rule: twice_bound_card_boost}]}
 - id: in-vino-veritas
   name: In Vino Veritas
   quantity: 2
@@ -141,10 +118,14 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: scheme
+  - id: vino
+    trigger: scheme
+    requires: [D-REQ-003]
     operations:
     - {op: DRAW, count_rule: draw_until_hand_size_4}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
+    - op: GAIN_ACTION
+      count: 1
+      credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
 - id: you-die-first
   name: You Die First
   quantity: 2
@@ -155,17 +136,34 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: scheme
-    choices: [{owner: controller, choose: opposing_fighter, capture: target}]
-    operations:
-    - {op: MOVE, target: captured.target, max_distance: 1}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack, required_target: captured.target}
+  - id: you-die-first
+    trigger: scheme
+    requires: [D-REQ-003]
+    stages:
+    - id: choose-target
+      choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters, bind: target}]
+    - id: move-target
+      operations: [{op: MOVE, target: bound.target, max_distance: 1}]
+    - id: grant-attack
+      operations:
+      - op: GAIN_ACTION
+        count: 1
+        credit: {must_be_next: true, allowed_actions: [attack], required_target: bound.target, expires_if_not_immediately_used: true}
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, result: PASS}
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
+- {id: stars-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', supports: [free_attack_rule, showdown_context], durability: durable}
+- {id: stars-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: wyatt-club, authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
 normalization_notes:
-- All 12 definitions reconcile to 30 physical cards.
-- Free attack actions use the Stars & Stripes immediate restricted-action rule; You Die First additionally binds the permitted target.
+- All 12 definitions reconcile to 30 cards.
+- Gunfight uses explicit alternating-controller stages and reevaluates the fighter domain after each damage application.
+- Better Swear Me In has no followup field; reveal, choice and disposition are staged.
+- Free attacks use D-REQ-003, including You Die First's bound required target.
