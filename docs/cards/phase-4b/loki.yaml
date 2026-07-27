@@ -33,22 +33,33 @@ cards:
   effects:
   - id: looking-for-trouble-replacement
     trigger: immediately
-    choices:
-    - id: replacement-card
-      owner: controller
-      visibility: private
-      optional: false
-      domain: {zone: combat_opponent_hand, filter: legal_defense_or_versatile_for_current_defender}
-      bind: card
-    operations:
-    - op: REPLACE_COMBAT_CARD
-      side: defender
-      card: bound.card
-      rule:
-        disposition_of_replaced_card: return_to_original_hand
-        replacement_enters_current_combat: true
-        restart_attack_action: false
-        timing_entry: current_immediately_window
+    condition: {opponent_played_combat_card: true}
+    requires: [D-REQ-001]
+    stages:
+    - id: return-current-defense
+      operations:
+      - {op: MOVE_CARD, from_zone: combat_opponent.committed_defense, to_zone: combat_opponent.hand, selector: current_defense_card}
+    - id: inspect-resulting-hand
+      operations:
+      - {op: LOOK_AT, source: combat_opponent.hand, selector: all, viewer: controller}
+    - id: choose-replacement
+      choices:
+      - id: replacement-card
+        owner: controller
+        visibility: private
+        optional: false
+        domain: {zone: combat_opponent.hand, filter: legal_defense_or_versatile_for_current_defender}
+        bind: card
+    - id: commit-replacement
+      operations:
+      - op: REPLACE_COMBAT_CARD
+        side: defender
+        card: bound.card
+        controller: combat_opponent
+        rule:
+          replacement_enters_current_combat: true
+          restart_attack_action: false
+          timing_entry: current_immediately_window
 - id: shapeshifter
   name: Shapeshifter
   quantity: 4
@@ -208,6 +219,7 @@ sources:
 - {id: loki-rules, authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-27', supports: [trick_rulings]}
 normalization_notes:
 - TRICK cards have no BOOST value.
+- Looking for Trouble preserves the printed played-card gate and return, inspect, select, same-combat replacement order; the returned defense is part of the replacement domain.
 - Svadilfari selection is explicitly opaque until the selected instance is revealed, under D-REQ-017.
 - Freyja's Rescue swaps captured current combat values through stages; no numeric SWAP/source_defined handler remains.
 - Fighter-level multiplayer recipient behavior remains a medium-confidence project normalization, not an official ruling.
