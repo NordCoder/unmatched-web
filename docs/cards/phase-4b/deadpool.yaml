@@ -1,62 +1,402 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: deadpool
 status: blocked
+verification: {evidence: qualified, semantics: verified, integration: requires_shared_extension, policy: blocked}
+requires: [A-REQ-008, A-REQ-015]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: chimichanga-break, name: Chimichanga Break!, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: during_combat, condition: {external_predicate: food_on_table}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}], normalization_blocker: external_world_predicate}
-  - {id: eat-me, name: Eat Me, quantity: 1, usable_by: [deadpool], type: defense, printed_value: 2, boost: 2, effects: [], external_semantics: [say_eat_me_immediately, say_eat_me_during_combat, say_eat_me_after_lost_combat]}
-  - {id: and-for-my-next-move, name: And For My Next Move..., quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 1, effects: [{trigger: after_combat, choices: [{choose: [deal_2, move_3]}], operations: [{op: REQUEST_CHOICE, definition: next_move_choice}]}]}
-  - {id: three-of-hearts, name: 3 of Hearts, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 3, boost: 4, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
-  - {id: gimme-gimme-chimichanga, name: Gimme Gimme Chimichanga, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: RECOVER, target: deadpool, amount: 1}]}]}
-  - {id: dumpster-divin-deadpool, name: Dumpster Divin' Deadpool, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, choices: [{choose: 5, from: own_discard}], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: chosen_cards}, {op: SHUFFLE, zone: deck}, {op: RECOVER, target: deadpool, amount: 1}]}]}
-  - {id: non-retinal-scan-access-to-danger-room, name: Non-Retinal Scan Access to Danger Room, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 4, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: combat_opponent_hand, viewer: owner}, {op: RECOVER, target: deadpool, amount: 1}]}]}
-  - {id: time-out-time-out-time-out, name: Time out time out time out!, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 0, boost: 3, effects: [{trigger: immediately, choices: [{choose: legally_playable_card, from: deck}], operations: [{op: REPLACE_COMBAT_CARD, old_card: this_card, new_card: chosen_card}]}]}
-  - {id: holy-mackerel, name: Holy Mackerel!, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: card_name}], operations: [{op: REQUEST_CHOICE, definition: holy_mackerel_named_card_check}]}]}
-  - {id: sweeet, name: Sweeet!, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: REQUEST_CHOICE, definition: sweeet_two_distinct_yellowish_spaces}, {op: PLACE, target: deadpool, destination_rule: first_chosen_space}, {op: PLACE, target: deadpool, destination_rule: second_chosen_space}]}], normalization_blocker: subjective_board_color_predicate_yellowish}
-  - {id: wanna-bet, name: Wanna bet?, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 2, boost: 1, effects: [], external_semantics: [post_game_drink_wager]}
-  - {id: robs-pouch-and-shoe-emporium, name: Rob's Pouch & Shoe Emporium, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, min_distance: 1, max_distance: 1, controller: owner}]}]}
-  - {id: push-to-teleport, name: Push to Teleport, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 6, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
-  - {id: cha-ching, name: Cha-Ching!, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 1, boost: 3, effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
-  - {id: i-always-get-the-last-word, name: I Always Get The Last Word, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {role: attacker}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
-  - {id: klunkin-heads, name: Klunkin' Heads, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_other_opposing_fighter_adjacent_to_opposing_combat_fighter, amount: 3}]}]}
-  - {id: deadpool-merc-for-hire-llc, name: "Deadpool™ Merc For Hire, LLC", quantity: 1, usable_by: [deadpool], type: attack, printed_value: 5, boost: 1, effects: [{trigger: after_combat, condition: {external_predicate: owner_owns_deadpool_unmatched_set}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}], normalization_blocker: external_world_predicate}
-  - {id: exploding-card, name: Exploding Card!, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 1, boost: 4, effects: [{trigger: during_combat, condition: {external_predicate: exploding_noise_made_on_reveal}, operations: [{op: SET_VALUE, target: this_card, value: 4}]}], normalization_blocker: external_world_action}
-  - {id: passwords, name: Passwords, quantity: 1, usable_by: [deadpool], type: defense, printed_value: 5, boost: 1, effects: [{trigger: after_combat, operations: [{op: LOOK_AT, source: own_hand, viewer: combat_opponent}, {op: DISCARD, from: own_hand, selector: combat_opponent_choice, count: 1}]}]}
-  - {id: gaze-of-stone, name: Gaze of Stone, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 2, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: REQUEST_CHOICE, definition: deadpool_gaze_mirror_resolution}]}], normalization_blocker: external_mirror_predicate_and_cross_game_character_reference}
-  - {id: excuse-me-while-i-grow-some-limbs, name: Excuse me while I grow some limbs., quantity: 1, usable_by: [deadpool], type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, branches: [{condition: {combat_result: won}, operations: [{op: DISCARD, from: combat_opponent_hand, selector: combat_opponent_choice, count: 2}]}, {condition: {combat_result: not_won}, operations: [{op: DISCARD, from: combat_opponent_hand, selector: combat_opponent_choice, count: 1}]}]}]}
-  - {id: transit-card, name: Transit Card, quantity: 1, usable_by: [deadpool], type: defense, printed_value: 2, boost: 1, effects: [{trigger: after_combat, operations: [{op: PLACE, target: deadpool, destination_rule: any_space_in_deadpool_zone}]}]}
-  - {id: faint, name: Faint, quantity: 1, usable_by: [deadpool], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: RECOVER, target: deadpool, amount: 2}]}], external_semantics: [tip_figure_over, make_fainting_noise, reset_figure]}
-  - {id: feint, name: Feint, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: super-feint, name: Super Feint, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 4, boost: 2, effects: [{trigger: static, operations: [{op: PREVENT_OPERATION, target: this_card_effects, operation: CANCEL_EFFECTS, duration: combat}]}, {trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
-  - {id: call-me, name: Call Me, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: during_combat, condition: {external_predicate: opponent_name_written_on_this_physical_card}, operations: [{op: SET_VALUE, target: this_card, value: 4}]}], external_semantics: [opponent_writes_name_on_physical_card_after_combat_if_absent], normalization_blocker: mutable_physical_card_state_and_external_identity}
-  - {id: im-not-wearing-pants, name: I'm Not Wearing Pants, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 1, effects: [{trigger: during_combat, condition: {external_predicate: physical_card_not_sleeved}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}], external_semantics: [post_combat_clothing_instruction], normalization_blocker: physical_component_and_external_world_predicates}
-  - {id: they-have-an-amazing-buffet, name: They Have An Amazing Buffet, quantity: 1, usable_by: [deadpool], type: defense, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: RECOVER, target: deadpool, amount: 2}, {op: TRIGGER_COMPOSITE, definition: amazing_buffet_full_health_check}]}]}
+  - id: chimichanga-break
+    name: Chimichanga Break!
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    requires: [A-REQ-015]
+    effects:
+      - id: chimichanga-break-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {external_predicate: food_on_table, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - id: eat-me
+    name: Eat Me
+    quantity: 1
+    usable_by: [deadpool]
+    type: defense
+    printed_value: 2
+    boost: 2
+    requires: [A-REQ-015]
+    effects:
+      - {id: eat-me-immediately, trigger: immediately, controller: owner, cancellation: source_defined, stages: [{id: external-instruction, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: say_eat_me_immediately, requires: A-REQ-015}]}]}
+      - {id: eat-me-during, trigger: during_combat, controller: owner, cancellation: source_defined, stages: [{id: external-instruction, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: say_eat_me_during_combat, requires: A-REQ-015}]}]}
+      - {id: eat-me-after, trigger: after_combat, controller: owner, cancellation: source_defined, stages: [{id: external-instruction, when: {combat: {result: lost}}, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: say_eat_me_after_lost_combat, requires: A-REQ-015}]}]}
+  - id: and-for-my-next-move
+    name: And For My Next Move...
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    effects:
+      - id: next-move-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-effect
+            when: always
+            choices:
+              - {id: choose-next-move, owner: controller, visibility: public, optional: false, domain: [deal_2, move_deadpool_up_to_3], bind: selected_effect}
+            costs: []
+            operations: []
+          - {id: deal-damage, when: {choice: {ref: choice.selected_effect, equals: deal_2}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 2}]}
+          - {id: move, when: {choice: {ref: choice.selected_effect, equals: move_deadpool_up_to_3}}, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, max_distance: 3}]}
+  - {id: three-of-hearts, name: 3 of Hearts, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 3, boost: 4, effects: [{id: hearts-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: gimme-gimme-chimichanga, name: Gimme Gimme Chimichanga, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{id: gimme-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}, {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: deadpool, amount: 1}]}]}]}
+  - id: dumpster-divin-deadpool
+    name: Dumpster Divin' Deadpool
+    quantity: 1
+    usable_by: [deadpool]
+    type: scheme
+    printed_value: null
+    boost: 1
+    effects:
+      - id: dumpster-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discard-cards
+            when: always
+            choices:
+              - {id: choose-five-cards, owner: controller, visibility: public, optional: false, domain: {zone: discard, owner: self}, bind: chosen_cards, min: 0, max: 5, distinct: true, order_matters: false}
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {ref: choice.chosen_cards}}
+              - {op: SHUFFLE, zone: deck}
+              - {op: RECOVER, target: deadpool, amount: 1}
+  - {id: non-retinal-scan-access-to-danger-room, name: Non-Retinal Scan Access to Danger Room, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 4, effects: [{id: non-retinal-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: look, when: always, choices: [], costs: [], operations: [{op: LOOK_AT, source: {zone: hand, owner: combat_opponent}, viewer: controller}]}, {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: deadpool, amount: 1}]}]}]}
+  - id: time-out-time-out-time-out
+    name: Time out time out time out!
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 0
+    boost: 3
+    effects:
+      - id: time-out-replace
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-replacement
+            when: always
+            choices:
+              - {id: choose-playable-card, owner: controller, visibility: private, optional: false, domain: {zone: deck, owner: self, predicate: legally_playable_in_current_combat}, bind: replacement_card}
+            costs: []
+            operations: [{op: REPLACE_COMBAT_CARD, old_card: this_card, new_card: {ref: choice.replacement_card}}]
+  - id: holy-mackerel
+    name: Holy Mackerel!
+    quantity: 1
+    usable_by: [deadpool]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: holy-mackerel-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent-and-name
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+              - {id: name-card, owner: controller, visibility: public, optional: false, domain: {kind: card_name}, bind: named_card}
+            costs: []
+            operations: [{op: CHECK_HAND_FOR_CARD_NAME, owner: {ref: choice.chosen_opponent}, card_name: {ref: choice.named_card}, bind_result: named_check}]
+          - {id: discard-matches, when: {result: {ref: result.named_check.match_count, gt: 0}}, choices: [], costs: [], operations: [{op: DISCARD, from_zone: {zone: hand, owner: {ref: choice.chosen_opponent}}, selector: {ref: result.named_check.matching_cards}}]}
+          - {id: draw-if-none, when: {result: {ref: result.named_check.match_count, equals: 0}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: sweeet
+    name: Sweeet!
+    quantity: 1
+    usable_by: [deadpool]
+    type: scheme
+    printed_value: null
+    boost: 2
+    requires: [A-REQ-015]
+    effects:
+      - id: sweeet-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-yellowish-spaces
+            when: always
+            choices:
+              - {id: choose-spaces, owner: controller, visibility: public, optional: false, domain: {kind: space, external_predicate: subjectively_yellowish_zone, requires: A-REQ-015}, bind: chosen_spaces, min: 2, max: 2, distinct: true, order_matters: true}
+            costs: []
+            operations: []
+          - {id: first-place, when: always, choices: [], costs: [], operations: [{op: PLACE, target: deadpool, destination: {ref: choice.chosen_spaces[0]}}]}
+          - {id: second-place, when: always, choices: [], costs: [], operations: [{op: PLACE, target: deadpool, destination: {ref: choice.chosen_spaces[1]}}]}
+  - id: wanna-bet
+    name: Wanna bet?
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 2
+    boost: 1
+    requires: [A-REQ-015]
+    effects:
+      - {id: wager-instruction, trigger: after_game, controller: owner, cancellation: source_defined, stages: [{id: resolve-wager, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: post_game_drink_wager, requires: A-REQ-015}]}]}
+  - {id: robs-pouch-and-shoe-emporium, name: Rob's Pouch & Shoe Emporium, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 1, effects: [{id: robs-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.opposing_fighter}, min_distance: 1, max_distance: 1, controller: owner}]}]}]}
+  - {id: push-to-teleport, name: Push to Teleport, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 6, effects: [{id: teleport-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: cha-ching
+    name: Cha-Ching!
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 1
+    boost: 3
+    effects:
+      - id: cha-ching-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-boost
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+  - {id: i-always-get-the-last-word, name: I Always Get The Last Word, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 3, boost: 1, effects: [{id: last-word-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {combat: {role: attacker}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 1}]}]}]}
+  - {id: klunkin-heads, name: Klunkin' Heads, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 4, boost: 2, effects: [{id: klunkin-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, adjacent_to: {ref: combat.opposing_fighter}, exclude: {ref: combat.opposing_fighter}}}, amount: 3}]}]}]}
+  - id: deadpool-merc-for-hire-llc
+    name: Deadpool™ Merc For Hire, LLC
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 5
+    boost: 1
+    requires: [A-REQ-015]
+    effects:
+      - id: merc-for-hire-damage
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: damage, when: {external_predicate: owner_owns_deadpool_unmatched_set, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 1}]}
+  - id: exploding-card
+    name: Exploding Card!
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 1
+    boost: 4
+    requires: [A-REQ-015]
+    effects:
+      - id: exploding-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {external_predicate: exploding_noise_made_on_reveal, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}
+  - id: passwords
+    name: Passwords
+    quantity: 1
+    usable_by: [deadpool]
+    type: defense
+    printed_value: 5
+    boost: 1
+    effects:
+      - id: passwords-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: reveal-hand-to-opponent, when: always, choices: [], costs: [], operations: [{op: LOOK_AT, source: {zone: hand, owner: self}, viewer: combat_opponent}]}
+          - id: opponent-chooses-discard
+            when: always
+            choices:
+              - {id: choose-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: self}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: hand, selector: {ref: choice.discarded_card}, count: 1}]
+  - id: gaze-of-stone
+    name: Gaze of Stone
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 2
+    boost: 1
+    requires: [A-REQ-015]
+    effects:
+      - id: gaze-of-stone-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: no-mirror, when: {all: [{combat: {result: won}}, {external_predicate: no_qualifying_mirror, requires: A-REQ-015}]}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 8}]}
+          - {id: mirror-medusa, when: {all: [{combat: {result: won}}, {external_predicate: qualifying_mirror_present, requires: A-REQ-015}, {fighter_exists: medusa}]}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, fighter_id: medusa}}, amount: 8}]}
+  - id: excuse-me-while-i-grow-some-limbs
+    name: Excuse me while I grow some limbs.
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 3
+    boost: 1
+    effects:
+      - id: grow-limbs-discard
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-won-discards
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-two-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_cards, min: 2, max: 2, distinct: true, order_matters: false}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_cards}}]
+          - id: choose-not-won-discard
+            when: {combat: {result: not_won}}
+            choices:
+              - {id: choose-one-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1}]
+  - id: transit-card
+    name: Transit Card
+    quantity: 1
+    usable_by: [deadpool]
+    type: defense
+    printed_value: 2
+    boost: 1
+    effects:
+      - id: transit-place
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: choose-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: deadpool}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: deadpool, destination: {ref: choice.destination}}]
+  - id: faint
+    name: Faint
+    quantity: 1
+    usable_by: [deadpool]
+    type: scheme
+    printed_value: null
+    boost: 2
+    requires: [A-REQ-015]
+    effects:
+      - id: faint-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: physical-instruction-before, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: tip_figure_and_make_fainting_noise, requires: A-REQ-015}]}
+          - {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: deadpool, amount: 2}]}
+          - {id: physical-instruction-after, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: reset_figure, requires: A-REQ-015}]}
+  - {id: feint, name: Feint, quantity: 1, usable_by: [deadpool], type: versatile, printed_value: 2, boost: 1, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: super-feint
+    name: Super Feint
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 4
+    boost: 2
+    effects:
+      - {id: super-feint-protect, trigger: static, controller: owner, cancellation: protected, stages: [{id: protect, when: always, choices: [], costs: [], operations: [{op: PREVENT_OPERATION, target: this_card_effects, operation: CANCEL_EFFECTS, duration: combat}]}]}
+      - {id: super-feint-cancel, trigger: immediately, controller: owner, cancellation: protected, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+      - {id: super-feint-draw, trigger: after_combat, controller: owner, cancellation: protected, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}
+  - id: call-me
+    name: Call Me
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    requires: [A-REQ-015]
+    effects:
+      - id: call-me-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {external_predicate: opponent_name_written_on_this_physical_card, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}
+      - id: call-me-writing
+        trigger: after_combat
+        controller: owner
+        cancellation: source_defined
+        stages:
+          - {id: write-name-if-absent, when: {external_predicate: opponent_name_not_written_on_this_physical_card, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: opponent_writes_name_on_physical_card, requires: A-REQ-015}]}
+  - id: im-not-wearing-pants
+    name: I'm Not Wearing Pants
+    quantity: 1
+    usable_by: [deadpool]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    requires: [A-REQ-015]
+    effects:
+      - id: pants-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {external_predicate: physical_card_not_sleeved, requires: A-REQ-015}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+      - id: pants-instruction
+        trigger: after_combat
+        controller: owner
+        cancellation: source_defined
+        stages:
+          - {id: clothing-instruction, when: always, choices: [], costs: [], operations: [{op: RESOLVE_EXTERNAL_INSTRUCTION, instruction: source_printed_clothing_instruction, requires: A-REQ-015}]}
+  - id: they-have-an-amazing-buffet
+    name: They Have An Amazing Buffet
+    quantity: 1
+    usable_by: [deadpool]
+    type: defense
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: buffet-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: deadpool, amount: 2}]}
+          - {id: full-health-damage, when: {fighter: {id: deadpool, at_full_health: true}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: deadpool, amount: 2}]}
   - {id: underrated-super-heroes, name: Underrated Super Heroes, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 6, boost: 2, effects: []}
-  - {id: xavier-institute-faculty, name: Xavier Institute Faculty, quantity: 1, usable_by: [deadpool], type: attack, printed_value: 3, boost: 2, effects: [], play_permission: {attack_mode: [melee, ranged]}, normalization_blocker: per_card_dynamic_attack_mode_override}
+  - id: xavier-institute-faculty
+    name: Xavier Institute Faculty
+    quantity: 1
+    usable_by: [deadpool]
+    type: attack
+    printed_value: 3
+    boost: 2
+    requires: [A-REQ-008]
+    combat_legality:
+      attack_modes: [melee, ranged]
+      requires: A-REQ-008
+    effects: []
 
-external_definitions:
-  - {id: next_move_choice, kind: choice_bundle, options: [deal_2_to_opposing_combat_fighter, move_deadpool_up_to_3]}
-  - {id: holy_mackerel_named_card_check, kind: named_hidden_information_check, success: opponent_discards_all_matching_name, failure: owner_draws_1}
-  - {id: deadpool_gaze_mirror_resolution, kind: external_predicate_branch, no_mirror: deal_8_to_opposing_combat_fighter, mirror: deal_8_to_medusa_if_applicable}
-  - {id: sweeet_two_distinct_yellowish_spaces, kind: external_predicate_choice, choose: 2, distinct: true, domain: spaces_in_subjectively_yellowish_zones, ordered: true}
-  - id: amazing_buffet_full_health_check
-    kind: ordered_conditional_composite
-    condition: {deadpool_at_full_health_after_previous_recovery: true}
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: deadpool, amount: 2}]
-  - {id: external-world-semantics, kind: proposed_generic_extension_family, examples: [real_name, food_present, physical_noise, set_ownership, clothing, sleeve_state, mutable_writing, post_game_wager, subjective_board_color]}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 30, attack_count: 11, versatile_count: 11, defense_count: 4, scheme_count: 4}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/deadpool
-  - https://unmatched.cards/umdb/decks/stats
-  - https://mondoshop.com/blogs/news/april-pools-day
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - All published cards are one copy each; current UmDb reconciles exactly to 11 Attack / 11 Versatile / 4 Defense / 4 Scheme.
-  - Excuse me while I grow some limbs uses mutually exclusive won/not-won branches so the published "discard two instead" is not represented as two independent discard effects.
-  - They Have An Amazing Buffet preserves printed order: recover 2 first, then test full health and take 2 damage if the test succeeds.
-  - Combat-card references to "your opponent" are scoped to the current combat opponent where applicable; this is distinct from Scheme effects that explicitly choose any opponent.
-  - Physical/social joke semantics are preserved as provenance-bearing external semantics and are not replaced with digital-only house rules.
-  - Time Out replaces the combat card from the deck without inventing a shuffle not present in the published effect.
-  - The official Mondo release page establishes first-party release provenance; published UmDb supplies the complete 30-card metadata/effect corpus.
+  - {id: deadpool-release, authority: official_component, url: https://mondoshop.com/blogs/news/april-pools-day, checked_at: 2026-07-27, supports: [official_release]}
+  - {id: deadpool-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/deadpool, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text, physical_social_instructions]}
+  - {id: deadpool-reference, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [general_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: blocked
+  fan_content: none
