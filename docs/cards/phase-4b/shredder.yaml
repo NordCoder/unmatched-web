@@ -23,7 +23,7 @@ cards:
   name: Gruff Escort
   quantity: 2
   inclusion: fixed
-  usable_by: [bebop, rocksteady]
+  usable_by: [bebop-and-rocksteady]
   type: attack
   printed_value: 4
   boost: 2
@@ -50,7 +50,7 @@ cards:
   name: Gang Up
   quantity: 2
   inclusion: fixed
-  usable_by: [bebop, rocksteady]
+  usable_by: [bebop-and-rocksteady]
   type: attack
   printed_value: 3
   boost: 2
@@ -75,7 +75,7 @@ cards:
   name: Think Hard
   quantity: 2
   inclusion: fixed
-  usable_by: [bebop, rocksteady]
+  usable_by: [bebop-and-rocksteady]
   type: versatile
   printed_value: 3
   boost: 2
@@ -173,15 +173,16 @@ cards:
   effects:
   - trigger: scheme
     operations:
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_recover_or_revive_sidekick, target: bebop, amount: 3, placement_rule: closest_possible_to_shredder}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_recover_or_revive_sidekick, target: rocksteady, amount: 3, placement_rule: closest_possible_to_shredder}
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_recover_or_revive_sidekick, target: bebop-and-rocksteady, amount: 3, placement_rule: closest_possible_to_shredder}
 external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13, result: PASS}
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Current competitive Hero Deck visual corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Current competitive Hero Deck reference and combined Bebop & Rocksteady sidekick identity.}
 - {authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27'}
 normalization_notes:
 - All 13 competitive Hero Deck definitions reconcile to 30 physical cards.
+- Bebop & Rocksteady are one sidekick fighter definition; their exclusive cards therefore use the single bebop-and-rocksteady piece id.
+- Back to Work targets that one combined sidekick rather than synthesizing two independent recoveries/revivals.
 - Foot Soldiers remain path/edge resources rather than fighters.
 - Adventures villain cards and scenario logic are excluded.
