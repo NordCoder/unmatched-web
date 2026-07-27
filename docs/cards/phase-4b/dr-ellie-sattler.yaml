@@ -1,11 +1,9 @@
 schema_version: 1
 fighter_id: dr-ellie-sattler
-status: blocked
-
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-006]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
   - id: you-never-had-control-thats-the-illusion
@@ -18,12 +16,18 @@ cards:
     boost: 2
     tags: [insight]
     effects:
-      - trigger: during_combat
-        operations:
-          - {op: ADD_VALUE, target: this_card, amount_rule: count_insight_tokens_on_board}
-          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: return_all_insight_tokens_to_supply}
-        normalization_blocker: Counting and relocating positioned Insight token instances requires B-EXT-006.
-
+      - id: illusion-insight-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: count-and-return
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: ADD_VALUE, target: this_card, amount_ref: {requirement: B-REQ-006, token_type: insight, selector: battlefield, aggregate: count}}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: battlefield_all, to: insight-supply, count: all}
   - id: hey-hey-hey
     name: Hey! Hey! Hey!
     quantity: 1
@@ -34,10 +38,18 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: after_combat
-        choices: [{owner: controller, choose: other_friendly_fighter}]
-        operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]
-
+      - id: hey-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: always
+            choices:
+              - {id: friendly_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: other_friendly_fighter, count: 1}, bind: friendly_fighter}
+            costs: []
+            operations: []
+          - {id: move, when: {bound: friendly_fighter, exists: true}, choices: [], costs: [], operations: [{op: MOVE, target: {bound: friendly_fighter}, max_distance: 4}]}
   - id: must-go-faster
     name: Must Go Faster
     quantity: 1
@@ -48,13 +60,31 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: after_combat
-        condition: {combat_result: won}
-        optional: true
-        operations:
-          - {op: PLACE, target: dr-ellie-sattler, destination_rule: any_legal_space}
-          - {op: PLACE, target: dr-ian-malcolm, destination_rule: any_legal_space, skip_if_defeated: true}
-
+      - id: must-go-faster-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: {combat_result: won}, choices: [{id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - id: choose-sattler-space
+            when: {bound: use_effect, equals: true}
+            choices:
+              - {id: sattler_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: sattler_destination}
+            costs: []
+            operations: []
+          - id: choose-malcolm-space
+            when: {bound: use_effect, equals: true, fighter_undefeated: dr-ian-malcolm}
+            choices:
+              - {id: malcolm_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: malcolm_destination}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: use_effect, equals: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: PLACE, target: dr-ellie-sattler, destination: {bound: sattler_destination}, skip_if_unbound: true}
+              - {op: PLACE, target: dr-ian-malcolm, destination: {bound: malcolm_destination}, skip_if_unbound: true}
   - id: violently-if-necessary
     name: Violently, If Necessary
     quantity: 3
@@ -65,13 +95,12 @@ cards:
     boost: 3
     tags: [insight]
     effects:
-      - trigger: after_combat
-        operations:
-          - op: DEAL_EFFECT_DAMAGE
-            target: each_opposing_fighter_on_or_adjacent_to_space_with_insight
-            amount: 2
-        normalization_blocker: Selecting spaces occupied by Insight token instances requires B-EXT-006.
-
+      - id: violently-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: damage, when: {requirement: B-REQ-006, insight_on_battlefield: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_on_or_adjacent_to_space_with_insight, amount: 2, selector_requirement: B-REQ-006}]}
   - id: feint
     name: Feint
     quantity: 3
@@ -82,9 +111,11 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: immediately
-        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
-
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
   - id: chaotician
     name: Chaotician
     quantity: 1
@@ -95,13 +126,18 @@ cards:
     boost: 3
     tags: [insight]
     effects:
-      - trigger: after_combat
-        condition: {insight_supply_gt: 0}
-        choices: [{owner: controller, choose: battlefield_space}]
-        operations:
-          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: place_one_insight_from_supply_at_chosen_space}
-        normalization_blocker: Moving one physical Insight token from supply to a chosen battlefield space requires B-EXT-006.
-
+      - id: chaotician-place-insight
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {resource_gt: {insight-supply: 0}}
+            choices:
+              - {id: insight_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: battlefield_space}, bind: insight_destination}
+            costs: []
+            operations: []
+          - {id: place-token, when: {bound: insight_destination, exists: true}, choices: [], costs: [], operations: [{op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: insight-supply, to: {bound: insight_destination}, count: 1}]}
   - id: life-finds-a-way
     name: Life Finds a Way
     quantity: 2
@@ -112,12 +148,19 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: after_combat
-        operations:
-          - {op: DISCARD, from: opponent.deck_top, selector: 1, capture: discarded_card}
-          - {op: RECOVER, target: dr-ellie-sattler, amount_rule: captured.discarded_card.boost_or_0}
-          - {op: RECOVER, target: dr-ian-malcolm, amount_rule: captured.discarded_card.boost_or_0}
-
+      - id: life-finds-a-way-recover
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: discard-top, when: always, choices: [], costs: [], operations: [{op: DISCARD, controller: opponent, from_zone: deck_top, selector: {count: 1}, bind: discarded_card}]}
+          - id: recover
+            when: {result: discarded_card, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: RECOVER, target: dr-ellie-sattler, amount_ref: {result: discarded_card, field: boost_or_0}}
+              - {op: RECOVER, target: dr-ian-malcolm, amount_ref: {result: discarded_card, field: boost_or_0}}
   - id: woman-inherits-the-earth
     name: Woman Inherits the Earth
     quantity: 3
@@ -128,13 +171,19 @@ cards:
     boost: 3
     tags: [insight]
     effects:
-      - trigger: immediately
-        operations:
-          - {op: DRAW, count: 1}
-          - {op: RECOVER, target: dr-ellie-sattler, amount_rule: count_insight_tokens_on_board}
-          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: return_all_insight_tokens_to_supply}
-        normalization_blocker: Counting and relocating positioned Insight token instances requires B-EXT-006.
-
+      - id: woman-inherits-resolve
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 1}
+              - {op: RECOVER, target: dr-ellie-sattler, amount_ref: {requirement: B-REQ-006, token_type: insight, selector: battlefield, aggregate: count}}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: battlefield_all, to: insight-supply, count: all}
   - id: regroup
     name: Regroup
     quantity: 2
@@ -145,13 +194,13 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        branches:
-          - condition: {combat_result: won}
-            operations: [{op: DRAW, count: 2}]
-          - condition: {combat_result: not_won}
-            operations: [{op: DRAW, count: 1}]
-
+      - id: regroup-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: won, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: not-won, when: {combat_result: not_won}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
   - id: sexism-in-survival-situations
     name: Sexism in Survival Situations
     quantity: 2
@@ -162,13 +211,18 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: during_combat
-        condition: {opposing_combat_fighter_role: hero}
-        operations: [{op: SET_VALUE, target: this_card, value: 4}]
-      - trigger: after_combat
-        optional: true
-        operations: [{op: MOVE, target: dr-ellie-sattler, max_distance: 1}]
-
+      - id: sexism-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {opposing_combat_fighter_role: hero}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]
+      - id: sexism-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_move, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_move}], costs: [], operations: []}
+          - {id: move, when: {bound: use_move, equals: true}, choices: [], costs: [], operations: [{op: MOVE, target: dr-ellie-sattler, max_distance: 1}]}
   - id: i-think-were-back-in-business
     name: I Think We're Back in Business
     quantity: 3
@@ -179,9 +233,11 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: during_combat
-        operations: [{op: SET_VALUE, target: this_card, value_rule: controller_hand_size}]
-
+      - id: back-in-business-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: always, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value_ref: {player: controller, field: hand_size}}]}]
   - id: the-concept-of-attraction
     name: The Concept of Attraction
     quantity: 3
@@ -192,13 +248,18 @@ cards:
     boost: 2
     tags: [insight]
     effects:
-      - trigger: after_combat
-        optional: true
-        condition: {insight_token_on_board_exists: true}
-        choices: [{owner: controller, choose: space_with_insight_token}]
-        operations: [{op: PLACE, target: own_combat_fighter, destination: chosen_space}]
-        normalization_blocker: Testing/selecting positioned Insight tokens requires B-EXT-006.
-
+      - id: attraction-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {requirement: B-REQ-006, insight_on_battlefield: true}
+            choices:
+              - {id: insight_space, owner: controller, visibility: public, optional: true, domain: {kind: space, selector: space_with_insight_token, requirement: B-REQ-006}, bind: insight_space}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: insight_space, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: own_combat_fighter, destination: {bound: insight_space}}]}
   - id: lock-the-doors
     name: Lock the Doors!
     quantity: 2
@@ -209,11 +270,18 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: after_combat
-        operations:
-          - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
-          - {op: MOVE, target: own_combat_fighter, max_distance: 2}
-
+      - id: lock-the-doors-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+              - {op: MOVE, target: own_combat_fighter, max_distance: 2}
   - id: the-future-ex-mrs-malcolm
     name: The Future Ex-Mrs. Malcolm
     quantity: 1
@@ -224,47 +292,31 @@ cards:
     boost: 2
     tags: [insight]
     effects:
-      - trigger: scheme
-        operations:
-          - {op: DRAW, count: 2}
-          - {op: TRIGGER_COMPOSITE, kind: battlefield_token_transition, definition: place_one_insight_from_supply_at_malcolm_space_if_available}
-          - {op: GAIN_ACTION, count: 1}
-        normalization_blocker: Conditionally moving one physical Insight token from supply to Malcolm's current space requires B-EXT-006.
+      - id: future-ex-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 2}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: insight-supply, to: {fighter: dr-ian-malcolm, field: current_space}, count: 1, skip_if_unavailable: true}
+              - {op: GAIN_ACTION, count: 1}
 
-external_definitions:
-  - id: return_all_insight_tokens_to_supply
-    kind: battlefield_token_transition
-    semantics: Move every Insight token instance currently on the battlefield back to the finite Insight supply.
-    normalization_blocker: B-EXT-006
-  - id: place_one_insight_from_supply_at_chosen_space
-    kind: battlefield_token_transition
-    semantics: If at least one Insight token remains in supply, move one concrete token instance from supply to the chosen battlefield space.
-    normalization_blocker: B-EXT-006
-  - id: place_one_insight_from_supply_at_malcolm_space_if_available
-    kind: battlefield_token_transition
-    semantics: If at least one Insight token remains in supply, move one concrete token instance from supply to Dr. Ian Malcolm's current space.
-    normalization_blocker: B-EXT-006
-
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 14
-  quantity_reconciles: true
-
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/dr-ellie-sattler
-  - https://unmatched.cards/umdb/decks/stats
-  - https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
-  - https://www.the-unmatched.club/heroes/dr-ellie-sattler
-
-normalization_notes:
-  - The complete 14-definition deck reconciles to 30. Current UmDb deck statistics independently match the recovered card-type distribution: 3 attack cards, 21 versatile cards, 5 defense cards, and 1 scheme card by physical quantity.
-  - Lock the Doors! is defense, not versatile; its two copies plus three copies of The Concept of Attraction reconcile the published five-defense-card total.
-  - Insight removal returns tokens to the public insight supply; DISCARD from an empty opponent deck is not a DRAW and does not itself cause exhaustion.
-  - Community /decks/ translations, reskins, and balance patches were excluded from evidence.
-  - Audit correction: the manifest no longer references an undeclared insight_token_locations state that the fighter manifest intentionally removed. Token transitions are explicit blocked composites tied to B-EXT-006.
-
-blockers:
-  - id: semantic-extension-battlefield-token-instance-positions
-    reason: Card effects must count, select, place and return physical Insight token instances, including multiple tokens in one space. This is the same B-EXT-006 blocker recorded by the fighter manifest.
+  - {id: sattler-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/dr-ellie-sattler, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction, insight_cards]}
+  - {id: sattler-official-product, authority: official, url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: sattler-rulings-index, authority: official_ruling_index, url: https://www.the-unmatched.club/heroes/dr-sattler, checked_at: 2026-07-27, supports: [insight_cross_check]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
