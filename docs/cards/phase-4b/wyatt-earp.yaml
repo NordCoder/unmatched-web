@@ -92,6 +92,9 @@ cards:
     - id: controller-third
       choices: [{id: target-3, owner: controller, visibility: public, optional: false, domain: current_fighters_after_prior_stage, bind: target_3}]
       operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target_3, amount: 1}]
+    - id: opponent-fourth
+      choices: [{id: target-4, owner: combat_opponent, visibility: public, optional: false, domain: current_fighters_after_prior_stage, bind: target_4}]
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target_4, amount: 1}]
 - {id: better-swear-me-in, name: Better Swear Me In, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: swear-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {id: swear-reveal, trigger: after_combat, stages: [{id: reveal, operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, bind: card}]}, {id: choose, choices: [{id: disposition, owner: controller, visibility: public, optional: false, domain: [leave_on_top, move_to_bottom], bind: disposition}]}, {id: dispose, operations: [{op: MOVE_CARD, from_zone: opponent_deck_top, to_zone: opponent_deck, selector: bound.card, position: bottom, condition: {bound.disposition: move_to_bottom}}]}]}]}
 - id: bring-em-to-justice
   name: Bring 'Em to Justice
@@ -164,6 +167,6 @@ sources:
 - {id: wyatt-club, authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
 normalization_notes:
 - All 12 definitions reconcile to 30 cards.
-- Gunfight uses explicit alternating-controller stages and reevaluates the fighter domain after each damage application.
+- Gunfight uses all four printed alternating-controller stages and reevaluates the fighter domain after each damage application.
 - Better Swear Me In has no followup field; reveal, choice and disposition are staged.
 - Free attacks use D-REQ-003, including You Die First's bound required target.
