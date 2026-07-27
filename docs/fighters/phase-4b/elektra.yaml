@@ -2,29 +2,21 @@ schema_version: 1
 id: elektra
 display_name: Elektra
 set_ids: [marvel-hells-kitchen]
-status: blocked
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-003]
 movement: 2
 
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-    - id: elektra
-      display_name: Elektra
-      role: hero
-      count: 1
-      attack_type: melee
-      starting_health: 7
-      starts_on_board: true
-      summonable: false
-    - id: the-hand
-      display_name: The Hand
-      role: sidekick
-      count: 4
-      attack_type: melee
-      starting_health: 1
-      starts_on_board: true
-      summonable: false
+    - {id: elektra, display_name: Elektra, role: hero, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+    - {id: the-hand, display_name: The Hand, role: sidekick, count: 4, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: false}
 
 setup:
   hooks: []
@@ -39,33 +31,59 @@ ability:
   effects:
     - id: first-defeat-replacement
       trigger: would_defeat_primary_hero
-      condition: {resurrection_used: false}
-      operations:
-        - {op: SET_STATE, key: resurrection_used, value: true}
-        - {op: SET_STATE, key: resurrection_pending, value: true}
-      normalization_blocker: Published rules then remove Elektra and every Hand fighter from the battlefield while explicitly not treating Elektra as defeated; current vocabulary has no such lifecycle transition.
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: replace-defeat
+          when: {resurrection_used: false}
+          choices: []
+          costs: []
+          operations:
+            - {op: SET_STATE, key: resurrection_used, value: true}
+            - {op: SET_STATE, key: resurrection_pending, value: true}
+            - op: SET_FIGHTER_PRESENCE
+              requirement: B-REQ-003
+              targets: [elektra, each_the_hand_on_battlefield]
+              presence: off_board_resurrection_pending
+              elektra_defeat_status: undefeated
     - id: resurrect-at-next-turn-start
       trigger: turn_start
-      condition: {resurrection_pending: true}
-      operations:
-        - {op: SHUFFLE, zone: own_discard_into_deck}
-        - {op: SET_STATE, key: elektra_starting_health_profile, value: resurrected_9}
-        - {op: RETURN_FIGHTER, target: elektra, destination: chosen_legal_space, health_rule: set_to_9}
-        - {op: RETURN_FIGHTER, target: each_the_hand, destination: each_in_different_zone, health_rule: set_to_1}
-        - {op: SET_STATE, key: resurrection_pending, value: false}
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: choose-return-layout
+          when: {resurrection_pending: true}
+          choices:
+            - id: elektra_return_space
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: space, selector: legal_elektra_resurrection_space}
+              bind: elektra_return_space
+            - id: hand_return_layout
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: placement_plan, selector: return_each_hand_in_different_zone}
+              bind: hand_return_layout
+          costs: []
+          operations: []
+        - id: return
+          when: {all_bound: [elektra_return_space, hand_return_layout]}
+          choices: []
+          costs: []
+          operations:
+            - {op: SHUFFLE, zone: own_discard_into_deck}
+            - {op: SET_STATE, key: elektra_starting_health_profile, value: resurrected_9}
+            - {op: RETURN_FIGHTER, target: elektra, destination: {bound: elektra_return_space}, health_rule: set_to_9, requirement: B-REQ-003}
+            - {op: RETURN_FIGHTER, target: each_the_hand, destination_plan: {bound: hand_return_layout}, health_rule: set_to_1, requirement: B-REQ-003}
+            - {op: SET_STATE, key: resurrection_pending, value: false}
 
 resources: []
-
 persistent_state:
-  - key: resurrection_used
-    type: boolean
-    reset: never
-  - key: resurrection_pending
-    type: boolean
-    reset: never
-  - key: elektra_starting_health_profile
-    type: enum
-    reset: never
+  - {key: resurrection_used, type: boolean, reset: never}
+  - {key: resurrection_pending, type: boolean, reset: never}
+  - {key: elektra_starting_health_profile, type: enum, reset: never}
 
 deck:
   manifest: ../../cards/phase-4b/elektra.yaml
@@ -73,36 +91,37 @@ deck:
 
 rulings:
   - id: elektra-first-removal-not-defeat
-    summary: The first time Elektra reaches the defeat condition, Elektra and all Hand fighters are removed from the battlefield, but Elektra is explicitly not defeated; she cannot return until the start of her next turn.
-    source: https://www.the-unmatched.club/heroes/elektra-the-hand
-  - id: elektra-no-ninjitsu-before-resurrection
-    summary: Ninjitsu cannot return first-life Elektra after her ability removes her from play; scheduled resurrection at the next turn start is the only return at that point.
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: elektra-not-valid-for-defeated-fighter-revival
-    summary: A revival effect that targets a defeated fighter cannot target first-life removed Elektra because she is not defeated.
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: elektra-remaining-actions-ignored-off-board
-    summary: After the first-life removal, any remaining actions in that turn are ignored while Elektra is out of play.
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: elektra-exhaustion-before-movement-boost
-    summary: If the maneuver draw causes first-life Elektra to hit zero from exhaustion, her removal resolves before the maneuver can proceed to movement boosting.
-    source: https://gridbeast.gg/unmatched-rules-faq/
+    source_ref: elektra-rulings-index
+    summary: First-life removal takes Elektra and Hand fighters off the battlefield while Elektra is explicitly not defeated; scheduled resurrection occurs at the next turn start.
+interpretations: []
 
 sources:
-  - type: official_product
+  - id: elektra-official-product
+    authority: official
     url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
-  - type: published_database
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: elektra-umdb
+    authority: published_umdb
     url: https://unmatched.cards/umdb/decks/elektra
-  - type: current_rulings_index
+    checked_at: 2026-07-27
+    supports: [fighter_stats, resurrection_behavior, deck_construction]
+  - id: elektra-rulings-index
+    authority: official_ruling_index
     url: https://www.the-unmatched.club/heroes/elektra-the-hand
-  - type: current_secondary_faq
+    checked_at: 2026-07-27
+    supports: [off_board_not_defeated, resurrection_timing]
+  - id: elektra-secondary-faq
+    authority: secondary_cross_check
     url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [ninjitsu_cross_check, remaining_actions_cross_check, exhaustion_order_cross_check]
 
-normalization_notes:
-  - RESURRECTED card clauses are inactive before the resurrection and mandatory after resurrection.
-  - The evidence gap is closed: current sources agree on removal, non-defeat status, next-turn resurrection, the 7-to-9 health profile, discard-to-deck shuffle, and Hand return constraints.
-  - Elektra remains blocked only because the shared semantic model cannot represent an off-board fighter who is explicitly not defeated.
-
-blockers:
-  - id: semantic-extension-off-board-not-defeated
-    reason: A generic lifecycle operation is required to remove a fighter from battlefield presence without applying DEFEAT, while preserving identity/ownership and supporting a later RETURN_FIGHTER transition.
+validation:
+  quantity: {result: pass, available_pool_count: 20, game_deck_count: 20, quantity_sum: 20}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
