@@ -1,10 +1,12 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: little-red-riding-hood
 display_name: Little Red Riding Hood
 set_ids: [little-red-vs-beowulf]
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-008, A-REQ-009]
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -14,7 +16,10 @@ topology:
 setup:
   hooks:
     - stage: BEFORE_STARTING_HAND
-      note: At the start of the game, put the non-action Little Red's Basket reference component in the discard pile before normal play begins; it is not one of the 30 action cards.
+      requires: [A-REQ-009]
+      choices: []
+      operations:
+        - {op: PLACE_AUXILIARY_IN_ZONE, object: basket-reference, zone: discard, position: top, requires: A-REQ-009}
   state_initialization: []
 ability:
   id: whats-that-in-my-basket
@@ -22,26 +27,30 @@ ability:
   effects:
     - id: basket-symbol
       trigger: static
-      continuous: true
-      note: The current Basket item is the symbol on the top object of Little Red's discard pile. A wild symbol represents exactly one chosen item for the current source resolution, not all three simultaneously.
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-009]
+      stages:
+        - id: derive-basket-item
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - {op: DERIVE_ATTRIBUTE, target: basket_item, from: {zone: discard, position: top, field: printed_symbol}, requires: A-REQ-009}
 resources:
-  - {id: basket-reference, kind: external_definition_pool, visibility: public, initial: 1}
+  - {id: basket-reference, kind: auxiliary_component, visibility: public, initial: 1, counted_in_action_deck: false}
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/little-red-riding-hood.yaml, construction: fixed}
-rulings:
-  - id: basket-reference-not-deck-card
-    summary: The Basket is a setup/reference component placed in the discard pile and does not increase the 30-card action-deck quantity.
-    source: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf
-  - id: basket-wild-single-item
-    summary: When a wild-symbol card is the Basket, it counts as any one of wolf, pelt or knife for the current resolution, but not all three simultaneously.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/little-red-beowulf-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/little-red}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-blocker:
-  reason: conditional_card_type_and_non_action_reference_component_in_ordered_discard_zone_not_fully_represented_by_shared_model
-  affected_mechanics: [what-big-ears-you-have, basket-reference]
-  note: The shared runtime must represent Little Red's Basket as a real non-action component occupying the ordered discard zone, while wild Basket resolution must bind to exactly one effective item for the current source resolution.
-  report: ../../phase-4b/worker-a-report.md
+  - {id: little-red-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, basket_reference, setup]}
+  - {id: little-red-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/little-red, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, printed_symbols]}
+  - {id: little-red-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [wild_basket_single_item]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
