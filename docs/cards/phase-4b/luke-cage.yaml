@@ -59,7 +59,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [luke-cage]
-    type: attack
+    type: defense
     printed_value: 2
     boost: 1
     tags: []
@@ -81,7 +81,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: any
-    type: versatile
+    type: attack
     printed_value: 4
     boost: 2
     tags: []
@@ -194,7 +194,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [misty-knight]
-    type: defense
+    type: versatile
     printed_value: 2
     boost: 2
     tags: []
