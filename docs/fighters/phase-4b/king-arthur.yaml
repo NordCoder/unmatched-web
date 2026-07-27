@@ -5,7 +5,7 @@ display_name: King Arthur
 set_ids: [battle-of-legends-vol-1]
 status: partial
 verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
-requires: [A-REQ-006]
+requires: [A-REQ-006, A-REQ-013]
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -29,7 +29,7 @@ ability:
             - {id: choose-boost-card, owner: controller, visibility: committed_hidden, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
           costs: []
           operations:
-            - {op: BOOST, target: own_attack_card, source: {ref: choice.boost_card}}
+            - {op: BOOST, target: {selector: {kind: combat_card, owner: self, role: attack, fighter: king-arthur}}, source: {ref: choice.boost_card}}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/king-arthur.yaml, construction: fixed}
