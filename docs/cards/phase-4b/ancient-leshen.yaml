@@ -1,22 +1,139 @@
 schema_version: 1
 fighter_id: ancient-leshen
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-007, C-REQ-010, C-REQ-011, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
-  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1}
+  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1, insertion_policy: replace_current}
 
 cards:
-  - {id: flock-of-birds, name: Flock Of Birds, quantity: 2, usable_by: [ancient-leshen], type: attack, printed_value: 5, boost: 1, tags: [], effects: [{trigger: after_combat, optional: true, operations: [{op: PLACE, target: ancient-leshen, destination: any_space}]}]}
-  - {id: primeval-slam, name: Primeval Slam, quantity: 3, usable_by: [ancient-leshen], type: attack, printed_value: 4, boost: 3, tags: [summon], effects: [{trigger: after_combat, operations: [{op: SUMMON, pool: wolf_instances, destination_rule: space_in_leshen_zone}, {op: MOVE, target: each_wolf_on_board, max_distance: 3}]}]}
-  - {id: command-the-forest, name: Command The Forest, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]}]}
-  - {id: nature-abounds, name: Nature Abounds, quantity: 3, usable_by: any, type: attack, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count_rule: count_controller_fighters_adjacent_to_opposing_combat_fighter}]}]}
-  - {id: disturbing-howls, name: Disturbing Howls, quantity: 3, usable_by: [wolf], type: attack, printed_value: 1, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 2}, {op: GAIN_ACTION, count: 1}]}]}
-  - {id: planted-feet, name: Planted Feet, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 3, tags: [], effects: [{trigger: after_combat, condition: {own_combat_fighter_left_starting_space_this_turn: false}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: wily-fighting, name: Wily Fighting, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
-  - {id: harrying-strike, name: Harrying Strike, quantity: 3, usable_by: [wolf], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: two_times_count_controller_fighters_adjacent_to_opposing_combat_fighter}]}]}
-  - {id: primeval-guardian, name: Primeval Guardian, quantity: 3, usable_by: [ancient-leshen], type: defense, printed_value: 5, boost: 2, tags: [], effects: [{trigger: during_combat, operations: [{op: DISCARD, controller: opponent, from: deck_top, selector: top, count: 1, capture: discarded_card}, {op: ADD_VALUE, target: opposing_combat_card, amount: captured.discarded_card.boost_or_0}]}, {trigger: after_combat, operations: [{op: MOVE, target: each_wolf_on_board, max_distance: 3}]}]}
-  - {id: strength-of-the-pack, name: Strength Of The Pack, quantity: 3, usable_by: [ancient-leshen], type: scheme, printed_value: null, boost: 1, tags: [ongoing_scheme, summon], effects: [{trigger: scheme, operations: [{op: SUMMON, pool: wolf_instances, destination_rule: space_in_leshen_zone}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: turn_start, while_in_zone: ongoing-schemes, operations: [{op: RECOVER, target: ancient-leshen, amount: 1}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {no_wolves_in_leshen_zone: true}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
+  - {id: flock-of-birds, name: Flock Of Birds, quantity: 2, usable_by: [ancient-leshen], type: attack, printed_value: 5, boost: 1, tags: [], effects: [{id: flock-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: optional-place, choices: [{id: place, owner: controller, visibility: public, optional: true, domain: {selector: {spaces: any}}, bind: destination}]}, {id: place, when: {ref: destination, exists: true}, operations: [{op: PLACE, target: ancient-leshen, destination: {ref: destination}}]}]}]}
+  - id: primeval-slam
+    name: Primeval Slam
+    quantity: 3
+    usable_by: [ancient-leshen]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: [summon]
+    effects:
+      - id: slam-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: summon, operations: [{op: SUMMON, pool: wolf_instances, destination_rule: space_in_leshen_zone, bind_result: summon_result}]}
+          - {id: move-wolves, operations: [{op: MOVE, target: {selector: {fighters: {definition_id: wolf, controller: self, status: on_board}}}, max_distance: 3}]}
+  - {id: command-the-forest, name: Command The Forest, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, tags: [], effects: [{id: command-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: discard, when: {combat_result: won}, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: 1, partial_resolution: true}]}]}]}
+  - id: nature-abounds
+    name: Nature Abounds
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: nature-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: draw
+            operations:
+              - op: DRAW
+                count:
+                  expr: count
+                  selector: {fighters: controller_fighters, adjacent_to: opposing_combat_fighter}
+  - {id: disturbing-howls, name: Disturbing Howls, quantity: 3, usable_by: [wolf], type: attack, printed_value: 1, boost: 1, tags: [], effects: [{id: howls-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 2}, {op: GAIN_ACTION, count: 1}]}]}]}
+  - id: planted-feet
+    name: Planted Feet
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects:
+      - id: planted-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: draw
+            when: {ref: persistent.left_space_this_turn_by_fighter[own_combat_fighter.instance_id], equals: false}
+            operations: [{op: DRAW, count: 1}]
+  - {id: wily-fighting, name: Wily Fighting, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: wily-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, adjacent_to: own_combat_fighter}}, amount: 1}]}]}]}
+  - id: harrying-strike
+    name: Harrying Strike
+    quantity: 3
+    usable_by: [wolf]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: harrying-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: add
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr:
+                    op: multiply
+                    left: 2
+                    right: {expr: {op: count, selector: {fighters: controller_fighters, adjacent_to: opposing_combat_fighter}}}
+  - id: primeval-guardian
+    name: Primeval Guardian
+    quantity: 3
+    usable_by: [ancient-leshen]
+    type: defense
+    printed_value: 5
+    boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: guardian-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: discard-top
+            operations: [{op: DISCARD, controller: opponent, from: deck_top, selector: top, count: 1, bind_result: discarded_card}]
+          - id: add
+            operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: {ref: discarded_card.boost_or_0}}]
+      - id: guardian-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages: [{id: move-wolves, operations: [{op: MOVE, target: {selector: {fighters: {definition_id: wolf, controller: self, status: on_board}}}, max_distance: 3}]}]
+  - id: strength-of-the-pack
+    name: Strength Of The Pack
+    quantity: 3
+    usable_by: [ancient-leshen]
+    type: scheme
+    printed_value: null
+    boost: 1
+    tags: [ongoing_scheme, summon]
+    effects:
+      - id: strength-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: summon, operations: [{op: SUMMON, pool: wolf_instances, destination_rule: space_in_leshen_zone}]}
+          - {id: enter-ongoing, operations: [{op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}
+      - {id: strength-turn-start, trigger: turn_start, controller: owner, cancellation: source_defined, while_in_zone: ongoing-schemes, stages: [{id: recover, operations: [{op: RECOVER, target: ancient-leshen, amount: 1}]}]}
+      - {id: strength-turn-end, trigger: turn_end, controller: owner, cancellation: source_defined, while_in_zone: ongoing-schemes, stages: [{id: discard, when: {expr: {op: equals, left: {expr: {op: count, selector: {fighters: {definition_id: wolf, controller: self, in_zone_of: ancient-leshen}}}}, right: 0}}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
   - id: vanish-into-murder
     name: Vanish Into Murder
     quantity: 2
@@ -26,24 +143,44 @@ cards:
     boost: 3
     tags: [temporary_off_board, evidence_qualified_dormant_return]
     effects:
-      - trigger: scheme
-        operations:
-          - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_leshen_zone, amount: 1}
-          - {op: TRIGGER_COMPOSITE, kind: temporary_remove_fighter, target: ancient-leshen, return_trigger: next_controller_turn_start}
-      - trigger: scheduled_return
-        operations:
-          - {op: RETURN_FIGHTER, target: ancient-leshen, destination: any_space, health_rule: preserve_health, capture: leshen_return}
-          - {op: DRAW, count: 1, condition: {captured.leshen_return.succeeded: true}}
+      - id: vanish-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: damage, operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {fighters: opposing_fighters, in_zone_of: ancient-leshen}}, amount: 1}]}
+          - {id: remove, operations: [{op: TRIGGER_COMPOSITE, kind: temporary_remove_fighter, target: ancient-leshen, defeat: false, preserve_health: true, return_trigger: next_controller_turn_start}]}
+      - id: vanish-scheduled-return
+        trigger: scheduled_return
+        controller: owner
+        cancellation: source_defined
+        stages:
+          - {id: return, operations: [{op: RETURN_FIGHTER, target: ancient-leshen, destination: any_space, health_rule: preserve_health, bind_result: leshen_return}]}
+          - {id: draw, when: {ref: leshen_return.succeeded, equals: true}, operations: [{op: DRAW, count: 1}]}
+
+interpretations:
+  - id: ancient-leshen-dormant-return-draw
+    affects: [ancient-leshen, vanish-into-murder, dormant-player]
+    status: derived
+    confidence: high
+    behavior: If Vanish leaves the controller with no fighters, dormancy begins at the normal end-of-action checkpoint. The scheduled next-turn return still resolves; after a successful Leshen return the no-fighter dormant condition no longer applies, and the card's subsequent draw 1 resolves.
+    source_refs: [leshen-deck-index, dormant-rule-changes, worker-c-normalization-leshen]
+    replacement_condition: Replace if an exact publisher/designer ruling explicitly suppresses or reorders the draw after a dormant Leshen return.
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
-  - https://unmatched.cards/umdb/decks/ancient-leshen
-  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
-  - https://www.the-unmatched.club/heroes/ancient-leshen
-  - https://www.the-unmatched.club/rules/rule-changes
+  - {id: witcher-sas-rules-leshen, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Summon and Witcher ongoing scheme rules]}
+  - {id: leshen-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ancient-leshen, checked_at: 2026-07-27, supports: [published card metadata and Vanish sequence]}
+  - {id: dormant-rule-changes, authority: official_ruling, url: https://www.the-unmatched.club/rules/rule-changes, checked_at: 2026-07-27, supports: [dormant-player rules]}
+  - {id: worker-c-normalization-leshen, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [selected dormant return/draw normalization]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - SUMMON follows the Witcher rule: an off-board Wolf can return; when both are already on-board, choose one to place instead.
-  - Nature Abounds and Harrying Strike count "your fighters", meaning fighters controlled by the card controller; teammate fighters do not count merely because they are friendly.
-  - Vanish Into Murder requires a non-defeat temporary removal composite; using DEFEAT would corrupt loss, health, and defeat-trigger semantics.
-  - "Recommended integration behavior (high confidence): if Vanish leaves the controller with no fighters, dormancy applies at the ordinary end-of-action checkpoint. At the next controller turn start, the scheduled return still resolves; after a successful Leshen return the no-fighter dormant condition no longer applies, so the card's subsequent draw 1 resolves. Exact-case publisher wording for dormant Leshen return-plus-draw was not found."
+  - Nature Abounds and Harrying Strike count controller fighters, not teammate fighters merely because they are friendly.
+  - Vanish Into Murder uses non-defeat temporary removal plus scheduled return; successful return is explicitly bound before the dependent draw stage.
