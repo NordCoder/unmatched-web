@@ -2,7 +2,13 @@ schema_version: 1
 id: wyatt-earp
 display_name: Wyatt Earp
 set_ids: [stars-and-stripes]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001, D-REQ-003]
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -23,14 +29,28 @@ ability:
   - id: showdown-choice
     trigger: after_attack
     condition: {active_player: owner, attacking_fighter_owner: owner, combat_result: won, showdown_unused_effect_exists: true}
-    choices: [{owner: controller, choose: unused_showdown_effect, options: [draw, attack_action, move], capture: mode}]
-    branches:
-    - condition: {captured.mode: draw, state: showdown_draw_used, equals: false}
-      operations: [{op: DRAW, count: 1}, {op: SET_STATE, key: showdown_draw_used, value: true}]
-    - condition: {captured.mode: attack_action, state: showdown_attack_action_used, equals: false}
-      operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}, {op: SET_STATE, key: showdown_attack_action_used, value: true}]
-    - condition: {captured.mode: move, state: showdown_move_used, equals: false}
-      operations: [{op: MOVE, target: attacking_fighter, max_distance: 1}, {op: SET_STATE, key: showdown_move_used, value: true}]
+    stages:
+    - id: select-showdown-effect
+      choices:
+      - id: showdown-mode
+        owner: controller
+        visibility: public
+        optional: false
+        domain: unused_showdown_effects
+        bind: mode
+    - id: resolve-showdown-effect
+      branches:
+      - condition: {bound.mode: draw, state: showdown_draw_used, equals: false}
+        operations: [{op: DRAW, count: 1}, {op: SET_STATE, key: showdown_draw_used, value: true}]
+      - condition: {bound.mode: attack_action, state: showdown_attack_action_used, equals: false}
+        requires: [D-REQ-003]
+        operations:
+        - op: GAIN_ACTION
+          count: 1
+          credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
+        - {op: SET_STATE, key: showdown_attack_action_used, value: true}
+      - condition: {bound.mode: move, state: showdown_move_used, equals: false}
+        operations: [{op: MOVE, target: attacking_fighter, max_distance: 1}, {op: SET_STATE, key: showdown_move_used, value: true}]
 resources: []
 persistent_state:
 - {key: showdown_draw_used, type: boolean, reset: turn_start}
@@ -42,16 +62,36 @@ deck:
 rulings:
 - id: free-attack-action
   summary: A free action to attack must be used immediately as the next action or it is lost.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  source_ref: stars-rules
 - id: showdown-effect-once-per-turn
-  summary: During Wyatt Earp's owner's turn, each time Wyatt Earp or Doc Holliday attacks and wins, one unused Showdown effect may be selected; each of the three effects can be selected at most once that turn.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  summary: During the owner's turn, each won attack by Wyatt Earp or Doc Holliday may select one unused Showdown effect; each effect is once per turn.
+  source_ref: stars-rules
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms all three Showdown branches and that the move branch moves the fighter that attacked.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/wyatt-earp, checked_at: '2026-07-27', note: Visual card corpus transcribed from Club card images supplied during reconciliation.}
+- id: stars-rules
+  authority: official_set_rules
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, showdown, free_attack_action]
+  durability: durable
+- id: stars-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: wyatt-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/wyatt-earp
+  checked_at: '2026-07-27'
+  supports: [card_visual_corpus]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- Showdown is explicitly restricted by the official set rules to attacks made during the owner's own turn; off-turn combat wins cannot trigger it.
-- Showdown branch effects and their once-per-turn state transitions are explicit; no hidden fighter-specific handler is needed for draw or movement.
-- Showdown's attack branch and card-granted free attacks use a restricted immediate action-credit composite pending shared semantics.
+- Showdown itself is staged and deterministic; its attack branch depends on the generic restricted immediate action-credit contract D-REQ-003.
+- Deck interactions also require reusable staged/alternating choices under D-REQ-001.
