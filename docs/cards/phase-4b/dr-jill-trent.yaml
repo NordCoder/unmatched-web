@@ -48,7 +48,7 @@ cards:
           - id: choose-mode
             choices: [{id: mode, owner: controller, visibility: private, optional: false, domain: [recover_jill, move_jill, draw], bind: mode}]
           - {id: recover, when: {ref: mode, equals: recover_jill}, operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]}
-          - {id: move, when: {ref: mode, equals: move_jill}, operations: [{op: MOVE, target: dr-jill-trent, max_distance: 1}]}
+          - {id: move, when: {ref: mode, equals: move_jill}, operations: [{op: MOVE, target: dr-jill-trent, distance: 1}]}
           - {id: draw, when: {ref: mode, equals: draw}, operations: [{op: DRAW, count: 1}]}
   - {id: hypnotist, name: Hypnotist, quantity: 2, usable_by: [dr-jill-trent], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{id: hypnotist-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {active_gadget: hypnoray-blaster}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
   - {id: ace-fighter, name: Ace Fighter, quantity: 2, usable_by: [daisy], type: versatile, printed_value: 5, boost: 3, tags: [], effects: [{id: ace-fighter-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: 1}]}]}]}
@@ -124,10 +124,10 @@ cards:
             operations: [{op: REVEAL, source: opponent.deck_top, selector: {max_count: 3}, bind_result: revealed_cards}]
           - id: choose-bottom
             choices:
-              - {id: bottom-card, owner: controller, visibility: private, optional: false, domain: {ref: revealed_cards}, bind: bottom_card}
+              - {id: bottom-card, owner: controller, visibility: public, optional: false, domain: {ref: revealed_cards}, bind: bottom_card}
           - id: order-rest
             choices:
-              - {id: top-order, owner: controller, visibility: private, optional: false, domain: {expr: {op: subtract_set, left: {ref: revealed_cards}, right: [{ref: bottom_card}]}}, bind: top_order}
+              - {id: top-order, owner: controller, visibility: public, optional: false, domain: {expr: {op: subtract_set, left: {ref: revealed_cards}, right: [{ref: bottom_card}]}}, bind: top_order}
           - id: apply-order
             operations:
               - {op: MOVE_CARD, from_zone: opponent.deck_top, to_zone: opponent.deck_bottom, selector: {ref: bottom_card}}
@@ -148,5 +148,5 @@ validation:
   integration: requires_shared_extension
   fan_content: pass
 normalization_notes:
-  - Insightful Deduction uses ordered stages because later choices depend on the revealed card set.
+  - Insightful Deduction uses ordered public stages because later choices depend on a publicly revealed card set.
   - Sisters in Arms reads the single authoritative active_gadget state.
