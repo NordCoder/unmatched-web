@@ -26,9 +26,23 @@ cards:
         costs: [{op: DEFEAT, target: captured.rider_to_defeat}]
         operations: [{op: MOVE_CARD, from_zone: resolving_combat_card, to_zone: hand, selector: this_card}]
   - {id: brutal-strike, name: Brutal Strike, quantity: 3, usable_by: [eredin], type: attack, printed_value: 2, boost: 3, tags: [], cancellation: protected, effects: [{trigger: during_combat, condition: {opposing_card_has_immediately_effect: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
-  - {id: unyielding-hordes, name: Unyielding Hordes, quantity: 3, usable_by: [red-rider], type: attack, printed_value: 1, boost: 2, tags: [], effects: [{trigger: immediately, choices: [{owner: controller, choose: defeated_red_rider}, {owner: controller, choose: battlefield_space}], operations: [{op: RETURN_FIGHTER, target: chosen_rider, destination: chosen_space, health_rule: source_defined_full_token_health}]}, {trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_adjacent_to_opposing_combat_fighter}]}]}
+  - id: unyielding-hordes
+    name: Unyielding Hordes
+    quantity: 3
+    usable_by: [red-rider]
+    type: attack
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - trigger: immediately
+        choices:
+          - {owner: controller, choose: defeated_red_rider, capture: rider_to_return}
+          - {owner: controller, choose: battlefield_space, capture: return_space}
+        operations: [{op: RETURN_FIGHTER, target: captured.rider_to_return, destination: captured.return_space, health_rule: source_defined_full_token_health}]
+      - {trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_adjacent_to_opposing_combat_fighter}]}
   - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{owner: controller, choose: combat_fighter}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: wild-hunt, name: Wild Hunt, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_friendly_fighter, amount_rule: 2_if_enraged_else_1}]}]}
+  - {id: wild-hunt, name: Wild Hunt, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_controller_fighter, amount_rule: 2_if_enraged_else_1}]}]}
   - id: icy-guile
     name: Icy Guile
     quantity: 3
@@ -55,9 +69,23 @@ cards:
     play_rules:
       additional_type_when: {enraged: attack}
     effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}]
-  - {id: portal-defense, name: Portal Defense, quantity: 2, usable_by: [eredin], type: defense, printed_value: 0, boost: 1, tags: [], effects: [{trigger: immediately, choices: [{owner: controller, choose: adjacent_friendly_fighter}], operations: [{op: SWAP, a: eredin, b: chosen_fighter}, {op: SET_STATE, key: combat_defender, value: chosen_fighter, condition: {swap_completed: true}}]}, {trigger: after_combat, condition: {enraged: true}, operations: [{op: DRAW, count: 2}]}]}
+  - id: portal-defense
+    name: Portal Defense
+    quantity: 2
+    usable_by: [eredin]
+    type: defense
+    printed_value: 0
+    boost: 1
+    tags: [defender_replacement]
+    effects:
+      - trigger: immediately
+        choices: [{owner: controller, choose: adjacent_friendly_fighter, capture: replacement_defender}]
+        operations:
+          - {op: SWAP, a: eredin, b: captured.replacement_defender}
+          - {op: SET_STATE, key: combat_defender, value: captured.replacement_defender, condition: {swap_completed: true}}
+      - {trigger: after_combat, condition: {enraged: true}, operations: [{op: DRAW, count: 2}]}
   - {id: might-of-aen-elle, name: Might Of The Aen Elle, quantity: 2, usable_by: [eredin], type: scheme, printed_value: null, boost: 2, tags: [ongoing_scheme], effects: [{trigger: scheme, operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: static, continuous: true, while_in_zone: ongoing-schemes, operations: [{op: PREVENT_DAMAGE, target: eredin, scope: all_except_combat_and_exhaustion}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {controller_attacked_this_turn: false}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
-  - {id: close-for-the-kill, name: Close For The Kill, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 4, tags: [], effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}, {op: MOVE, target: each_friendly_fighter, max_distance: 3, may_move_through_opposing: true}]}]}
+  - {id: close-for-the-kill, name: Close For The Kill, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 4, tags: [], effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}, {op: MOVE, target: each_controller_fighter, max_distance: 3, may_move_through_opposing: true}]}]}
 
 external_definitions: []
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
@@ -67,5 +95,7 @@ sources:
   - https://www.the-unmatched.club/heroes/eredin
 normalization_notes:
   - Foul Purpose and Implacable modify card legality/type at declaration time, before ordinary cancellation windows; they use the generic combat-play-mode proposal.
-  - Foul Purpose and Icy Guile explicitly choose the living Red Rider that is defeated as their cost; runtime fighter identity cannot be inferred after the defeat.
+  - Foul Purpose and Icy Guile explicitly choose the living Red Rider that is defeated as their cost; whether the currently attacking Red Rider may choose itself remains a targeted ruling follow-up rather than an inferred restriction.
+  - Wild Hunt and Close For The Kill say "your fighters" and therefore use only fighters controlled by the card controller; teammate fighters do not count merely because they are friendly.
+  - Portal Defense may replace Eredin with a teammate's adjacent friendly fighter in team play; C-EXT-003 must keep replacement-defender controller separate from defense-card controller.
   - Eredin's +1 is a derived static bonus while every Rider is defeated; returning a Rider removes it immediately.
