@@ -1,25 +1,12 @@
 schema_version: 1
 fighter_id: muhammad-ali
-status: verified
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-005, D-REQ-006]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
-card_zones:
-- {id: deck, owner: self}
-- {id: hand, owner: self}
-- {id: discard, owner: self}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
 cards:
-- id: the-greatest
-  name: The Greatest
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: attack
-  printed_value: 4
-  boost: 3
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition: {state: ali_combat_damage_dealt_this_turn, gte: 6}
-    operations: [{op: GAIN_ACTION, count: 2}]
+- {id: the-greatest, name: The Greatest, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: attack, printed_value: 4, boost: 3, tags: [], effects: [{id: greatest-actions, trigger: after_combat, condition: {state: ali_combat_damage_dealt_this_turn, gte: 6}, operations: [{op: GAIN_ACTION, count: 2}]}]}
 - id: stronger-than-the-skill
   name: Stronger Than the Skill
   quantity: 2
@@ -30,14 +17,13 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: after_combat
-    operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]
-  - trigger: after_combat
+  - {id: inspect-hand, trigger: after_combat, operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]}
+  - id: return-card-on-win
+    trigger: after_combat
     condition: {combat_result: won}
-    choices: [{owner: controller, choose: card_in_opponent_hand, capture: chosen_card}]
-    operations:
-    - {op: MOVE_CARD, from_zone: opponent_hand, to_zone: opponent_deck, selector: captured.chosen_card}
-    - {op: SHUFFLE, zone: opponent_deck}
+    choices:
+    - {id: choose-opponent-card, owner: controller, visibility: private, optional: false, domain: opponent_hand_cards, bind: card}
+    operations: [{op: MOVE_CARD, from_zone: opponent_hand, to_zone: opponent_deck, selector: bound.card}, {op: SHUFFLE, zone: opponent_deck}]
 - id: ali-shuffle
   name: Ali Shuffle
   quantity: 3
@@ -48,32 +34,18 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: during_combat
+  - id: ali-shuffle-boost
+    trigger: during_combat
     optional: true
     condition: {state: ali_stance, equals: float}
-    choices: [{owner: controller, choose: card_in_hand_for_boost}]
-    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
-  - trigger: after_combat
+    choices: [{id: choose-boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: boost_card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.boost_card}]
+  - id: ali-shuffle-recycle
+    trigger: after_combat
     condition: {combat_result: won}
-    choices: [{owner: controller, choose: non_scheme_card_in_discard, capture: chosen_card}]
-    operations:
-    - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: captured.chosen_card}
-    - {op: SHUFFLE, zone: deck}
-- id: jab
-  name: Jab
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: attack
-  printed_value: 1
-  boost: 3
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}]
-  - trigger: after_combat
-    condition: {state: ali_stance, equals: float}
-    operations: [{op: MOVE, target: muhammad-ali, max_distance: 2}]
+    choices: [{id: choose-discard-card, owner: controller, visibility: public, optional: false, domain: {zone: discard, filter: {type_not: scheme}}, bind: card}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: bound.card}, {op: SHUFFLE, zone: deck}]
+- {id: jab, name: Jab, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: attack, printed_value: 1, boost: 3, tags: [], effects: [{id: jab-action, trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: GAIN_ACTION, count: 1}]}, {id: jab-float-move, trigger: after_combat, condition: {state: ali_stance, equals: float}, operations: [{op: MOVE, target: muhammad-ali, max_distance: 2}]}]}
 - id: champion-of-the-world
   name: Champion of the World
   quantity: 2
@@ -84,12 +56,11 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: after_combat
-    choices: [{owner: controller, choose: combat_fighter, capture: target}]
-    operations: [{op: MOVE, target: captured.target, max_distance: 2}]
-  - trigger: after_combat
-    condition: {state: ali_stance, equals: float}
-    operations: [{op: DRAW, count: 1}]
+  - id: champion-move
+    trigger: after_combat
+    choices: [{id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: combat_fighters, bind: target}]
+    operations: [{op: MOVE, target: bound.target, max_distance: 2}]
+  - {id: champion-float-draw, trigger: after_combat, condition: {state: ali_stance, equals: float}, operations: [{op: DRAW, count: 1}]}
 - id: close-and-clinch
   name: Close and Clinch
   quantity: 3
@@ -100,23 +71,15 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: immediately
+  - id: close-and-clinch-lock
+    trigger: immediately
+    requires: [D-REQ-006]
     operations:
     - {op: PLACE, target: muhammad-ali, destination_rule: space_adjacent_to_opposing_combat_fighter}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_lock_combat_fighters_in_current_spaces_until_turn_end}
-- id: momentous-shift
-  name: Momentous Shift
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: versatile
-  printed_value: 3
-  boost: 1
-  tags: []
-  effects:
-  - trigger: during_combat
-    condition: {own_combat_fighter_started_turn_in_different_space: true}
-    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+    - op: SET_STATE
+      key: temporary_space_locks
+      value: {targets: [muhammad-ali, opposing_combat_fighter], scope: until_turn_end, restriction: cannot_leave_current_space, excludes: [defeat_removal]}
+- {id: momentous-shift, name: Momentous Shift, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: momentous-value, trigger: during_combat, condition: {own_combat_fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
 - id: stick-and-move
   name: Stick and Move
   quantity: 3
@@ -127,91 +90,30 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: during_combat
-    condition: {state: ali_stance, equals: float}
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_lock_opposing_combat_value_to_printed_value}]
-  - trigger: after_combat
-    choices: [{owner: controller, choose: fighter_adjacent_to_muhammad_ali, capture: target}]
-    operations: [{op: DEAL_EFFECT_DAMAGE, target: captured.target, amount: 1}]
-- id: fancy-footwork
-  name: Fancy Footwork
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: versatile
-  printed_value: 1
-  boost: 3
-  tags: []
-  effects:
-  - trigger: immediately
-    operations: [{op: MOVE, target: muhammad-ali, max_distance: 1}]
-  - trigger: during_combat
-    condition: {muhammad_ali_shares_no_zones_with_opposing_combat_fighter: true}
-    operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
-- id: hard-to-be-humble
-  name: Hard to Be Humble
-  quantity: 3
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: defense
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: during_combat
-    condition: {state: ali_stance, equals: float}
-    operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]
-  - trigger: after_combat
-    operations: [{op: MOVE, target: muhammad-ali, max_distance: 2}]
-- id: rope-a-dope
-  name: Rope-a-Dope
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: defense
-  printed_value: 2
-  boost: 3
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition: {state: ali_stance, equals: float, combat_result: lost}
-    operations: [{op: RECOVER, target: muhammad-ali, amount: 3}]
-- id: answer-the-bell
-  name: Answer the Bell
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: scheme
-  printed_value: null
-  boost: 2
-  tags: []
-  effects:
-  - trigger: scheme
-    operations: [{op: MOVE, target: muhammad-ali, max_distance: 3}, {op: RECOVER, target: muhammad-ali, amount: 2}, {op: GAIN_ACTION, count: 1}]
-- id: louisville-lip
-  name: Louisville Lip
-  quantity: 2
-  inclusion: fixed
-  usable_by: [muhammad-ali]
-  type: scheme
-  printed_value: null
-  boost: 2
-  tags: []
-  effects:
-  - trigger: scheme
-    operations: [{op: RECOVER, target: muhammad-ali, amount: 1}, {op: DRAW, count: 2}]
-  - trigger: scheme
-    condition: {state: ali_won_combat_this_turn, equals: true}
-    operations: [{op: DISCARD, from: each_opponent_hand, selector: random, count: 1, controller: each_opponent}]
+  - {id: lock-opponent-value, trigger: during_combat, condition: {state: ali_stance, equals: float}, operations: [{op: SET_VALUE, target: opposing_combat_card, value_rule: effective_printed_value, lock: true, scope: current_combat}]}
+  - id: stick-damage
+    trigger: after_combat
+    choices: [{id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: fighters_adjacent_to_muhammad_ali, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 1}]
+- {id: fancy-footwork, name: Fancy Footwork, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: versatile, printed_value: 1, boost: 3, tags: [], effects: [{id: fancy-move, trigger: immediately, operations: [{op: MOVE, target: muhammad-ali, max_distance: 1}]}, {id: fancy-ignore, trigger: during_combat, condition: {muhammad_ali_shares_no_zones_with_opposing_combat_fighter: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+- {id: hard-to-be-humble, name: Hard to Be Humble, quantity: 3, inclusion: fixed, usable_by: [muhammad-ali], type: defense, printed_value: 2, boost: 2, tags: [], effects: [{id: humble-look, trigger: during_combat, condition: {state: ali_stance, equals: float}, operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]}, {id: humble-move, trigger: after_combat, operations: [{op: MOVE, target: muhammad-ali, max_distance: 2}]}]}
+- {id: rope-a-dope, name: Rope-a-Dope, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{id: rope-recover, trigger: after_combat, condition: {state: ali_stance, equals: float, combat_result: lost}, operations: [{op: RECOVER, target: muhammad-ali, amount: 3}]}]}
+- {id: answer-the-bell, name: Answer the Bell, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: answer, trigger: scheme, operations: [{op: MOVE, target: muhammad-ali, max_distance: 3}, {op: RECOVER, target: muhammad-ali, amount: 2}, {op: GAIN_ACTION, count: 1}]}]}
+- {id: louisville-lip, name: Louisville Lip, quantity: 2, inclusion: fixed, usable_by: [muhammad-ali], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: lip-base, trigger: scheme, operations: [{op: RECOVER, target: muhammad-ali, amount: 1}, {op: DRAW, count: 2}]}, {id: lip-discard, trigger: scheme, condition: {state: ali_won_combat_this_turn, equals: true}, operations: [{op: DISCARD, from: each_opponent_hand, selector: random, count: 1, controller: each_opponent}]}]}
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13, result: PASS}
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 sources:
-- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/muhammad-ali, checked_at: '2026-07-27', note: Current visual card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
+- {id: ali-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [fighter_and_set_rules], durability: durable}
+- {id: ali-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/, checked_at: '2026-07-27', supports: [release_membership], durability: durable}
+- {id: ali-club, authority: reference, url: https://www.the-unmatched.club/heroes/muhammad-ali, checked_at: '2026-07-27', supports: [card_visual_transcription]}
 normalization_notes:
-- All 13 unique definitions reconcile to 30 physical cards.
-- Butterfly-only clauses are represented by ali_stance=float conditions; Bee's +2 attack remains fighter-level continuous state.
-- Stronger Than the Skill looks at the opponent hand unconditionally; only the shuffle branch requires a combat win.
-- Deck insertion followed by randomization is represented as MOVE_CARD plus explicit SHUFFLE so RNG is a first-class replay event.
-- No fan-deck namespace is used.
+- All 13 definitions reconcile to 30 cards.
+- Temporary leave-space restriction is explicit state under D-REQ-006.
+- Printed-value lock uses generic SET_VALUE lock semantics; no opaque source_defined handler remains.
