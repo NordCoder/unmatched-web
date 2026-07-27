@@ -3,7 +3,7 @@ reconciliation_contract: phase-4b-v1
 fighter_id: king-arthur
 status: partial
 verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
-requires: [A-REQ-006]
+requires: [A-REQ-006, A-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -55,18 +55,20 @@ cards:
     type: scheme
     printed_value: null
     boost: 2
+    requires: [A-REQ-013]
     effects:
       - id: lady-of-the-lake-search
         trigger: scheme
         controller: owner
         cancellation: cancelable
+        requires: [A-REQ-013]
         stages:
           - id: locate-excalibur
             when: always
             choices: []
             costs: []
             operations:
-              - {op: SEARCH, zones: [deck, discard], selector: {card_id: excalibur}, bind_result: excalibur_search}
+              - {op: SEARCH_CARD_ZONES, zones: [deck, discard], selector: {kind: card, card_id: excalibur}, viewer: controller, bind_result: excalibur_search, requires: A-REQ-013}
           - id: move-found-card
             when: {result_exists: {ref: result.excalibur_search.card}}
             choices: []
