@@ -101,7 +101,7 @@ cards:
           - id: choose-defeated-harpy
             when: {selector_nonempty: {kind: fighter, owner: self, fighter_id: harpy, state: defeated}}
             choices:
-              - {id: choose-harpy, owner: controller, visibility: public, optional: true, domain: {kind: fighter, owner: self, fighter_id: harpy, state: defeated}, bind: returned_harpy}
+              - {id: choose-harpy, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: harpy, state: defeated}, bind: returned_harpy}
               - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: medusa}, bind: return_space}
             costs: []
             operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_harpy}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}]
