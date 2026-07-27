@@ -1,11 +1,9 @@
 schema_version: 1
 fighter_id: spider-man
-status: verified
-
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-005]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
   - id: spider-sense-tingling
@@ -18,10 +16,11 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        condition: {opposing_combat_card_current_value_gte: 4}
-        operations: [{op: DRAW, count: 2}]
-
+      - id: spider-sense-tingling-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: {opposing_combat_card_current_value_gte: 4}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]
   - id: counter-attack
     name: Counter-Attack
     quantity: 3
@@ -32,10 +31,11 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        condition: {opposing_combat_card_current_value_gte: 4}
-        operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]
-
+      - id: counter-attack-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: damage, when: {opposing_combat_card_current_value_gte: 4}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]}]
   - id: snark
     name: Snark
     quantity: 2
@@ -46,10 +46,11 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        condition: {spider_man_adjacent_to_opposing_fighter: true}
-        operations: [{op: DRAW, count: 1}]
-
+      - id: snark-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: {spider_man_adjacent_to_opposing_fighter: true}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]
   - id: swinging-kick
     name: Swinging Kick
     quantity: 3
@@ -60,13 +61,11 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: after_combat
-        operations:
-          - op: MOVE
-            target: opposing_combat_fighter
-            max_distance_rule: combat_damage_dealt_by_this_attack
-            controller: spider-man-controller
-
+      - id: swinging-kick-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: opposing_combat_fighter, max_distance_ref: {combat: current, field: combat_damage_dealt_by_this_attack}}]}]
   - id: thwip
     name: Thwip!
     quantity: 3
@@ -77,10 +76,18 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        condition: {combat_result: won}
-        operations: [{op: PLACE, target: spider-man, destination_rule: any_space_in_spider-man-zone}]
-
+      - id: thwip-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {combat_result: won}
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_spider-man-zone}, bind: destination}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: spider-man, destination: {bound: destination}}]}
   - id: wall-crawler
     name: Wall Crawler
     quantity: 2
@@ -91,9 +98,18 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: after_combat
-        operations: [{op: PLACE, target: spider-man, destination_rule: any_space_in_spider-man-zone}]
-
+      - id: wall-crawler-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_spider-man-zone}, bind: destination}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: spider-man, destination: {bound: destination}}]}
   - id: momentous-shift
     name: Momentous Shift
     quantity: 3
@@ -104,10 +120,11 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: during_combat
-        condition: {spider_man_started_turn_in_different_space: true}
-        operations: [{op: SET_VALUE, target: this_card, value: 5}]
-
+      - id: momentous-shift-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {current_space_differs_from: {state: turn_start_space}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]
   - id: friendly-neighborhood-spider-man
     name: Friendly Neighborhood Spider-Man
     quantity: 2
@@ -118,11 +135,19 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: scheme
-        operations:
-          - {op: RECOVER, target: spider-man, amount: 3}
-          - {op: PLACE, target: spider-man, destination_rule: any_space_in_spider-man-zone}
-
+      - id: friendly-neighborhood-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: spider-man, amount: 3}]}
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_spider-man-zone}, bind: destination}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: spider-man, destination: {bound: destination}}]}
   - id: with-great-power
     name: With Great Power
     quantity: 2
@@ -133,12 +158,19 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: scheme
-        operations:
-          - {op: CHANGE_STATE, key: spider_man_attack_bonus_this_turn, transition: increment_by_1}
-          - {op: DRAW, count: 1}
-          - {op: GAIN_ACTION, count: 1}
-
+      - id: with-great-power-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: CHANGE_STATE, key: spider_man_attack_bonus_this_turn, transition: increment_by_1}
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
   - id: disarming-shot
     name: Disarming Shot
     quantity: 2
@@ -149,9 +181,11 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: after_combat
-        operations: [{op: DRAW, count_rule: combat_damage_dealt_to_opposing_fighter}]
-
+      - id: disarming-shot-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count_ref: {combat: current, field: combat_damage_dealt_to_opposing_fighter}}]}]
   - id: right-in-the-face
     name: Right in the Face!
     quantity: 2
@@ -162,11 +196,11 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: immediately
-        operations:
-          - op: PREVENT_OPERATION
-            target_operation: {controller: opponent, op: DRAW, scope: rest_of_turn}
-
+      - id: right-in-face-lock
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: prevent, when: always, choices: [], costs: [], operations: [{op: PREVENT_OPERATION, target_operation: {controller: combat_opponent, op: DRAW, scope: rest_of_turn}}]}]
   - id: web-shooters
     name: Web Shooters
     quantity: 3
@@ -177,30 +211,24 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: during_combat
-        operations:
-          - op: PREVENT_DAMAGE
-            target: spider-man
-            scope: {maximum_combat_damage_this_combat: 2}
+      - id: web-shooters-cap
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: prevent, when: always, choices: [], costs: [], operations: [{op: PREVENT_DAMAGE, target: spider-man, scope: {maximum_combat_damage_this_combat: 2}}]}]
 
 external_definitions: []
-
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 12
-  quantity_reconciles: true
-
+interpretations: []
 sources:
-  - https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
-  - https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
-  - https://unmatched.cards/umdb/decks/spider_man
-  - https://unmatched.cards/umdb/cards/web-shooters
-  - https://www.the-unmatched.club/heroes/spiderman
-
-normalization_notes:
-  - The complete published Spider-Man deck now reconciles to 30; community /decks/ Spider-Man builds were excluded.
-  - The official Brains and Brawn rulebook directly confirms Momentous Shift, Disarming Shot, With Great Power, Thwip!, the 30-card deck size, and Spidey-Sense timing.
-  - Spider-Sense Tingling! and Counter-Attack read the opponent card's current combat value at their after-combat timing, not the printed value disclosed by Spidey-Sense before defense selection.
-  - With Great Power is normalized as a turn-scoped attack-value state increment so playing both copies in one turn can stack without changing immutable printed card values.
+  - {id: spider-man-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf, checked_at: 2026-07-27, supports: [spidey_sense, card_examples]}
+  - {id: spider-man-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/spider_man, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: spider-man-official-product, authority: official, url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: spider-man-rulings-index, authority: secondary_cross_check, url: https://www.the-unmatched.club/heroes/spiderman, checked_at: 2026-07-27, supports: [card_cross_check]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
