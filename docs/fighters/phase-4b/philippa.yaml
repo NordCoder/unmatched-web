@@ -18,7 +18,7 @@ setup:
     - {key: maneuver_actions_taken_this_turn, value: 0}
 
 ability:
-  id: court-intrigue
+  id: two-steps-ahead
   controller: owner
   effects:
     - id: refill-to-four
@@ -46,4 +46,5 @@ sources:
   - {type: current_rulings_index, url: https://www.the-unmatched.club/rules/philippa}
 
 normalization_notes:
+  - The canonical published ability name is TWO STEPS AHEAD.
   - Backup Plan can set Philippa's health to exactly 5, including lowering it from above 5; the generic exact-health-assignment proposal is recorded in the Worker C report.
