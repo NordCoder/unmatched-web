@@ -2,7 +2,13 @@ schema_version: 1
 id: t-rex
 display_name: T. Rex
 set_ids: [jurassic-park-sattler-vs-trex]
-status: blocked
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-001]
 movement: 1
 
 topology:
@@ -17,11 +23,9 @@ topology:
       starting_health: 27
       starts_on_board: true
       summonable: false
-      footprint: large_two_space_base
+      footprint_requirement: B-REQ-001
 
-setup:
-  hooks: []
-  state_initialization: []
+setup: {hooks: [], state_initialization: []}
 
 ability:
   id: large-predator
@@ -29,59 +33,88 @@ ability:
   effects:
     - id: extended-melee-reach
       trigger: static
-      continuous: true
-      normalization_blocker: T. Rex attacks a fighter up to two spaces away, including across an intervening fighter. The legality calculation depends on its two-space footprint and needs the same reusable footprint/attack-origin model as B-EXT-001 rather than an undocumented structured object stored in enum state.
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: apply-legality
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: APPLY_ATTACK_LEGALITY_POLICY
+              requirement: B-REQ-001
+              attacker: t-rex
+              origins: occupied_footprint_spaces
+              max_graph_distance: 2
+              intervening_fighter_does_not_block: true
     - id: end-turn-draw
       trigger: turn_end
-      operations: [{op: DRAW, count: 1}]
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: draw
+          when: always
+          choices: []
+          costs: []
+          operations: [{op: DRAW, count: 1}]
 
 resources: []
-
 persistent_state: []
+history:
+  - id: turn_start_footprint
+    requirement: B-REQ-001
+    capture: {fighter: t-rex, field: occupied_spaces}
+    reset: turn_start
 
 deck:
   manifest: ../../cards/phase-4b/t-rex.yaml
   construction: fixed
 
 rulings:
-  - id: t-rex-large-fighter-footprint
-    summary: T. Rex's extended base may occupy two spaces; movement may begin from either occupied space and rotates the base so the opposite end follows into the previous space.
-    source: https://unmatched.cards/umdb/decks/t-rex
-  - id: t-rex-one-way-and-secret-passage
-    summary: T. Rex ignores one-way path direction while moving and cannot use secret passages.
-    source: https://unmatched.cards/umdb/decks/t-rex
-  - id: t-rex-extended-melee-range
-    summary: T. Rex may attack a fighter up to two spaces away, including across a fighter in an intervening space.
-    source: https://unmatched.cards/umdb/decks/t-rex
-  - id: t-rex-momentous-shift-footprint
-    summary: "UNCERTAIN project interpretation: a space is an individual battlefield space rather than the whole T. Rex footprint. If T. Rex still occupies any space it occupied at turn start, Momentous Shift is treated as not satisfying 'started this turn in a different space'. The condition is satisfied only when the current footprint shares no space with the turn-start footprint."
-    evidence_status: uncertain
-    project_interpretation: conservative
-    conflicting_secondary_evidence: Gridbeast states that occupying at least one new space is sufficient and that both occupied spaces need not change.
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: t-rex-still-one-fighter
-    summary: Although the base occupies two spaces, T. Rex remains one fighter and space/zone-triggered effects do not trigger twice merely because both spaces qualify.
-    source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: t-rex-end-turn-hand-limit
-    summary: T. Rex's mandatory end-turn draw occurs before the ordinary final discard-down-to-seven step.
-    source: https://gridbeast.gg/unmatched-rules-faq/
+  - {id: t-rex-large-fighter-footprint, source_ref: t-rex-umdb, summary: T. Rex is one fighter whose base may occupy two spaces; movement can originate from either occupied space.}
+  - {id: t-rex-extended-melee-range, source_ref: t-rex-umdb, summary: T. Rex may attack a fighter up to two spaces away from its occupied footprint.}
+
+interpretations:
+  - id: t-rex-momentous-shift-overlap
+    affects: [momentous-shift]
+    status: project_normalization
+    confidence: medium
+    behavior: Momentous Shift is satisfied only when T. Rex currently occupies no space that belonged to its turn-start footprint; an overlap such as start {A,B} and current {B,C} is treated as not satisfied.
+    source_refs: [t-rex-umdb, t-rex-secondary-faq, t-rex-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
 
 sources:
-  - type: official_product
+  - id: t-rex-official-product
+    authority: official
     url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
-  - type: published_database
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: t-rex-umdb
+    authority: published_umdb
     url: https://unmatched.cards/umdb/decks/t-rex
-  - type: current_rulings_index
+    checked_at: 2026-07-27
+    supports: [fighter_stats, large_fighter_rules, attack_range, deck_construction, momentous_shift_text]
+  - id: t-rex-rulings-index
+    authority: secondary_cross_check
     url: https://www.the-unmatched.club/heroes/t-rex
-  - type: current_secondary_faq
+    checked_at: 2026-07-27
+    supports: [large_fighter_cross_check]
+  - id: t-rex-secondary-faq
+    authority: secondary_cross_check
     url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [momentous_shift_conflicting_interpretation]
+  - id: t-rex-project-normalization
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-b-licensed/docs/phase-4b/worker-b-report.md
+    checked_at: 2026-07-27
+    supports: [momentous_shift_overlap_behavior]
 
-normalization_notes:
-  - The factual large-fighter rules are no longer an evidence gap: current sources agree on the two-space footprint, rotation/path semantics, one-way override, secret-passage prohibition, two-space melee reach, and one-fighter trigger identity.
-  - Momentous Shift remains evidence-uncertain at the footprint-history boundary. The project uses the conservative no-shared-start-space interpretation until an exact authoritative ruling is captured; current secondary FAQ evidence conflicts with that interpretation.
-  - T. Rex remains blocked because Phase 4A fighter occupancy, attack-origin, historical-footprint and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
-  - Audit correction: the previous attack_range_rule object was removed because it was stored in an enum-typed state without any shared semantic contract.
-
-blockers:
-  - id: semantic-extension-large-fighter-footprint
-    reason: A reusable footprint/orientation model is required for multi-space occupancy, source/destination footprint validation, rotation, path origin from either occupied space, attack origin/range, turn-start footprint history, shared-space predicates and movement-rule overrides.
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
