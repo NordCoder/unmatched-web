@@ -1,75 +1,97 @@
 schema_version: 1
 id: ghost-rider
 display_name: Ghost Rider
-set_ids:
-- marvel-redemption-row
+set_ids: [marvel-redemption-row]
 status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
 movement: 2
+
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-  - id: ghost-rider
-    display_name: Ghost Rider
-    role: hero
-    count: 1
-    attack_type: melee
-    starting_health: 17
-    starts_on_board: true
-    summonable: false
+    - {id: ghost-rider, display_name: Ghost Rider, role: hero, count: 1, attack_type: melee, starting_health: 17, starts_on_board: true, summonable: false}
+
 setup:
   hooks: []
   state_initialization: []
+
 ability:
   id: hell-on-wheels
   controller: owner
   effects:
-  - id: hellfire-maneuver
-    trigger: maneuver_movement_choice_after_optional_boost
-    optional: true
-    costs:
-    - op: SPEND_RESOURCE
-      resource: hellfire
-      amount: 1
-      cost_semantics: true
-    operations:
-    - op: MOVE
-      target: ghost-rider
-      max_distance: 4
-      replacement_for: maneuver_movement
-      overrides:
-      - may_move_through_opposing_fighters
-      - ignore_maneuver_boost_for_move_value
-    - op: DEAL_EFFECT_DAMAGE
-      target: each_opposing_fighter_moved_through
-      amount: 1
-    dependency: movement_override_and_damage_only_if_hellfire_cost_was_paid
+    - id: hellfire-maneuver
+      trigger: maneuver_movement_choice_after_optional_boost
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: decide
+          when: always
+          choices:
+            - id: use_hellfire_movement
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: boolean, meaning: spend_one_hellfire_for_replacement_movement}
+              bind: use_hellfire_movement
+          costs: []
+          operations: []
+        - id: pay
+          when: {bound: use_hellfire_movement, equals: true}
+          choices: []
+          costs:
+            - {id: spend_hellfire, op: SPEND_RESOURCE, resource: hellfire, amount: 1, bind: hellfire_paid}
+          operations: []
+        - id: replace-movement
+          when: {result: hellfire_paid, equals: succeeded}
+          choices: []
+          costs: []
+          operations:
+            - {op: MOVE, target: ghost-rider, max_distance: 4, replacement_for: maneuver_movement, overrides: [may_move_through_opposing_fighters, ignore_maneuver_boost_for_move_value]}
+            - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_moved_through, amount: 1}
+
 resources:
-- id: hellfire
-  kind: counter
-  visibility: public
-  initial: 5
-  min: 0
-  max: 5
+  - {id: hellfire, kind: counter, visibility: public, initial: 5, min: 0, max: 5}
 persistent_state:
-- key: turn_start_space
-  type: space_ref
-  reset: turn_start
-  note: Required by The Wicked Will Burn; whether Ghost Rider started the turn elsewhere is historical and cannot be reconstructed from current position.
+  - {key: turn_start_space, type: space_ref, reset: turn_start, capture: ghost-rider.current_space}
+
 deck:
   manifest: ../../cards/phase-4b/ghost-rider.yaml
   construction: fixed
+
 rulings:
-- id: hellfire-move-cap
-  summary: After spending Hellfire for the maneuver ability, the movement value is 4 and cannot be increased by a movement BOOST.
-  source: https://unmatched.cards/umdb/decks/ghost-rider
+  - id: hellfire-move-cap
+    source_ref: ghost-rider-umdb
+    summary: Spending Hellfire fixes the maneuver movement value at 4; a maneuver BOOST does not increase it.
+interpretations: []
+
 sources:
-- type: official_product
-  url: https://restorationgames.com/shop/marvel-redemption-row/
-- type: published_database
-  url: https://unmatched.cards/umdb/decks/ghost-rider
-- type: current_rulings_index
-  url: https://www.the-unmatched.club/heroes/ghost-rider
-normalization_notes:
-- Audit correction: Hell on Wheels is normalized as the maneuver's replacement movement, up to 4 spaces, after any optional movement BOOST; spending Hellfire fixes the effective move value at 4 rather than adding to a BOOST.
-- Audit correction: turn-start position is explicit persistent historical state for The Wicked Will Burn, following FIGHTER-SCHEMA-005.
+  - id: ghost-rider-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-redemption-row/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: ghost-rider-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/ghost-rider
+    checked_at: 2026-07-27
+    supports: [fighter_stats, hellfire_resource, hell_on_wheels, deck_construction]
+  - id: ghost-rider-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/ghost-rider
+    checked_at: 2026-07-27
+    supports: [hellfire_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
