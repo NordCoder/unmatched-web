@@ -1,45 +1,194 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: king-arthur
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-006]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: noble-sacrifice, name: Noble Sacrifice, quantity: 3, usable_by: [king-arthur], type: attack, printed_value: 2, boost: 3, effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
-  - {id: divine-intervention, name: Divine Intervention, quantity: 2, usable_by: [king-arthur], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: king-arthur, max_distance: 5}]}]}
+  - id: noble-sacrifice
+    name: Noble Sacrifice
+    quantity: 3
+    usable_by: [king-arthur]
+    type: attack
+    printed_value: 2
+    boost: 3
+    effects:
+      - id: noble-sacrifice-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-boost-card
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+  - {id: divine-intervention, name: Divine Intervention, quantity: 2, usable_by: [king-arthur], type: versatile, printed_value: 3, boost: 2, effects: [{id: divine-intervention-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: king-arthur, max_distance: 5}]}]}]}
   - {id: excalibur, name: Excalibur, quantity: 1, usable_by: [king-arthur], type: attack, printed_value: 6, boost: 3, effects: []}
-  - {id: the-holy-grail, name: The Holy Grail, quantity: 1, usable_by: [king-arthur], type: defense, printed_value: 1, boost: 2, effects: [{trigger: after_combat, condition: {king_arthur_health_lte: 4, king_arthur_undefeated: true}, operations: []}], normalization_blocker: set_king_arthur_health_to_8}
-  - {id: the-lady-of-the-lake, name: The Lady of the Lake, quantity: 1, usable_by: [king-arthur], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: LOOK_AT, source: deck_and_discard, selector: excalibur, viewer: owner}, {op: MOVE_CARD, from_zone: source_found_zone, to_zone: hand, selector: excalibur}, {op: SHUFFLE, zone: deck, condition: searched_deck}]}]}
-  - {id: the-aid-of-morgana, name: The Aid of Morgana, quantity: 1, usable_by: [king-arthur], type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
-  - {id: bewilderment, name: Bewilderment, quantity: 2, usable_by: [merlin], type: defense, printed_value: 0, boost: 2, effects: [{trigger: during_combat, operations: [{op: PREVENT_DAMAGE, target: merlin, scope: combat}]}, {trigger: after_combat, optional: true, operations: [{op: PLACE, target: merlin, destination_rule: any_space}]}]}
-  - {id: command-the-storms, name: Command the Storms, quantity: 2, usable_by: [merlin], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: MOVE, target: each_fighter, max_distance: 3, controller: owner}]}]}
-  - {id: aid-the-chosen-one, name: Aid the Chosen One, quantity: 1, usable_by: [merlin], type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}]}
-  - {id: prophecy, name: Prophecy, quantity: 1, usable_by: [merlin], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: LOOK_AT, source: deck, count: 4, viewer: owner}, {op: REQUEST_CHOICE, definition: prophecy_keep_two}, {op: MOVE_CARD, from_zone: deck_top_four, to_zone: hand, selector: chosen_two}, {op: REORDER, zone: deck, selector: remaining_two, order: chosen_order}]}]}
-  - {id: restless-spirits, name: Restless Spirits, quantity: 1, usable_by: [merlin], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: space_in_merlin_zone}, {choose: adjacent_space}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_chosen_spaces, amount: 2}]}, {trigger: after_effect, condition: {fighter_defeated_by_this_effect: true}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: swift-strike, name: Swift Strike, quantity: 2, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 4}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - id: the-holy-grail
+    name: The Holy Grail
+    quantity: 1
+    usable_by: [king-arthur]
+    type: defense
+    printed_value: 1
+    boost: 2
+    requires: [A-REQ-006]
+    effects:
+      - id: holy-grail-health
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-006]
+        stages:
+          - id: assign-health
+            when: {fighter: {id: king-arthur, undefeated: true, current_health_lte: 4}}
+            choices: []
+            costs: []
+            operations: [{op: SET_HEALTH, target: king-arthur, value: 8, requires: A-REQ-006}]
+  - id: the-lady-of-the-lake
+    name: The Lady of the Lake
+    quantity: 1
+    usable_by: [king-arthur]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: lady-of-the-lake-search
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: locate-excalibur
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: SEARCH, zones: [deck, discard], selector: {card_id: excalibur}, bind_result: excalibur_search}
+          - id: move-found-card
+            when: {result_exists: {ref: result.excalibur_search.card}}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: {ref: result.excalibur_search.source_zone}, to_zone: hand, selector: {ref: result.excalibur_search.card}}
+          - id: shuffle-if-deck-searched
+            when: {result: {ref: result.excalibur_search.searched_deck, equals: true}}
+            choices: []
+            costs: []
+            operations: [{op: SHUFFLE, zone: deck}]
+  - {id: the-aid-of-morgana, name: The Aid of Morgana, quantity: 1, usable_by: [king-arthur], type: attack, printed_value: 4, boost: 2, effects: [{id: aid-of-morgana-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]}]}
+  - id: bewilderment
+    name: Bewilderment
+    quantity: 2
+    usable_by: [merlin]
+    type: defense
+    printed_value: 0
+    boost: 2
+    effects:
+      - {id: bewilderment-prevent, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: prevent, when: always, choices: [], costs: [], operations: [{op: PREVENT_DAMAGE, target: merlin, scope: combat}]}]}
+      - id: bewilderment-place
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-place
+            when: always
+            choices:
+              - {id: choose-merlin-space, owner: controller, visibility: public, optional: true, domain: {kind: space, scope: any}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: merlin, destination: {ref: choice.destination}}]
+  - {id: command-the-storms, name: Command the Storms, quantity: 2, usable_by: [merlin], type: scheme, printed_value: null, boost: 2, effects: [{id: command-the-storms-move, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move-all, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, scope: all_on_board}}, max_distance: 3, controller: owner}]}]}]}
+  - {id: aid-the-chosen-one, name: Aid the Chosen One, quantity: 1, usable_by: [merlin], type: attack, printed_value: 4, boost: 2, effects: [{id: aid-chosen-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]}]}
+  - id: prophecy
+    name: Prophecy
+    quantity: 1
+    usable_by: [merlin]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: prophecy-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: inspect-top-four
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: LOOK_AT, source: deck, count: 4, viewer: controller, bind_result: looked_cards}]
+          - id: choose-two
+            when: {result_exists: {ref: result.looked_cards}}
+            choices:
+              - {id: choose-prophecy-hand-cards, owner: controller, visibility: private, optional: false, domain: {ref: result.looked_cards.cards}, bind: chosen_two, min: 2, max: 2, distinct: true, order_matters: false}
+              - {id: order-prophecy-remainder, owner: controller, visibility: private, optional: false, domain: {difference: [{ref: result.looked_cards.cards}, {ref: choice.chosen_two}]}, bind: remaining_order, min: 2, max: 2, distinct: true, order_matters: true}
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: {ref: choice.chosen_two}}
+              - {op: REORDER, zone: deck, selector: {ref: choice.remaining_order}, order: {ref: choice.remaining_order}}
+  - id: restless-spirits
+    name: Restless Spirits
+    quantity: 1
+    usable_by: [merlin]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: restless-spirits-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-spaces
+            when: always
+            choices:
+              - {id: choose-merlin-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: merlin}, bind: first_space}
+              - {id: choose-adjacent-space, owner: controller, visibility: public, optional: false, domain: {kind: space, adjacent_to: {ref: choice.first_space}}, bind: second_space}
+            costs: []
+            operations:
+              - {op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, space_in: [{ref: choice.first_space}, {ref: choice.second_space}]}}, amount: 2, bind_result: restless_damage}
+          - id: draw-if-defeated
+            when: {result: {ref: result.restless_damage.defeated_count, gt: 0}}
+            choices: []
+            costs: []
+            operations: [{op: DRAW, count: 1}]
+  - {id: swift-strike, name: Swift Strike, quantity: 2, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{id: swift-strike-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.own_fighter}, max_distance: 4}]}]}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: momentous-shift-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {own_combat_fighter_started_turn_in_different_space: true}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
 
-external_definitions:
-  - {id: set-health-absolute, kind: proposed_generic_operation, affected_card: the-holy-grail, semantics: set_current_health_to_exact_source_value_without_treating_it_as_recovery}
-  - id: prophecy_keep_two
-    kind: ordered_private_choice
-    controller: owner
-    source: looked_top_four
-    choose: 2
-    outputs:
-      chosen_two: move_to_hand
-      remaining_two: keep_on_deck_top
-      chosen_order: owner_order_for_remaining_two
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 16}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/king-arthur
-  - https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - The Holy Grail is intentionally not approximated with RECOVER because its published effect assigns an exact health value.
-  - Prophecy now has an explicit choice definition: exactly two of the looked-at top four go to hand and the other two remain on top in owner-chosen order.
-  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
-  - Published UmDb is authoritative for Feint and Regroup BOOST 1; secondary/fan transcriptions with different BOOST values were rejected.
+  - {id: arthur-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: arthur-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat_timing, merlin_cards]}
+  - {id: arthur-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [boost_cancellation, exact_health_semantics]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
