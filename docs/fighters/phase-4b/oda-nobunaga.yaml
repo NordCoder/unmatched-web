@@ -8,7 +8,7 @@ verification:
   semantics: verified
   integration: requires_shared_extension
   policy: not_applicable
-requires: [C-REQ-003, C-REQ-010]
+requires: [C-REQ-003, C-REQ-010, C-REQ-013]
 movement: 2
 
 topology:
@@ -34,13 +34,17 @@ ability:
   effects:
     - id: friendly-zone-combat-bonus
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition:
-        all:
-          - {ref: current_combat_card.user, relation: friendly_to, value: oda-nobunaga}
-          - {ref: current_combat_card.user, not_equals: oda-nobunaga}
-          - {ref: current_combat_card.user, zone_relation: same_zone_as, value: oda-nobunaga}
-      operations: [{op: ADD_VALUE, target: current_played_combat_card, amount: 1}]
+      stages:
+        - id: apply
+          when:
+            all:
+              - {ref: current_combat_card.user, relation: friendly_to, value: oda-nobunaga}
+              - {ref: current_combat_card.user, not_equals: oda-nobunaga}
+              - {ref: current_combat_card.user, zone_relation: same_zone_as, value: oda-nobunaga}
+          operations: [{op: ADD_VALUE, target: current_played_combat_card, amount: 1}]
 
 resources: []
 persistent_state:
@@ -59,16 +63,8 @@ rulings:
     source_refs: [suns-origin-rules-oda]
 
 sources:
-  - id: suns-origin-rules-oda
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [flanked definition, Sun's Origin fighter rules]
-  - id: oda-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/oda-nobunaga
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
+  - {id: suns-origin-rules-oda, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [flanked definition, Sun's Origin fighter rules]}
+  - {id: oda-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/oda-nobunaga, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
