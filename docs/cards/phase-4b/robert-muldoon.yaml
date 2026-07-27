@@ -4,7 +4,7 @@ status: blocked
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: remote-detonation, name: Remote Detonation, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: own_trap_in_same_zone_as_any_ingen_worker}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_chosen_trap, amount: 1}]}], normalization_blocker: return_chosen_positioned_trap_to_supply_then_ability_draw}
+  - {id: remote-detonation, name: Remote Detonation, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: own_trap_in_same_zone_as_any_ingen_worker}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_chosen_trap, amount: 1}]}], normalization_blocker: return_chosen_positioned_trap_to_box_then_resolve_draw_on_trap_return}
   - {id: they-should-all-be-destroyed, name: They Should All Be Destroyed, quantity: 3, usable_by: [robert-muldoon], type: attack, printed_value: 4, boost: 3, effects: [{trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount: count_own_traps_adjacent_to_opposing_combat_fighter}]}]}
   - {id: shoot-her, name: Shoot Her!, quantity: 2, usable_by: [robert-muldoon], type: attack, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {action_ordinal: 1}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
   - {id: ive-hunted-most-things-that-can-hunt-you, name: "I've Hunted Most Things That Can Hunt You", quantity: 2, usable_by: [robert-muldoon], type: defense, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
@@ -18,7 +18,7 @@ cards:
 
 external_definitions:
   - {id: call-for-backup-two-different, kind: choice_bundle, choose: 2, distinct: true, options: [place_up_to_3_traps, return_all_defeated_workers, draw_2]}
-  - {id: positioned-trap-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, return_token_to_supply, trigger_on_entry, stop_current_movement]}
+  - {id: positioned-trap-component, kind: proposed_generic_component_semantics, lifecycle: [available, board, box], reusable_from_box: false, operations_needed: [place_token, return_token_to_box, trigger_on_entry, stop_current_movement]}
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
   - https://unmatched.cards/umdb/decks/ingen
@@ -27,6 +27,7 @@ sources:
   - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
-  - Trap positions and trap return-to-supply are preserved as source semantics but are not represented with invented fighter-specific operations.
+  - Trap positions and trap return-to-box are preserved as source semantics but are not represented with invented fighter-specific operations.
+  - Remote Detonation returns the chosen trap to the box, never to an available supply; the return also participates in Muldoon's draw-on-trap-return ability.
   - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Current UmDb recheck confirms 30 cards, 11 unique definitions, and the published quantities/users/value/BOOST metadata used here.
