@@ -78,8 +78,14 @@ cards:
         controller: controller
         cancellation: cancelable
         stages:
-          - id: inspect
+          - id: decide
             when: {combat_result: won}
+            choices:
+              - {id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}
+            costs: []
+            operations: []
+          - id: inspect
+            when: {bound: use_effect, equals: true}
             choices: []
             costs: []
             operations: [{op: LOOK_AT, source: opponent.deck_top, selector: {count: 3}, viewer: controller, bind: looked_cards}]
