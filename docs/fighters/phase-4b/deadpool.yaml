@@ -5,7 +5,7 @@ display_name: Deadpool
 set_ids: [deadpool-solo]
 status: blocked
 verification: {evidence: qualified, semantics: verified, integration: requires_shared_extension, policy: blocked}
-requires: [A-REQ-015]
+requires: [A-REQ-008, A-REQ-015]
 movement: 2
 topology:
   type: single_hero
