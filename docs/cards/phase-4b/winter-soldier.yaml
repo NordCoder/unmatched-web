@@ -167,7 +167,7 @@ cards:
           - id: choose-cards
             when: always
             choices:
-              - {id: recycle_cards, owner: controller, visibility: public, optional: false, domain: {kind: card_set, zone: own_discard}, min: 0, max: 3, distinct: true, order_matters: false, bind: recycle_cards}
+              - {id: recycle_cards, owner: controller, visibility: public, optional: false, domain: {kind: card_set, zone: own_discard, count_rule: exactly_3_limited_by_zone_size}, distinct: true, order_matters: false, bind: recycle_cards}
             costs: []
             operations: []
           - id: recycle
