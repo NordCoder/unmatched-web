@@ -159,6 +159,6 @@ sources:
   - https://www.the-unmatched.club/rules/raptors
 
 normalization_notes:
-  - `any` means any surviving Raptor instance in this shared multi-hero deck.
+  - "`any` means any surviving Raptor instance in this shared multi-hero deck."
   - Placement effects filter defeated Raptors out of candidate fighters and therefore cannot act as resurrection.
   - The deck needs no multi-hero-specific card primitive; ordinary MOVE/PLACE target selectors operate over multiple hero instances.
