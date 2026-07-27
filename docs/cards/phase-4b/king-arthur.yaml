@@ -23,6 +23,15 @@ cards:
 
 external_definitions:
   - {id: set-health-absolute, kind: proposed_generic_operation, affected_card: the-holy-grail, semantics: set_current_health_to_exact_source_value_without_treating_it_as_recovery}
+  - id: prophecy_keep_two
+    kind: ordered_private_choice
+    controller: owner
+    source: looked_top_four
+    choose: 2
+    outputs:
+      chosen_two: move_to_hand
+      remaining_two: keep_on_deck_top
+      chosen_order: owner_order_for_remaining_two
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 16}
 sources:
   - https://unmatched.cards/umdb/decks/king-arthur
@@ -31,5 +40,6 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - The Holy Grail is intentionally not approximated with RECOVER because its published effect assigns an exact health value.
+  - Prophecy now has an explicit choice definition: exactly two of the looked-at top four go to hand and the other two remain on top in owner-chosen order.
   - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
   - Published UmDb is authoritative for Feint and Regroup BOOST 1; secondary/fan transcriptions with different BOOST values were rejected.
