@@ -2,33 +2,23 @@ schema_version: 1
 id: dr-ellie-sattler
 display_name: Dr. Ellie Sattler
 set_ids: [jurassic-park-sattler-vs-trex]
-status: blocked
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-006]
 movement: 2
 
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
   fighters:
-    - id: dr-ellie-sattler
-      display_name: Dr. Ellie Sattler
-      role: hero
-      count: 1
-      attack_type: melee
-      starting_health: 13
-      starts_on_board: true
-      summonable: false
-    - id: dr-ian-malcolm
-      display_name: Dr. Ian Malcolm
-      role: sidekick
-      count: 1
-      attack_type: melee
-      starting_health: 7
-      starts_on_board: true
-      summonable: false
+    - {id: dr-ellie-sattler, display_name: Dr. Ellie Sattler, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: dr-ian-malcolm, display_name: Dr. Ian Malcolm, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
 
-setup:
-  hooks: []
-  state_initialization: []
+setup: {hooks: [], state_initialization: []}
 
 ability:
   id: insight
@@ -36,21 +26,30 @@ ability:
   effects:
     - id: place-insight-after-move
       trigger: fighter_moved_to_new_space
-      condition:
-        all:
-          - fighter_in: [dr-ellie-sattler, dr-ian-malcolm]
-          - {resource_gt: {insight-supply: 0}}
-      operations:
-        - {op: SPEND_RESOURCE, resource: insight-supply, amount: 1}
-      normalization_blocker: The source next places one concrete Insight token in the moved fighter's new space. Current token_pool/state types do not identify individual battlefield-token instances or preserve multiple same-type tokens in one space.
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: place-token
+          when:
+            all:
+              - {fighter_in: [dr-ellie-sattler, dr-ian-malcolm]}
+              - {resource_gt: {insight-supply: 0}}
+          choices: []
+          costs: []
+          operations:
+            - op: MOVE_BATTLEFIELD_TOKEN
+              requirement: B-REQ-006
+              token_type: insight
+              from: insight-supply
+              to: {ref: triggering_fighter.new_space}
+              count: 1
 
 resources:
   - id: insight-supply
     kind: token_pool
     visibility: public
     initial: 5
-    source_lifecycle: Each of five physical Insight tokens moves between supply and a battlefield space; multiple Insight tokens may occupy the same space and removed tokens return to this supply.
-
+    lifecycle: finite_reusable_battlefield_tokens
 persistent_state: []
 
 deck:
@@ -58,36 +57,42 @@ deck:
   construction: fixed
 
 rulings:
-  - id: sattler-insight-after-move
-    summary: After Dr. Sattler or Dr. Malcolm moves to a new space, place an Insight token in that new space when one remains in supply. PLACE effects do not trigger the ability.
-    source: https://www.the-unmatched.club/heroes/dr-sattler
-  - id: sattler-five-insight-tokens
-    summary: The character has five Insight tokens; if the supply is empty, an attempted placement does nothing until tokens return to supply.
-    source: https://www.the-unmatched.club/heroes/dr-sattler
-  - id: sattler-insight-stacking
-    summary: Insight tokens may share spaces with fighters and other token types, and multiple Insight tokens may stack in the same space.
-    source: https://www.the-unmatched.club/rules/general-rulings
-  - id: sattler-both-fighters-can-place-in-one-maneuver
-    summary: If Sattler and Malcolm both move during the same maneuver, each movement can place an Insight token, subject to supply availability.
-    source: https://gridbeast.gg/unmatched-rules-faq/
+  - {id: sattler-insight-after-move, source_ref: sattler-rulings-index, summary: Sattler or Malcolm moving to a new space may place one available Insight there; PLACE is not movement for this trigger.}
+  - {id: sattler-insight-stacking, source_ref: sattler-general-rulings, summary: Insight tokens may coexist with fighters/components and multiple Insight tokens may occupy one space.}
+interpretations: []
 
 sources:
-  - type: official_product
-    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
-  - type: published_database
+  - id: sattler-official-product
+    authority: official
+    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: sattler-umdb
+    authority: published_umdb
     url: https://unmatched.cards/umdb/decks/dr-ellie-sattler
-  - type: current_rulings_index
+    checked_at: 2026-07-27
+    supports: [fighter_stats, insight_ability, deck_construction]
+  - id: sattler-rulings-index
+    authority: official_ruling_index
     url: https://www.the-unmatched.club/heroes/dr-sattler
-  - type: current_general_rulings
+    checked_at: 2026-07-27
+    supports: [insight_trigger, insight_supply]
+  - id: sattler-general-rulings
+    authority: official_ruling_index
     url: https://www.the-unmatched.club/rules/general-rulings
-  - type: current_secondary_faq
+    checked_at: 2026-07-27
+    supports: [token_stacking]
+  - id: sattler-secondary-faq
+    authority: secondary_cross_check
     url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [multi_fighter_movement_trigger_cross_check]
 
-normalization_notes:
-  - The factual Insight rules are now well supported: five reusable public tokens; movement-only trigger; both fighters may trigger independently; tokens can coexist with other components and identical Insight tokens may stack.
-  - The previous single space_ref state was removed because it cannot represent five physical token identities or multiple identical tokens occupying one space.
-  - The fighter remains blocked only on generic battlefield-token instance positioning; the 30-card deck manifest is independently complete.
-
-blockers:
-  - id: semantic-extension-battlefield-token-instance-positions
-    reason: A reusable token-instance model is required for a finite token pool whose individual instances transition between supply and battlefield spaces, including multiplicity of same-type tokens in one space, selectors/counts over positioned tokens, and return-to-supply operations.
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
