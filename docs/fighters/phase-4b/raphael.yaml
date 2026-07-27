@@ -2,7 +2,13 @@ schema_version: 1
 id: raphael
 display_name: Raphael
 set_ids: [tmnt-adventures]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001]
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -38,10 +44,32 @@ deck:
   construction: fixed
 rulings: []
 sources:
-- {authority: official_set, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', note: Visual card corpus transcribed from current Club card images supplied during reconciliation.}
+- id: tmnt-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, ability, deck_allocation]
+  durability: durable
+- id: tmnt-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: raphael-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/raphael
+  checked_at: '2026-07-27'
+  supports: [deck_visual_transcription]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- lost_combat_this_turn is explicit historical state for Payback Time.
-- break_something_canceled_this_combat persists the IMMEDIATELY cancellation result until the same card's AFTER COMBAT fallback resolves.
+- lost_combat_this_turn is historical state for Payback Time.
+- break_something_canceled_this_combat persists the actual cancellation outcome across combat timing windows; the deck uses D-REQ-001 result bindings rather than an opaque cancellation handler.
 - Only competitive Raphael/Casey behavior is modeled.
