@@ -1,0 +1,279 @@
+schema_version: 1
+fighter_id: doctor-strange
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: bolts-of-balthakk
+    name: Bolts of Balthakk
+    quantity: 4
+    inclusion: fixed
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: bolts-blind-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_blind_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_blind_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_blind_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: own_deck_top, count: 1, blind: true}]}
+      - id: bolts-action
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: gain-action, when: {combat_result: won}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}]
+  - id: seven-suns-of-cinnibus
+    name: Seven Suns of Cinnibus
+    quantity: 3
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: seven-suns-first-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: first_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: first_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: first_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: own_deck_top, count: 1, blind: true}]}
+      - id: seven-suns-second-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: second_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: second_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: second_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: own_deck_top, count: 1, blind: true}]}
+      - id: seven-suns-overload
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: ignore, when: {this_card_current_value_gt: 7}, choices: [], costs: [], operations: [{op: IGNORE_VALUE, target: this_card}]}]
+  - id: the-rings-of-raggadorr
+    name: The Rings of Raggadorr
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: rings-recover
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: recover, when: {combat_result: won}, choices: [], costs: [], operations: [{op: RECOVER, target: own_combat_fighter_and_each_adjacent_friendly_fighter, amount_ref: {combat: current, field: combat_damage_dealt}}]}]
+  - id: the-winds-of-watoomb
+    name: The Winds of Watoomb
+    quantity: 3
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: winds-place-and-shuffle
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: opponent-chooses-strange-space
+            when: always
+            choices:
+              - {id: strange_destination, owner: combat_opponent, visibility: public, optional: false, domain: {kind: space, selector: starting_space}, bind: strange_destination}
+            costs: []
+            operations: []
+          - id: controller-chooses-opponent-space
+            when: {bound: strange_destination, exists: true}
+            choices:
+              - {id: opponent_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: starting_space_different_from_bound, different_from: strange_destination}, bind: opponent_destination}
+            costs: []
+            operations: []
+          - id: place-and-shuffle
+            when: {all_bound: [strange_destination, opponent_destination]}
+            choices: []
+            costs: []
+            operations:
+              - {op: PLACE, target: doctor-strange, destination: {bound: strange_destination}}
+              - {op: PLACE, target: opposing_combat_fighter, destination: {bound: opponent_destination}}
+              - {op: SHUFFLE, controller: all_players, zone: deck}
+  - id: steadfast-disciple
+    name: Steadfast Disciple
+    quantity: 3
+    inclusion: fixed
+    usable_by: [wong]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: steadfast-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: resolve, when: {wong_adjacent_to_opposing_fighter: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: DRAW, count: 1}]}
+  - id: cloak-of-levitation
+    name: Cloak of Levitation
+    quantity: 2
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: cloak-ignore
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: ignore, when: {doctor_strange_adjacent_to_opposing_fighter: true}, choices: [], costs: [], operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]
+  - id: master-of-kamar-taj
+    name: Master of Kamar-Taj
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: master-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {doctor_strange_adjacent_to_wong: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]
+  - id: feint
+    name: Feint
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+  - id: the-mists-of-munnopor
+    name: The Mists of Munnopor
+    quantity: 3
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: mists-replace-card
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: remove-current
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, controller: combat_opponent, from_zone: combat, selector: opposing_combat_card}]
+          - id: reveal
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: REVEAL, source: opponent.deck_top, selector: sequential_until_playable_attack_or_versatile, bind: revealed_cards}]
+          - id: replace
+            when: {result: revealed_cards, contains_playable: true}
+            choices: []
+            costs: []
+            operations: [{op: REPLACE_COMBAT_CARD, side: opponent, card: {result: revealed_cards, selector: first_playable}, rule: resolve_normally}]
+          - id: return-others
+            when: {result: revealed_cards, other_count_gt: 0}
+            choices: []
+            costs: []
+            operations: [{op: MOVE_CARD, from_zone: revealed, to_zone: opponent.deck_bottom, selector: {result: revealed_cards, selector: other_revealed}, order: random}]
+  - id: eye-of-agamotto
+    name: Eye of Agamotto
+    quantity: 2
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: eye-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: all}
+              - {op: SHUFFLE, zone: deck}
+              - {op: DRAW, count: 5}
+              - {op: GAIN_ACTION, count: 1}
+  - id: no-really-im-a-doctor
+    name: No Really, I'm a Doctor
+    quantity: 2
+    inclusion: fixed
+    usable_by: [doctor-strange]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: doctor-reveal-and-heal
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-card
+            when: {own_hand_size_gte: 1}
+            choices:
+              - {id: revealed_card, owner: controller, visibility: private, optional: false, domain: {kind: card, zone: own_hand, count: 1}, bind: revealed_card}
+            costs: []
+            operations: []
+          - id: reveal-and-topdeck
+            when: {bound: revealed_card, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: REVEAL, source: hand, selector: {bound: revealed_card}, bind: reveal_result}
+              - {op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: {bound: revealed_card}}
+          - id: choose-heal-target
+            when: {result: reveal_result, equals: succeeded}
+            choices:
+              - {id: heal_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: doctor_strange_or_friendly_fighter_adjacent_to_doctor_strange, count: 1}, bind: heal_target}
+            costs: []
+            operations: []
+          - {id: recover, when: {bound: heal_target, exists: true}, choices: [], costs: [], operations: [{op: RECOVER, target: {bound: heal_target}, amount_ref: {bound: revealed_card, field: boost_or_0}}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: doctor-strange-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf, checked_at: 2026-07-27, supports: [set_rules]}
+  - {id: doctor-strange-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/doctor_strange, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: doctor-strange-official-product, authority: official, url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass

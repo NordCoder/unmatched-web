@@ -1,0 +1,100 @@
+schema_version: 1
+id: she-hulk
+display_name: She-Hulk
+set_ids: [marvel-brains-and-brawn]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-009]
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: she-hulk, display_name: She-Hulk, role: hero, count: 1, attack_type: melee, starting_health: 20, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: just-throw-something
+  controller: owner
+  effects:
+    - id: discard-for-effect-damage
+      trigger: turn_start
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: choose-payment-and-target
+          when: {hand_size_gte: 1}
+          choices:
+            - id: discard_card
+              owner: controller
+              visibility: private
+              optional: true
+              domain: {kind: card, zone: own_hand, count: 1}
+              bind: discard_card
+            - id: damage_target
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: fighter, selector: fighter_in_she-hulk_zone, enabled_when: {bound: discard_card, exists: true}}
+              bind: damage_target
+          costs: []
+          operations: []
+        - id: pay
+          when: {all_bound: [discard_card, damage_target]}
+          choices: []
+          costs:
+            - {id: discard_cost, op: DISCARD, from_zone: hand, selector: {bound: discard_card}, count: 1, bind: discard_paid}
+          operations: []
+        - id: damage
+          when: {result: discard_paid, equals: succeeded}
+          choices: []
+          costs: []
+          operations:
+            - {op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount_ref: {bound: discard_card, field: boost_base}}
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/she-hulk.yaml
+  construction: fixed
+
+rulings: []
+interpretations: []
+
+sources:
+  - id: she-hulk-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: she-hulk-official-rulebook
+    authority: official
+    url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
+    checked_at: 2026-07-27
+    supports: [fighter_ability]
+  - id: she-hulk-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/she_hulk
+    checked_at: 2026-07-27
+    supports: [fighter_stats, deck_construction, card_text]
+  - id: she-hulk-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/she-hulk
+    checked_at: 2026-07-27
+    supports: [fighter_ability_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

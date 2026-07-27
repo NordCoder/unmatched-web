@@ -1,0 +1,98 @@
+schema_version: 1
+id: dr-ellie-sattler
+display_name: Dr. Ellie Sattler
+set_ids: [jurassic-park-sattler-vs-trex]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-006]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: dr-ellie-sattler, display_name: Dr. Ellie Sattler, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: dr-ian-malcolm, display_name: Dr. Ian Malcolm, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: insight
+  controller: owner
+  effects:
+    - id: place-insight-after-move
+      trigger: fighter_moved_to_new_space
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: place-token
+          when:
+            all:
+              - {fighter_in: [dr-ellie-sattler, dr-ian-malcolm]}
+              - {resource_gt: {insight-supply: 0}}
+          choices: []
+          costs: []
+          operations:
+            - op: MOVE_BATTLEFIELD_TOKEN
+              requirement: B-REQ-006
+              token_type: insight
+              from: insight-supply
+              to: {ref: triggering_fighter.new_space}
+              count: 1
+
+resources:
+  - id: insight-supply
+    kind: token_pool
+    visibility: public
+    initial: 5
+    lifecycle: finite_reusable_battlefield_tokens
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/dr-ellie-sattler.yaml
+  construction: fixed
+
+rulings:
+  - {id: sattler-insight-after-move, source_ref: sattler-rulings-index, summary: Sattler or Malcolm moving to a new space may place one available Insight there; PLACE is not movement for this trigger.}
+  - {id: sattler-insight-stacking, source_ref: sattler-general-rulings, summary: Insight tokens may coexist with fighters/components and multiple Insight tokens may occupy one space.}
+interpretations: []
+
+sources:
+  - id: sattler-official-product
+    authority: official
+    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: sattler-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/dr-ellie-sattler
+    checked_at: 2026-07-27
+    supports: [fighter_stats, insight_ability, deck_construction]
+  - id: sattler-rulings-index
+    authority: official_ruling_index
+    url: https://www.the-unmatched.club/heroes/dr-sattler
+    checked_at: 2026-07-27
+    supports: [insight_trigger, insight_supply]
+  - id: sattler-general-rulings
+    authority: official_ruling_index
+    url: https://www.the-unmatched.club/rules/general-rulings
+    checked_at: 2026-07-27
+    supports: [token_stacking]
+  - id: sattler-secondary-faq
+    authority: secondary_cross_check
+    url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [multi_fighter_movement_trigger_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

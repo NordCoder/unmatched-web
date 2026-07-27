@@ -1,0 +1,282 @@
+schema_version: 1
+fighter_id: elektra
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-003]
+
+construction: {kind: fixed, available_pool_count: 20, game_deck_count: 20}
+
+cards:
+  - id: mystic-assassin
+    name: Mystic Assassin
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: attack
+    printed_value: 6
+    boost: 1
+    tags: [resurrected-clause]
+    effects:
+      - id: mystic-assassin-self-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: damage, when: {resurrection_used: false}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: elektra, amount: 3}]}
+  - id: the-fist
+    name: The Fist
+    quantity: 2
+    inclusion: fixed
+    usable_by: [the-hand]
+    type: attack
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: the-fist-return
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: decide
+            when: always
+            choices:
+              - {id: use_the_fist, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_the_fist}
+            costs: []
+            operations: []
+          - id: pay
+            when: {bound: use_the_fist, equals: true}
+            choices: []
+            costs:
+              - {id: damage_attacker, op: DEAL_EFFECT_DAMAGE, target: own_attacking_fighter, amount: 1, bind: damage_paid}
+            operations: []
+          - id: benefit
+            when: {result: damage_paid, equals: succeeded}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: combat_cleanup_source, to_zone: hand, selector: this_card}
+              - {op: GAIN_ACTION, count: 1}
+  - id: hands-of-red
+    name: Hands of Red
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: []
+    effects:
+      - id: hands-of-red-return
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-return
+            when: {defeated_the_hand_exists: true}
+            choices:
+              - {id: hand_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: defeated_the_hand, count: 1}, bind: hand_fighter}
+              - {id: return_space, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: space_in_elektra_zone, enabled_when: {bound: hand_fighter, exists: true}}, bind: return_space}
+            costs: []
+            operations: []
+          - id: return
+            when: {all_bound: [hand_fighter, return_space]}
+            choices: []
+            costs: []
+            operations: [{op: RETURN_FIGHTER, target: {bound: hand_fighter}, destination: {bound: return_space}, health_rule: set_to_1}]
+  - id: intercept
+    name: Intercept
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: defense
+    printed_value: 3
+    boost: 4
+    tags: [resurrected-clause]
+    effects:
+      - id: intercept-reveal-sai
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-sai
+            when: {resurrection_used: true}
+            choices:
+              - {id: sai_card, owner: controller, visibility: private, optional: true, domain: {kind: card, zone: own_hand, definition_id: sai, count: 1}, bind: sai_card}
+            costs: []
+            operations: []
+          - id: reveal
+            when: {bound: sai_card, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: REVEAL, source: hand, selector: {bound: sai_card}, bind: sai_revealed}]
+          - id: set-value
+            when: {result: sai_revealed, equals: succeeded}
+            choices: []
+            costs: []
+            operations: [{op: SET_VALUE, target: this_card, value: 5}]
+  - id: snakeroot-clan
+    name: Snakeroot Clan
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: defense
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: snakeroot-clan-swap
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-hand
+            when: always
+            choices:
+              - {id: hand_fighter, owner: controller, visibility: public, optional: true, domain: {kind: fighter, selector: own_the_hand_fighter, count: 1}, bind: hand_fighter}
+            costs: []
+            operations: []
+          - id: swap
+            when: {bound: hand_fighter, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: SWAP, a: elektra, b: {bound: hand_fighter}, bind: swap_result}]
+          - id: replace-defender
+            when: {result: swap_result, equals: succeeded}
+            choices: []
+            costs: []
+            operations: [{op: SET_STATE, key_ref: {scope: combat, key: defender}, value: {bound: hand_fighter}}]
+  - id: ninjitsu
+    name: Ninjitsu
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: ninjitsu-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: destination}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: destination, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: PLACE, target: own_combat_fighter, destination: {bound: destination}}]
+  - id: whirlwind
+    name: Whirlwind
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: [resurrected-clause]
+    effects:
+      - id: whirlwind-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: damage, when: {resurrection_used: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_elektra, amount: 1}]}
+  - id: cloaked-in-shadow
+    name: Cloaked in Shadow
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: [resurrected-clause]
+    effects:
+      - id: cloaked-in-shadow-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+      - id: cloaked-in-shadow-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: move, when: {resurrection_used: true}, choices: [], costs: [], operations: [{op: MOVE, target: elektra, max_distance: 3}]}
+  - id: mesmerize
+    name: Mesmerize
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [resurrected-clause]
+    effects:
+      - id: mesmerize-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: chosen_opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, selector: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - id: inspect-and-action
+            when: {bound: chosen_opponent, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: LOOK_AT, source: {player: {bound: chosen_opponent}, zone: hand}, selector: all, viewer: controller, bind: viewed_hand}
+              - {op: GAIN_ACTION, count: 1}
+          - id: choose-resurrected-discard
+            when: {resurrection_used: true, result: viewed_hand, exists: true}
+            choices:
+              - {id: discard_card, owner: controller, visibility: private, optional: false, domain: {kind: card, from_result: viewed_hand, count: 1}, bind: discard_card}
+            costs: []
+            operations: []
+          - id: discard
+            when: {bound: discard_card, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_card}, count: 1}]
+  - id: sai
+    name: Sai
+    quantity: 2
+    inclusion: fixed
+    usable_by: [elektra]
+    type: versatile
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects: []
+
+external_definitions: []
+interpretations: []
+
+sources:
+  - {id: elektra-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/elektra, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: elektra-official-product, authority: official, url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: elektra-rulings-index, authority: official_ruling_index, url: https://www.the-unmatched.club/heroes/elektra-the-hand, checked_at: 2026-07-27, supports: [resurrected_clauses, lifecycle_cross_check]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 20, game_deck_count: 20, quantity_sum: 20}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

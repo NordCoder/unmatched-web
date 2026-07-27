@@ -1,0 +1,305 @@
+schema_version: 1
+fighter_id: squirrel-girl
+status: partial
+verification: {evidence: qualified, semantics: qualified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-002]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: fuzzball-special
+    name: Fuzzball Special
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: fuzzball-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: each_squirrel, max_distance: 3, requirement: B-REQ-002}]}]
+  - id: bite-of-steel
+    name: Bite of Steel
+    quantity: 3
+    inclusion: fixed
+    usable_by: [squirrel]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: bite-of-steel-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {requirement: B-REQ-002, squirrels_in_opposing_fighter_zone_gte: 4}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]
+  - id: kick-butts
+    name: Kick Butts
+    quantity: 3
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: attack
+    printed_value: 1
+    boost: 1
+    tags: []
+    effects:
+      - id: kick-butts-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: add-value, when: always, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_ref: {requirement: B-REQ-002, selector: squirrels_adjacent_to_opposing_fighter, aggregate: count}}]}]
+  - id: unbeatable-squirrel-girl
+    name: Unbeatable Squirrel Girl
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: unbeatable-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: {requirement: B-REQ-002, squirrels_adjacent_to_opposing_fighter_gte: 4}
+            choices: []
+            costs: []
+            operations:
+              - {op: CANCEL_EFFECTS, target_scope: opposing_combat_card}
+              - {op: IGNORE_VALUE, target: opposing_combat_card}
+  - id: squirmish
+    name: Squirmish
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: squirmish-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-sg-destination
+            when: always
+            choices:
+              - {id: sg_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_squirrel-girl-zone}, bind: sg_destination}
+            costs: []
+            operations: []
+          - id: summon-and-place
+            when: {bound: sg_destination, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: SUMMON, pool: squirrel, destination: {fighter: squirrel-girl, field: current_space}, requirement: B-REQ-002, skip_if_unavailable: true}
+              - {op: PLACE, target: squirrel-girl, destination: {bound: sg_destination}}
+  - id: get-em-tippy-toe
+    name: Get 'Em Tippy-Toe!
+    quantity: 3
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: tippy-toe-summon
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: space_accepting_up_to_two_squirrels, requirement: B-REQ-002}, bind: destination}
+            costs: []
+            operations: []
+          - {id: summon, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: SUMMON, pool: squirrel, count: 2, destination: {bound: destination}, requirement: B-REQ-002, partial_if_reserve_lt_count: true}]}
+  - id: dash
+    name: Dash
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: dash-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: own_combat_fighter, max_distance: 3, requirement: B-REQ-002}]}]
+  - id: call-of-the-mild
+    name: Call of the Mild
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: call-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {requirement: B-REQ-002, squirrels_in_own_fighter_zone_gte: 4}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]
+      - id: call-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]
+  - id: feint
+    name: Feint
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+  - id: squirgility
+    name: Squirgility
+    quantity: 3
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: defense
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: squirgility-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: squirrel-girl, max_distance: 3, requirement: B-REQ-002, overrides: [may_move_through_sidekicks, spaces_containing_sidekicks_cost_zero_movement]}]}]
+  - id: eat-nuts
+    name: Eat Nuts
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: eat-nuts-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: squirrel-girl, amount: 2}]}
+          - id: choose-space
+            when: {squirrel_reserve_gt: 0}
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: adjacent_space_compatible_with_small_fighter_occupancy, requirement: B-REQ-002}, bind: destination}
+            costs: []
+            operations: []
+          - {id: summon, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: SUMMON, pool: squirrel, destination: {bound: destination}, requirement: B-REQ-002}]}
+  - id: horde-of-squirrels
+    name: Horde of Squirrels
+    quantity: 2
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: horde-damage
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {requirement: B-REQ-002, fighter_adjacent_to_at_least_four_squirrels_exists: true}
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: fighter_adjacent_to_at_least_4_squirrels, requirement: B-REQ-002, count: 1}, bind: damage_target}
+            costs: []
+            operations: []
+          - {id: damage, when: {bound: damage_target, exists: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 2}]}
+  - id: nutwork-of-spies
+    name: Nutwork of Spies
+    quantity: 1
+    inclusion: fixed
+    usable_by: [squirrel-girl]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: nutwork-hand-control
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: chosen_opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, selector: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - {id: inspect, when: {bound: chosen_opponent, exists: true}, choices: [], costs: [], operations: [{op: LOOK_AT, source: {player: {bound: chosen_opponent}, zone: hand}, selector: all, viewer: controller, bind: viewed_hand}]}
+          - id: choose-discards
+            when: {result: viewed_hand, count_gte: 1}
+            choices:
+              - id: discard_cards
+                owner: controller
+                visibility: private
+                optional: false
+                domain: {kind: card_set, from_result: viewed_hand, count_rule: 2_if_chosen_opponent_has_fighter_adjacent_to_at_least_4_squirrels_else_1, requirement: B-REQ-002}
+                min: 1
+                max: 2
+                distinct: true
+                order_matters: false
+                bind: discard_cards
+            costs: []
+            operations: []
+          - {id: discard, when: {bound: discard_cards, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_cards}}]}
+
+external_definitions: []
+interpretations:
+  - id: squirrel-go-nuts-empty-correction
+    affects: [squirrel-summoning]
+    status: project_normalization
+    confidence: medium
+    behavior: Go Nuts uses an adjacent destination allowed by small-fighter occupancy even when compatibly occupied; the printed empty restriction is not enforced.
+    source_refs: [squirrel-official-rulebook, squirrel-rulings-index, squirrel-secondary-faq, squirrel-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
+  - id: squirrel-propagated-damage-counting
+    affects: [small_fighter_damage_events]
+    status: project_normalization
+    confidence: high
+    behavior: Every Squirrel receiving propagated damage counts as damaged and contributes that amount to total damage caused by the originating effect; provenance distinguishes primary from propagated recipients.
+    source_refs: [squirrel-official-damage-ruling, squirrel-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
+sources:
+  - {id: squirrel-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf, checked_at: 2026-07-27, supports: [small_fighter_rules, printed_go_nuts_empty_wording]}
+  - {id: squirrel-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/squirrel-girl, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: squirrel-official-damage-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72, checked_at: 2026-07-27, supports: [damage_propagation, capacity, shared_adjacency]}
+  - {id: squirrel-rulings-index, authority: secondary_cross_check, url: https://www.the-unmatched.club/heroes/squirrel-girl, checked_at: 2026-07-27, supports: [current_go_nuts_wording_cross_check]}
+  - {id: squirrel-secondary-faq, authority: secondary_cross_check, url: https://gridbeast.gg/unmatched-rules-faq/, checked_at: 2026-07-27, supports: [go_nuts_empty_correction_claim]}
+  - {id: squirrel-project-normalization, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-b-licensed/docs/phase-4b/worker-b-report.md, checked_at: 2026-07-27, supports: [go_nuts_behavior, propagated_damage_counting]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

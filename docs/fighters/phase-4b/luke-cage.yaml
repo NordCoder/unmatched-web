@@ -1,0 +1,87 @@
+schema_version: 1
+id: luke-cage
+display_name: Luke Cage
+set_ids: [marvel-redemption-row]
+status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: luke-cage, display_name: Luke Cage, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: misty-knight, display_name: Misty Knight, role: sidekick, count: 1, attack_type: ranged, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: skin-like-titanium
+  controller: owner
+  effects:
+    - id: reduce-combat-damage
+      trigger: before_combat_damage_applied
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: prevent
+          when: {damage_target: luke-cage, damage_type: combat}
+          choices: []
+          costs: []
+          operations:
+            - {op: PREVENT_DAMAGE, target: luke-cage, scope: {combat_damage_amount: 2}}
+    - id: win-defense-when-no-combat-damage
+      trigger: combat_result_resolution
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: set-winner
+          when: {defender: luke-cage, combat_damage_taken: 0}
+          choices: []
+          costs: []
+          operations:
+            - {op: SET_STATE, key_ref: {scope: combat, key: winner}, value: controller}
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/luke-cage.yaml
+  construction: fixed
+
+rulings:
+  - id: luke-cage-zero-damage-defense-win
+    source_ref: luke-cage-umdb
+    summary: When Luke Cage defends and takes no combat damage, he wins the combat even if he played no defense card.
+interpretations: []
+
+sources:
+  - id: luke-cage-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-redemption-row/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: luke-cage-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/luke-cage
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, zero_damage_defense_win, deck_construction]
+  - id: luke-cage-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/luke-cage
+    checked_at: 2026-07-27
+    supports: [ability_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass

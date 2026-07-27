@@ -1,0 +1,92 @@
+schema_version: 1
+id: daredevil
+display_name: Daredevil
+set_ids: [marvel-hells-kitchen]
+status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
+movement: 3
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: daredevil
+      display_name: Daredevil
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 17
+      starts_on_board: true
+      summonable: false
+
+setup:
+  hooks: []
+  state_initialization: []
+
+ability:
+  id: blind-boost
+  controller: owner
+  effects:
+    - id: low-hand-blind-boost
+      trigger: during_combat
+      controller: controller
+      cancellation: cancelable
+      stages:
+        - id: decide
+          when: {hand_size_lte: 2}
+          choices:
+            - id: use_blind_boost
+              owner: controller
+              visibility: private
+              optional: true
+              domain: {kind: boolean, meaning: boost_own_combat_card_with_deck_top}
+              bind: use_blind_boost
+          costs: []
+          operations: []
+        - id: resolve
+          when: {bound: use_blind_boost, equals: true}
+          choices: []
+          costs: []
+          operations:
+            - {op: BOOST, target: own_combat_card, source: own_deck_top, count: 1, blind: true}
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/daredevil.yaml
+  construction: fixed
+
+rulings: []
+interpretations: []
+
+sources:
+  - id: daredevil-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: daredevil-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/daredevil
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, deck_construction]
+  - id: daredevil-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/daredevil
+    checked_at: 2026-07-27
+    supports: [ability_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 22, game_deck_count: 22, quantity_sum: 22}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass

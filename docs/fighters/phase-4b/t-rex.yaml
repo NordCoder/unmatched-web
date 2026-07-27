@@ -1,0 +1,120 @@
+schema_version: 1
+id: t-rex
+display_name: T. Rex
+set_ids: [jurassic-park-sattler-vs-trex]
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-001]
+movement: 1
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - id: t-rex
+      display_name: T. Rex
+      role: hero
+      count: 1
+      attack_type: melee
+      starting_health: 27
+      starts_on_board: true
+      summonable: false
+      footprint_requirement: B-REQ-001
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: large-predator
+  controller: owner
+  effects:
+    - id: extended-melee-reach
+      trigger: static
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: apply-legality
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: APPLY_ATTACK_LEGALITY_POLICY
+              requirement: B-REQ-001
+              attacker: t-rex
+              origins: occupied_footprint_spaces
+              max_graph_distance: 2
+              intervening_fighter_does_not_block: true
+    - id: end-turn-draw
+      trigger: turn_end
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: draw
+          when: always
+          choices: []
+          costs: []
+          operations: [{op: DRAW, count: 1}]
+
+resources: []
+persistent_state: []
+history:
+  - id: turn_start_footprint
+    requirement: B-REQ-001
+    capture: {fighter: t-rex, field: occupied_spaces}
+    reset: turn_start
+
+deck:
+  manifest: ../../cards/phase-4b/t-rex.yaml
+  construction: fixed
+
+rulings:
+  - {id: t-rex-large-fighter-footprint, source_ref: t-rex-umdb, summary: T. Rex is one fighter whose base may occupy two spaces; movement can originate from either occupied space.}
+  - {id: t-rex-extended-melee-range, source_ref: t-rex-umdb, summary: T. Rex may attack a fighter up to two spaces away from its occupied footprint.}
+
+interpretations:
+  - id: t-rex-momentous-shift-overlap
+    affects: [momentous-shift]
+    status: project_normalization
+    confidence: medium
+    behavior: Momentous Shift is satisfied only when T. Rex currently occupies no space that belonged to its turn-start footprint; an overlap such as start {A,B} and current {B,C} is treated as not satisfied.
+    source_refs: [t-rex-umdb, t-rex-secondary-faq, t-rex-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
+
+sources:
+  - id: t-rex-official-product
+    authority: official
+    url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: t-rex-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/t-rex
+    checked_at: 2026-07-27
+    supports: [fighter_stats, large_fighter_rules, attack_range, deck_construction, momentous_shift_text]
+  - id: t-rex-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/t-rex
+    checked_at: 2026-07-27
+    supports: [large_fighter_cross_check]
+  - id: t-rex-secondary-faq
+    authority: secondary_cross_check
+    url: https://gridbeast.gg/unmatched-rules-faq/
+    checked_at: 2026-07-27
+    supports: [momentous_shift_conflicting_interpretation]
+  - id: t-rex-project-normalization
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-b-licensed/docs/phase-4b/worker-b-report.md
+    checked_at: 2026-07-27
+    supports: [momentous_shift_overlap_behavior]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

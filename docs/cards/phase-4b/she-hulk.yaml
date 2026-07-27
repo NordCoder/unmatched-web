@@ -1,0 +1,285 @@
+schema_version: 1
+fighter_id: she-hulk
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-009]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: the-savage-she-hulk
+    name: The Savage She-Hulk
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: attack
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: savage-action-cost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: decide
+            when: {requirement: B-REQ-009, spendable_action_permission_exists: true}
+            choices:
+              - {id: spend_action, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: spend_action}
+            costs: []
+            operations: []
+          - id: pay
+            when: {bound: spend_action, equals: true}
+            choices: []
+            costs: [{id: action_cost, op: SPEND_ACTION_PERMISSION, requirement: B-REQ-009, selector: legal_additional_action_permission, count: 1, bind: action_paid}]
+            operations: []
+          - {id: set-value, when: {result: action_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 9}]}
+  - id: green-energy
+    name: Green Energy
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: attack
+    printed_value: 4
+    boost: 1
+    tags: []
+    effects:
+      - id: green-energy-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: damage, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_she-hulk, amount: 1}]}]
+  - id: omega-level-threat
+    name: Omega-Level Threat
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: attack
+    printed_value: 5
+    boost: 2
+    tags: []
+    effects:
+      - id: omega-random-discard
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: discard, when: {combat_damage_dealt_gte: 2}, choices: [], costs: [], operations: [{op: DISCARD, controller: combat_opponent, from_zone: hand, selector: random, count: 2}]}]
+  - id: cease-and-desist
+    name: Cease and Desist
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: cease-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+      - id: cease-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {combat_role: attacker}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]
+  - id: legalese
+    name: Legalese
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: legalese-choice
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            when: always
+            choices:
+              - id: legalese_mode
+                owner: {rule: combat_opponent_if_controller_won_else_controller}
+                visibility: public
+                optional: false
+                domain: {kind: enum, values: [both_draw_one, both_discard_one]}
+                bind: legalese_mode
+            costs: []
+            operations: []
+          - {id: draw-mode, when: {bound: legalese_mode, equals: both_draw_one}, choices: [], costs: [], operations: [{op: DRAW, count: 1}, {op: DRAW, controller: combat_opponent, count: 1}]}
+          - id: choose-discards
+            when: {bound: legalese_mode, equals: both_discard_one}
+            choices:
+              - {id: controller_discard, owner: controller, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: exactly_1_limited_by_hand_size}, distinct: true, order_matters: false, bind: controller_discard}
+              - {id: opponent_discard, owner: combat_opponent, visibility: private, optional: false, domain: {kind: card_set, zone: own_hand, count_rule: exactly_1_limited_by_hand_size}, distinct: true, order_matters: false, bind: opponent_discard}
+            costs: []
+            operations: []
+          - id: discard-mode
+            when: {bound: legalese_mode, equals: both_discard_one}
+            choices: []
+            costs: []
+            operations:
+              - {op: DISCARD, from_zone: hand, selector: {bound: controller_discard}, skip_if_empty: true}
+              - {op: DISCARD, controller: combat_opponent, from_zone: hand, selector: {bound: opponent_discard}, skip_if_empty: true}
+  - id: nerve-cluster-strike
+    name: Nerve Cluster Strike
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: nerve-cluster-lock
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: prevent
+            when: {she_hulk_adjacent_to_opposing_fighter: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: MOVE, scope: rest_of_turn}}
+              - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: PLACE, scope: rest_of_turn}}
+              - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: SWAP, scope: rest_of_turn}}
+  - id: sensational
+    name: Sensational
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: versatile
+    printed_value: 4
+    boost: 2
+    tags: []
+    effects:
+      - id: sensational-recycle
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-card
+            when: {combat_result: won, own_discard_not_empty: true}
+            choices:
+              - {id: recycle_card, owner: controller, visibility: public, optional: true, domain: {kind: card, zone: own_discard, count: 1}, bind: recycle_card}
+            costs: []
+            operations: []
+          - id: recycle
+            when: {bound: recycle_card, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {bound: recycle_card}}
+              - {op: SHUFFLE, zone: deck}
+  - id: lady-justice
+    name: Lady Justice
+    quantity: 3
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: defense
+    printed_value: 0
+    boost: 2
+    tags: []
+    effects:
+      - id: lady-justice-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: discard-top, when: always, choices: [], costs: [], operations: [{op: DISCARD, controller: combat_opponent, from_zone: deck_top, selector: {count: 1}, bind: discarded_card}]}
+          - {id: add-value, when: {result: discarded_card, exists: true}, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_expr: {multiply: [2, {result: discarded_card, field: boost_or_0}]}}]}
+  - id: the-defense-rests
+    name: The Defense Rests
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: defense-rests-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count_ref: {combat: current, field: combat_damage_taken}}]}]
+  - id: double-jeopardy
+    name: Double Jeopardy
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: double-jeopardy-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: resolve, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}, {op: RECOVER, target: she-hulk, amount: 2}]}]
+  - id: jennifer-walters-esq
+    name: Jennifer Walters, Esq.
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: scheme
+    printed_value: null
+    boost: 1
+    tags: []
+    effects:
+      - id: jennifer-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: starting_space}, bind: destination}
+            costs: []
+            operations: []
+          - id: resolve
+            when: {bound: destination, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: PLACE, target: she-hulk, destination: {bound: destination}}
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
+  - id: leap-toward
+    name: Leap Toward
+    quantity: 2
+    inclusion: fixed
+    usable_by: [she-hulk]
+    type: scheme
+    printed_value: null
+    boost: 1
+    tags: []
+    effects:
+      - id: leap-toward-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: she-hulk, max_distance: 4, overrides: [may_move_through_opposing_fighters], bind: movement_result}]}
+          - {id: gain-action, when: {she_hulk_adjacent_to_opposing_fighter_after_previous_stage: true}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: she-hulk-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf, checked_at: 2026-07-27, supports: [set_rules]}
+  - {id: she-hulk-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/she_hulk, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: she-hulk-official-product, authority: official, url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

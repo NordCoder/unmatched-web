@@ -1,0 +1,82 @@
+schema_version: 1
+id: winter-soldier
+display_name: Winter Soldier
+set_ids: [marvel-for-king-and-country]
+status: verified
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: winter-soldier, display_name: Winter Soldier, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization: [{key: ignore_brainwashed_effects, value: false}]
+
+ability:
+  id: brainwashed
+  controller: owner
+  effects:
+    - id: own-card-effects-protected
+      trigger: static
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: protect
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: PREVENT_OPERATION
+              target_operation: {op: CANCEL_EFFECTS, target_scope: winter-soldier-card-effects}
+
+resources: []
+persistent_state:
+  - {key: ignore_brainwashed_effects, type: boolean, reset: turn_end}
+
+deck:
+  manifest: ../../cards/phase-4b/winter-soldier.yaml
+  construction: fixed
+
+rulings:
+  - {id: boy-named-bucky-ignores-brainwashed, source_ref: winter-soldier-official-rulebook, summary: A Boy Named Bucky suppresses BRAINWASHED/star clauses for the rest of the turn without suppressing ordinary portions of the same cards.}
+interpretations: []
+
+sources:
+  - id: winter-soldier-official-product
+    authority: official
+    url: https://restorationgames.com/shop/marvel-king-and-country-unmatched/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: winter-soldier-official-rulebook
+    authority: official
+    url: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
+    checked_at: 2026-07-27
+    supports: [brainwashed_rules, a_boy_named_bucky]
+  - id: winter-soldier-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/winter-soldier
+    checked_at: 2026-07-27
+    supports: [fighter_stats, deck_construction, card_text]
+  - id: winter-soldier-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/winter-soldier
+    checked_at: 2026-07-27
+    supports: [brainwashed_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
