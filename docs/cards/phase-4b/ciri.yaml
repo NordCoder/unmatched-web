@@ -1,33 +1,253 @@
 schema_version: 1
 fighter_id: ciri
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-005, C-REQ-006, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
-  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1}
+  - {id: ongoing-schemes, owner: self, visibility: public, max_active: 1, insertion_policy: replace_current}
 
 cards:
-  - {id: bane-of-the-aen-elle, name: Bane Of The Aen Elle, quantity: 3, usable_by: [ihuarraquax], type: attack, printed_value: 4, boost: 4, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: ihuarraquax, max_distance: 4, may_move_through_opposing: true, capture: opposing_fighters_moved_through}], choices: [{owner: controller, choose: opposing_fighter_from_captured_moved_through}], followup: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]}]}
-  - {id: lion-cub-of-cintra, name: Lion Cub Of Cintra, quantity: 3, usable_by: [ciri], type: attack, printed_value: 2, boost: 2, tags: [source], effects: [{trigger: during_combat, operations: [{op: TRIGGER_COMPOSITE, kind: highest_met_threshold, metric: source_count, thresholds: [{at_least: 1, effects: [{op: SET_VALUE, target: this_card, value: 4}]}, {at_least: 5, effects: [{op: SET_VALUE, target: this_card, value: 7}]}]}]}]}
-  - {id: channel-the-source, name: Channel The Source, quantity: 3, usable_by: [ciri], type: attack, printed_value: 2, boost: 3, tags: [], effects: [{trigger: during_combat, choices: [{owner: controller, choose: any_number_source_cards_in_hand, capture: discarded_source_cards}], operations: [{op: DISCARD, controller: controller, from: hand, selector: captured.discarded_source_cards, count: all_chosen}, {op: ADD_VALUE, target: this_card, amount_rule: twice_count_captured.discarded_source_cards}]}]}
-  - {id: pushed-to-the-brink, name: Pushed To The Brink, quantity: 3, usable_by: [ciri], type: versatile, printed_value: 3, boost: 2, tags: [source], effects: [{trigger: after_combat, operations: [{op: TRIGGER_COMPOSITE, kind: highest_met_threshold, metric: source_count, thresholds: [{at_least: 2, effects: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}, {at_least: 7, choices: [{owner: controller, choose: opposing_fighter_within_3_spaces_of_ciri}], effects: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}]}]}
-  - {id: the-lady-of-space-and-time, name: The Lady Of Space And Time, quantity: 2, usable_by: [ciri], type: versatile, printed_value: 2, boost: 2, tags: [source], effects: [{trigger: after_combat, operations: [{op: TRIGGER_COMPOSITE, kind: highest_met_threshold, metric: source_count, thresholds: [{at_least: 3, choices: [{owner: controller, choose: card_in_own_discard}], effects: [{op: MOVE_CARD, from_zone: discard, to_zone: deck_top, selector: chosen_card}]}, {at_least: 8, choices: [{owner: controller, choose: card_in_own_discard}], effects: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: chosen_card}, {op: DRAW, count: 1}]}]}]}]}
-  - {id: zireael, name: Zireael, quantity: 3, usable_by: [ciri], type: versatile, printed_value: 2, boost: 2, tags: [source], effects: [{trigger: during_combat, operations: [{op: TRIGGER_COMPOSITE, kind: highest_met_threshold, metric: source_count, thresholds: [{at_least: 3, effects: [{op: SET_VALUE, target: this_card, value: 4}]}, {at_least: 5, effects: [{op: SET_VALUE, target: this_card, value: 4}, {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}]}]}
-  - {id: blink, name: Blink, quantity: 3, usable_by: [ciri], type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{trigger: after_combat, operations: [{op: MOVE, target: ciri, max_distance: 3, may_move_through_opposing: true}]}]}
-  - {id: searching-strike, name: Searching Strike, quantity: 3, usable_by: [ihuarraquax], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{trigger: after_combat, condition: {combat_result: won}, optional: true, operations: [{op: TRIGGER_COMPOSITE, kind: search_card_zone, zone: deck, filter: {tag: source}, reveal_selected: true, destination: hand, post_search: shuffle_searched_deck}]}]}
-  - {id: parry, name: Parry, quantity: 3, usable_by: any, type: defense, printed_value: 3, boost: 1, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: child-of-the-elder-blood, name: Child Of The Elder Blood, quantity: 2, usable_by: [ciri], type: scheme, printed_value: null, boost: 2, tags: [source], effects: [{trigger: scheme, operations: [{op: TRIGGER_COMPOSITE, kind: highest_met_threshold, metric: source_count, thresholds: [{at_least: 4, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_other_fighter_in_ciri_zone, amount: 1}]}, {at_least: 9, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_other_fighter_in_ciri_zone, amount: 3}]}]}]}]}
-  - {id: unicorn-ally, name: Unicorn Ally, quantity: 2, usable_by: any, type: scheme, printed_value: null, boost: 2, tags: [ongoing_scheme], effects: [{trigger: scheme, operations: [{op: RECOVER, target: ciri, amount: 2}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: after_combat, while_in_zone: ongoing-schemes, condition: {friendly_fighter_was_combat_participant: true}, operations: [{op: DRAW, count: 1}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {controller_hand_size: {gte: 5}}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
+  - id: bane-of-the-aen-elle
+    name: Bane Of The Aen Elle
+    quantity: 3
+    usable_by: [ihuarraquax]
+    type: attack
+    printed_value: 4
+    boost: 4
+    tags: []
+    effects:
+      - id: bane-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: move
+            operations: [{op: MOVE, target: ihuarraquax, max_distance: 4, may_move_through_opposing: true, bind_result: bane_move}]
+          - id: choose-passed-fighter
+            choices:
+              - id: target
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {ref: bane_move.opposing_fighters_moved_through}
+                bind: damage_target
+          - id: damage
+            when: {ref: damage_target, exists: true}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: damage_target}, amount: 1}]
+  - id: lion-cub-of-cintra
+    name: Lion Cub Of Cintra
+    quantity: 3
+    usable_by: [ciri]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: [source]
+    effects:
+      - id: lion-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: threshold
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: highest_met_threshold
+                metric: {ref: resource.source-count}
+                thresholds:
+                  - {at_least: 1, stages: [{id: set-four, operations: [{op: SET_VALUE, target: this_card, value: 4}]}]}
+                  - {at_least: 5, stages: [{id: set-seven, operations: [{op: SET_VALUE, target: this_card, value: 7}]}]}
+  - id: channel-the-source
+    name: Channel The Source
+    quantity: 3
+    usable_by: [ciri]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: channel-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-source-cards
+            choices:
+              - id: cards
+                owner: controller
+                visibility: private
+                optional: false
+                domain: {selector: {zone: hand, owner: self, card_filter: {tag: source}}, cardinality: any}
+                bind: discarded_source_cards
+          - id: discard-and-add
+            operations:
+              - {op: DISCARD, controller: controller, from: hand, selector: {ref: discarded_source_cards}, count: all_chosen}
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: {op: multiply, left: 2, right: {expr: {op: count, value: {ref: discarded_source_cards}}}}
+  - id: pushed-to-the-brink
+    name: Pushed To The Brink
+    quantity: 3
+    usable_by: [ciri]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [source]
+    effects:
+      - id: pushed-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: threshold
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: highest_met_threshold
+                metric: {ref: resource.source-count}
+                thresholds:
+                  - {at_least: 2, stages: [{id: damage-one, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}
+                  - at_least: 7
+                    stages:
+                      - id: choose-target
+                        choices: [{id: target, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: opposing_fighters, within_spaces: {of: ciri, max: 3}}}, bind: target_fighter}]
+                      - {id: damage-two, when: {ref: target_fighter, exists: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: target_fighter}, amount: 2}]}
+  - id: the-lady-of-space-and-time
+    name: The Lady Of Space And Time
+    quantity: 2
+    usable_by: [ciri]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: [source]
+    effects:
+      - id: lady-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: threshold
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: highest_met_threshold
+                metric: {ref: resource.source-count}
+                thresholds:
+                  - at_least: 3
+                    stages:
+                      - id: choose-card
+                        choices: [{id: card, owner: controller, visibility: public, optional: false, domain: {selector: {zone: discard, owner: self}}, bind: selected_card}]
+                      - {id: topdeck, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck_top, selector: {ref: selected_card}}]}
+                  - at_least: 8
+                    stages:
+                      - id: choose-card
+                        choices: [{id: card, owner: controller, visibility: public, optional: false, domain: {selector: {zone: discard, owner: self}}, bind: selected_card}]
+                      - {id: recover-card-and-draw, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: {ref: selected_card}}, {op: DRAW, count: 1}]}
+  - id: zireael
+    name: Zireael
+    quantity: 3
+    usable_by: [ciri]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: [source]
+    effects:
+      - id: zireael-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: threshold
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: highest_met_threshold
+                metric: {ref: resource.source-count}
+                thresholds:
+                  - {at_least: 3, stages: [{id: set-four, operations: [{op: SET_VALUE, target: this_card, value: 4}]}]}
+                  - {at_least: 5, stages: [{id: set-four-discard, operations: [{op: SET_VALUE, target: this_card, value: 4}, {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}
+  - {id: blink, name: Blink, quantity: 3, usable_by: [ciri], type: versatile, printed_value: 4, boost: 1, tags: [], effects: [{id: blink-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: ciri, max_distance: 3, may_move_through_opposing: true}]}]}]}
+  - id: searching-strike
+    name: Searching Strike
+    quantity: 3
+    usable_by: [ihuarraquax]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: [search]
+    effects:
+      - id: searching-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-search
+            when: {combat_result: won}
+            choices: [{id: search, owner: controller, visibility: private, optional: true, domain: [search_for_source], bind: search_choice}]
+          - id: search
+            when: {ref: search_choice, exists: true}
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: search_card_zone
+                zone: deck
+                filter: {card_filter: {tag: source}}
+                viewer: controller
+                reveal_selected: true
+                destination: hand
+                post_search: shuffle_searched_deck
+  - {id: parry, name: Parry, quantity: 3, usable_by: any, type: defense, printed_value: 3, boost: 1, tags: [], effects: [{id: parry-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: child-of-the-elder-blood
+    name: Child Of The Elder Blood
+    quantity: 2
+    usable_by: [ciri]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [source]
+    effects:
+      - id: child-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: threshold
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: highest_met_threshold
+                metric: {ref: resource.source-count}
+                thresholds:
+                  - {at_least: 4, stages: [{id: damage-one, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_other_fighter_in_ciri_zone, amount: 1}]}]}
+                  - {at_least: 9, stages: [{id: damage-three, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_other_fighter_in_ciri_zone, amount: 3}]}]}
+  - id: unicorn-ally
+    name: Unicorn Ally
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [ongoing_scheme]
+    effects:
+      - {id: unicorn-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: enter, operations: [{op: RECOVER, target: ciri, amount: 2}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}]}
+      - {id: unicorn-after-combat, trigger: after_combat, controller: owner, cancellation: source_defined, while_in_zone: ongoing-schemes, stages: [{id: draw, when: {friendly_fighter_was_combat_participant: true}, operations: [{op: DRAW, count: 1}]}]}
+      - {id: unicorn-turn-end, trigger: turn_end, controller: owner, cancellation: source_defined, while_in_zone: ongoing-schemes, stages: [{id: discard, when: {controller_hand_size: {gte: 5}}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11, source_card_copies: 13}
 sources:
-  - https://unmatched.cards/umdb/decks/ciri
-  - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
-  - https://www.the-unmatched.club/heroes/ciri
-  - https://www.the-unmatched.club/rules/general-rulings
+  - {id: witcher-sas-rules-ciri, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Source thresholds and ongoing schemes]}
+  - {id: ciri-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ciri, checked_at: 2026-07-27, supports: [published card metadata, Source tags and effects]}
+  - {id: general-search-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/general-rulings, checked_at: 2026-07-27, supports: [post-search deck shuffle]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, source_card_copies: 13}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - Source thresholds use only the highest currently met tier.
-  - search_card_zone and highest_met_threshold are proposed reusable composites in the Worker C report; Source count itself is a derived query over discard-zone definitions.
-  - Searching Strike shuffles the searched deck after the selected Source card is revealed and moved to hand, following the current general search/check-deck ruling.
-  - Unicorn Ally follows the Witcher max-one ongoing-scheme lifecycle.
+  - Source thresholds reference the structured derived resource.source-count and resolve only the highest met tier.
+  - Bane Of The Aen Elle uses MOVE.bind_result before its dependent target choice; an empty moved-through set creates no pending choice.
+  - Searching Strike uses a generic search contract with explicit reveal, destination and post-search shuffle.
