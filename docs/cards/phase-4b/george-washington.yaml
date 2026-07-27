@@ -125,7 +125,7 @@ cards:
       operations:
       - {op: DISCARD, from: bound.target_player.hand, selector: bound.card}
       - {op: CHANGE_STATE, resource: ruse-tokens, transition: regain_one}
-- {id: gather-information, name: Gather Information, quantity: 2, inclusion: fixed, usable_by: [george-washington], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: gather, trigger: scheme, operations: [{op: DRAW, count: 3}, {op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]}]}
+- {id: gather-information, name: Gather Information, quantity: 2, inclusion: fixed, usable_by: [george-washington], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: gather, trigger: scheme, operations: [{op: DRAW, count: 3}, {op: MOVE, target: controller_owned_fighters, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]}]}
 external_definitions: []
 validation:
   quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
@@ -142,5 +142,6 @@ sources:
 normalization_notes:
 - All 13 definitions reconcile to 30 cards.
 - Ruse regain uses explicit token transition regain_one under D-REQ-008.
+- Gather Information targets only fighters controlled by the resolving player, not team-wide friendly fighters.
 - Sympathetic Stain is fully staged; no choices_after/followup remains.
 - Undercover Agent explicitly swaps positions and rebinds the combat defender under D-REQ-001; no opaque defender-swap instruction remains.
