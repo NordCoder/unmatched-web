@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: beowulf
 display_name: Beowulf
 set_ids: [little-red-vs-beowulf]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,19 +19,28 @@ ability:
   effects:
     - id: gain-rage-on-damage
       trigger: damage_dealt
-      condition: {target: beowulf, amount_gt: 0}
-      operations: [{op: GAIN_RESOURCE, resource: rage, amount: 1, max: 3}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: gain-rage
+          when: {event: {target: beowulf, amount_gt: 0}}
+          choices: []
+          costs: []
+          operations: [{op: GAIN_RESOURCE, resource: rage, amount: 1, max: 3}]
 resources:
   - {id: rage, kind: counter, visibility: public, initial: 1, max: 3}
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/beowulf.yaml, construction: fixed}
-rulings:
-  - id: rage-per-damage-effect
-    summary: Beowulf gains one Rage when a damage effect deals him one or more damage; distinct sequential damage effects can each grant Rage, but multiple points from one effect do not.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/little-red-beowulf-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/beowulf}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
+  - {id: beowulf-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, rage]}
+  - {id: beowulf-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/beowulf, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, rage_cards]}
+  - {id: beowulf-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [rage_per_damage_effect]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
