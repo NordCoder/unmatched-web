@@ -123,11 +123,13 @@ cards:
   effects:
   - trigger: during_combat
     condition:
-      t_rex_resulting_footprint_contains_space_not_occupied_at_turn_start: true
+      t_rex_occupies_no_space_from_turn_start_footprint: true
     operations:
     - op: SET_VALUE
       target: this_card
       value: 5
+    evidence_status: uncertain
+    interpretation_note: "Project-conservative interpretation: because T. Rex is in each space occupied by its base, the condition is treated as false while any currently occupied space is also a turn-start space. Current secondary FAQ evidence says one newly occupied space is sufficient; no exact authoritative ruling resolving this conflict has been captured."
     normalization_blocker: Determining this historical condition requires B-EXT-001 turn-start two-space footprint state.
 - id: thrash
   name: Thrash
@@ -254,10 +256,11 @@ sources:
 - https://unmatched.cards/umdb/decks/t-rex
 - https://unmatched.cards/card-counter/t-rex
 - https://www.unmatchedarena.com/heroes/t-rex
-- https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-t-rex/
+- https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/
 normalization_notes:
 - Deck metadata and quantities are verified independently, but the manifest is blocked because several card effects themselves require unresolved large-fighter runtime geometry.
-- Audit correction: Momentous Shift uses the published footprint-specific historical condition; 65 Million Years explicitly binds its discard-pile choice; movement/placement cards point to B-EXT-001 rather than pretending single-space MOVE/PLACE is sufficient.
+- Momentous Shift uses the project-conservative interpretation that T. Rex must occupy no turn-start space for the condition to be satisfied. This is explicitly uncertain because current secondary FAQ evidence says occupying one new space is sufficient; an exact authoritative ruling has not been captured.
+- 65 Million Years explicitly binds its discard-pile choice; movement/placement cards point to B-EXT-001 rather than pretending single-space MOVE/PLACE is sufficient.
 blockers:
 - id: semantic-extension-large-fighter-footprint
   reason: Momentous Shift, Closer Than She Appears and Ripples in the Water require two-space footprint history, movement, placement and resulting adjacency semantics covered by B-EXT-001.
