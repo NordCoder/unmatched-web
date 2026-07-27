@@ -1,185 +1,225 @@
 schema_version: 1
 fighter_id: daredevil
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 22
-  game_deck_count: 22
+verification:
+  evidence: verified
+  semantics: verified
+  integration: ready
+  policy: not_applicable
+requires: []
+
+construction: {kind: fixed, available_pool_count: 22, game_deck_count: 22}
+
 cards:
-- id: through-adversity
-  name: Through Adversity
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: scheme
-  printed_value: null
-  boost: 2
-  tags: []
-  effects:
-  - trigger: scheme
-    operations:
-    - op: MOVE
-      target: daredevil
-      max_distance: 4
-      overrides:
-      - may_move_through_opposing_fighters
-    - op: DEAL_EFFECT_DAMAGE
-      target: each_opposing_fighter_moved_through
-      amount: 1
-- id: man-without-fear
-  name: Man Without Fear
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: attack
-  printed_value: 2
-  boost: 3
-  tags: []
-  effects:
-  - trigger: during_combat
-    optional: true
-    operations:
-    - op: BOOST
-      target: this_card
-      source: own_deck_top
-      count: 1
-      blind: true
-- id: son-of-a-boxer
-  name: Son of a Boxer
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition:
-      combat_result: lost
-    choices:
-    - owner: controller
-      choose: fighter_adjacent_to_daredevil
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: chosen_fighter
-      amount: 2
-- id: feint
-  name: Feint
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: defense
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-- id: take-a-knee
-  name: Take a Knee
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: DISCARD
-      from_zone: deck_top
-      selector: 1
-      capture: discarded_card
-    - op: RECOVER
-      target: daredevil
-      amount_rule: captured.discarded_card.boost_or_0
-- id: grappling-hook
-  name: Grappling Hook
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: PLACE
-      target: daredevil
-      destination_rule: any_space_in_daredevil_zone
-- id: breather
-  name: Breather
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: scheme
-  printed_value: null
-  boost: 2
-  tags: []
-  effects:
-  - trigger: scheme
-    choices:
-    - owner: controller
-      choose: attack_defense_or_versatile_card_in_own_discard
-    operations:
-    - op: MOVE_CARD
-      from_zone: discard
-      to_zone: hand
-      selector: chosen_card
-- id: devil-of-hells-kitchen
-  name: Devil of Hell's Kitchen
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - daredevil
-  type: attack
-  printed_value: 4
-  boost: 3
-  tags: []
-  effects:
-  - trigger: during_combat
-    condition:
-      own_deck_empty: true
-    operations:
-    - op: SET_VALUE
-      target: this_card
-      value: 8
-  - trigger: after_combat
-    operations:
-    - op: MOVE_CARD
-      from_zone: combat_cleanup_source
-      to_zone: deck
-      selector: this_card
-    - op: MOVE_CARD
-      from_zone: discard
-      to_zone: deck
-      selector:
-        top: 4
-    - op: SHUFFLE
-      zone: deck
+  - id: through-adversity
+    name: Through Adversity
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: through-adversity-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: move-and-damage
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: daredevil, max_distance: 4, overrides: [may_move_through_opposing_fighters], bind: movement_result}
+              - {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_moved_through, amount: 1, movement_ref: movement_result}
+  - id: man-without-fear
+    name: Man Without Fear
+    quantity: 2
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: man-without-fear-blind-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: decide
+            when: always
+            choices:
+              - {id: use_blind_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_blind_boost}
+            costs: []
+            operations: []
+          - id: boost
+            when: {bound: use_blind_boost, equals: true}
+            choices: []
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: own_deck_top, count: 1, blind: true}]
+  - id: son-of-a-boxer
+    name: Son of a Boxer
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: son-of-a-boxer-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {combat_result: lost}
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: fighter_adjacent_to_daredevil}, bind: damage_target}
+            costs: []
+            operations: []
+          - id: damage
+            when: {bound: damage_target, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 2}]
+  - id: feint
+    name: Feint
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+  - id: take-a-knee
+    name: Take a Knee
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: take-a-knee-recover
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: discard-top
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, from_zone: deck_top, selector: {count: 1}, bind: discarded_card}]
+          - id: recover
+            when: {result: discarded_card, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: RECOVER, target: daredevil, amount_ref: {result: discarded_card, field: boost_or_0}}]
+  - id: grappling-hook
+    name: Grappling Hook
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: grappling-hook-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_space_in_daredevil_zone}, bind: destination}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: destination, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: PLACE, target: daredevil, destination: {bound: destination}}]
+  - id: breather
+    name: Breather
+    quantity: 3
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: breather-return
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-card
+            when: always
+            choices:
+              - {id: return_card, owner: controller, visibility: public, optional: false, domain: {kind: card, zone: own_discard, card_types: [attack, defense, versatile], count: 1}, bind: return_card}
+            costs: []
+            operations: []
+          - id: return
+            when: {bound: return_card, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: {bound: return_card}}]
+  - id: devil-of-hells-kitchen
+    name: Devil of Hell's Kitchen
+    quantity: 2
+    inclusion: fixed
+    usable_by: [daredevil]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects:
+      - id: devil-of-hells-kitchen-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {own_deck_empty: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 8}]}
+      - id: devil-of-hells-kitchen-recycle
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: recycle
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: combat_cleanup_source, to_zone: deck, selector: this_card}
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {top: 4}}
+              - {op: SHUFFLE, zone: deck}
+
 external_definitions: []
-validation:
-  available_pool_count: 22
-  game_deck_count: 22
-  known_quantity_sum: 22
-  quantity_reconciles: true
-  unique_card_definitions: 8
+interpretations: []
+
 sources:
-- https://unmatched.cards/umdb/decks/daredevil
-- https://unmatched.cards/card-counter/daredevil
-- https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/
-normalization_notes:
-- Published fixed deck size is 22, not 30.
-- Audit correction: Grappling Hook is PLACE within Daredevil's zone, not MOVE 2; Breather and Son of a Boxer explicitly bind their choices; Devil of Hell's Kitchen recycles the still-resolving combat card from combat cleanup context plus the top four discard cards.
+  - {id: daredevil-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/daredevil, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: daredevil-official-product, authority: official, url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 22, game_deck_count: 22, quantity_sum: 22}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
