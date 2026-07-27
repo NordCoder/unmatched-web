@@ -23,7 +23,8 @@ cards:
   tags: []
   effects:
   - trigger: after_combat
-    operations: [{op: MOVE, target: own_combat_fighter, max_distance: 1}, {op: MOVE, target: opposing_combat_fighter, max_distance: 1}]
+    operations:
+    - {op: TRIGGER_COMPOSITE, kind: source_defined_move_both_combat_fighters_up_to_one, ordering_authority: unresolved}
   - trigger: after_combat
     optional: true
     costs: [{op: DISCARD, from: hand, selector: controller_chosen, count: 1}]
@@ -173,10 +174,11 @@ sources:
   note: Physical component cross-check.
 - authority: reference
   url: https://www.unmatchedarena.com/heroes/leonardo
-  checked_at: '2026-07-26'
+  checked_at: '2026-07-27'
   note: Complete current action-card transcription cross-checked against official material.
 normalization_notes:
 - Official IELLO rules establish exactly 30 Leonardo action cards; quantities reconcile 30/30.
+- For Sensei says to move both combat fighters up to 1 space each. The previous manifest silently imposed own-fighter-first ordering; no authoritative source found in this evidence pass establishes that mixed-ownership order, so the source-defined composite preserves the unresolved ordering authority instead of guessing.
 - Adventures enemy/scenario behavior is excluded.
 - Eat, Sleep, and Breathe Ninjutsu remains an explicit source-defined positioning composite; the orchestrator can decide whether it merits a generic sequential-placement primitive.
 - No unmatched.cards/decks fan namespace is used.
