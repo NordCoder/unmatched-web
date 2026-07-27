@@ -2,7 +2,13 @@ schema_version: 1
 id: shakespeare
 display_name: William Shakespeare
 set_ids: [slings-and-arrows]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-001]
 movement: 2
 
 topology:
@@ -12,9 +18,7 @@ topology:
     - {id: shakespeare, display_name: William Shakespeare, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
     - {id: actor, display_name: Actor, role: sidekick, count: 3, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: false}
 
-setup:
-  hooks: []
-  state_initialization: []
+setup: {hooks: [], state_initialization: []}
 
 ability:
   id: iambic-pentameter
@@ -33,8 +37,7 @@ resources:
     visibility: public
     initial: empty
     ordered: true
-    ownership_rule: Played Shakespeare action-card instances retain owner and remain ordered left-to-right until the line clears.
-
+    ownership_rule: Played Shakespeare action-card instances retain owner and remain ordered left-to-right until the Line clears.
 persistent_state: []
 
 deck:
@@ -43,16 +46,37 @@ deck:
 
 rulings:
   - id: line-completion-not-card-effect-cancellation
-    summary: A completion effect resolves when exactly ten syllables are reached even if the last card's ordinary effects were canceled; no other effects are re-resolved from cards already in the line.
-    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+    summary: Exact-ten completion remains eligible even if the last card's ordinary effects were canceled; no earlier Line card effects are re-resolved.
+    source_refs: [slings-rules-shakespeare]
   - id: line-is-ordered-persistent-zone
-    summary: Played attack/defense cards are kept face-up in play order; BOOST/discard-effect cards go to ordinary discard. A line over ten clears without completion.
-    source: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+    summary: Played combat cards enter the ordered Line at Cleanup; BOOST/discard-effect cards do not, and a Line over ten clears without completion.
+    source_refs: [slings-rules-shakespeare]
 
 sources:
-  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/william-shakespeare}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/shakespeare}
+  - id: slings-rules-shakespeare
+    authority: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
+    checked_at: 2026-07-27
+    supports: [Line lifecycle, syllable completion, Shakespeare fighter rules]
+  - id: shakespeare-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/william-shakespeare
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: shakespeare-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/heroes/shakespeare
+    checked_at: 2026-07-27
+    supports: [current Shakespeare ruling index]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
-  - The line uses proposed reusable ordered-sequence semantics documented in the Worker C report; no Shakespeare-named engine primitive is introduced.
+  - The Line is a first-class ordered card zone; no Shakespeare-named runtime primitive is introduced.
