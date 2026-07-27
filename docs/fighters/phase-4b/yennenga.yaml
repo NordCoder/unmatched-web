@@ -5,7 +5,7 @@ display_name: Yennenga
 set_ids: [battle-of-legends-vol-2]
 status: partial
 verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
-requires: [A-REQ-010]
+requires: [A-REQ-010, A-REQ-011]
 movement: 2
 topology:
   type: hero_with_sidekicks
