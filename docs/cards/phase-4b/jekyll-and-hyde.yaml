@@ -1,13 +1,15 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: jekyll-and-hyde
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: succumb-to-compulsion, name: Succumb to Compulsion, quantity: 3, usable_by: [jekyll-and-hyde], tags: [jekyll], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: after_combat, condition: {form: jekyll}, operations: [{op: MOVE, target: jekyll-and-hyde, max_distance: 2}, {op: SET_STATE, key: form, value: hyde}]}]}
-  - {id: distracted-triage, name: Distracted Triage, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: after_combat, condition: {form: jekyll, combat_result: won}, operations: [{op: RECOVER, target: jekyll-and-hyde, amount: 2}]}]}
-  - {id: with-haste, name: With Haste!, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {form: jekyll}, operations: [{op: MOVE, target: jekyll-and-hyde, max_distance: 4}]}]}
-  - {id: scientific-method, name: Scientific Method, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 2, boost: 2, effects: [{trigger: after_combat, condition: {form: jekyll}, operations: [{op: DRAW, count: combat_damage_taken}]}]}
+  - {id: succumb-to-compulsion, name: Succumb to Compulsion, quantity: 3, usable_by: [jekyll-and-hyde], tags: [jekyll], type: versatile, printed_value: 2, boost: 2, effects: [{id: succumb-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: {state: {key: form, equals: jekyll}}, choices: [], costs: [], operations: [{op: MOVE, target: jekyll-and-hyde, max_distance: 2}]}, {id: become-hyde, when: {state: {key: form, equals: jekyll}}, choices: [], costs: [], operations: [{op: SET_STATE, key: form, value: hyde}]}]}]}
+  - {id: distracted-triage, name: Distracted Triage, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: versatile, printed_value: 3, boost: 3, effects: [{id: triage-recover, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: recover, when: {all: [{state: {key: form, equals: jekyll}}, {combat: {result: won}}]}, choices: [], costs: [], operations: [{op: RECOVER, target: jekyll-and-hyde, amount: 2}]}]}]}
+  - {id: with-haste, name: With Haste!, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 4, boost: 3, effects: [{id: haste-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: {state: {key: form, equals: jekyll}}, choices: [], costs: [], operations: [{op: MOVE, target: jekyll-and-hyde, max_distance: 4}]}]}]}
+  - {id: scientific-method, name: Scientific Method, quantity: 2, usable_by: [jekyll-and-hyde], tags: [jekyll], type: defense, printed_value: 2, boost: 2, effects: [{id: scientific-method-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: {state: {key: form, equals: jekyll}}, choices: [], costs: [], operations: [{op: DRAW, count: {ref: combat.damage_taken_by_own_fighter}}]}]}]}
   - id: calming-research
     name: Calming Research
     quantity: 2
@@ -17,38 +19,160 @@ cards:
     printed_value: null
     boost: 3
     effects:
-      - trigger: scheme
-        condition: {form: jekyll}
-        operations:
-          - {op: RECOVER, target: jekyll-and-hyde, amount: 2}
-          - {op: REQUEST_CHOICE, definition: calming_research_draw_count}
-          - {op: DRAW, count: chosen_draw_count}
-          - {op: REQUEST_CHOICE, definition: calming_research_keep_one_if_any}
-          - {op: MOVE_CARD, from_zone: hand, to_zone: deck_bottom, selector: other_cards_drawn_by_this_effect}
-          - {op: REORDER, zone: deck_bottom, selector: other_cards_drawn_by_this_effect, order: chosen_order}
-  - {id: recoiling-blow, name: Recoiling Blow, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: attack, printed_value: 5, boost: 2, effects: [{trigger: after_combat, condition: {form: hyde}, operations: [{op: PLACE, target: jekyll-and-hyde, destination_rule: any_space_in_current_zone}, {op: SET_STATE, key: form, value: jekyll}]}]}
-  - {id: forever-hyde, name: Forever Hyde, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: attack, printed_value: 5, boost: 2, effects: [{trigger: during_combat, condition: {form: hyde}, optional: true, costs: [{op: DISCARD, from: hand, selector: any_number_of_jekyll_cards}], operations: [{op: ADD_VALUE, target: this_card, amount: twice_discarded_count}]}]}
-  - {id: madness-relents, name: Madness Relents, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {form: hyde}, operations: [{op: SET_STATE, key: form, value: jekyll}]}]}
-  - {id: pure-evil, name: Pure Evil, quantity: 3, usable_by: [jekyll-and-hyde], tags: [hyde], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, condition: {form: hyde}, operations: [{op: PLACE, target: jekyll-and-hyde, destination_rule: any_space_in_own_zone}, {op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_jekyll-and-hyde, amount: 2}]}]}
-  - {id: strange-case, name: Strange Case, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, condition: {form: hyde}, choices: [{choose: fighter_adjacent_to_jekyll-and-hyde}], operations: [{op: REVEAL, source: deck, count: 1}, {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: revealed_card_boost}, {op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: revealed_card}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: duality-of-man, name: Duality of Man, quantity: 2, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {any_of: [{form: jekyll, role: defender}, {form: hyde, role: attacker}]}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
+      - id: calming-research-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: recover, when: {state: {key: form, equals: jekyll}}, choices: [], costs: [], operations: [{op: RECOVER, target: jekyll-and-hyde, amount: 2}]}
+          - id: choose-draw-count
+            when: {state: {key: form, equals: jekyll}}
+            choices:
+              - {id: choose-draw-count, owner: controller, visibility: private, optional: false, domain: {kind: integer, min: 0, max: 3}, bind: draw_count, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: [{op: DRAW, count: {ref: choice.draw_count}, bind_result: calming_draw}]
+          - id: choose-retained-card
+            when: {result: {ref: result.calming_draw.count, gt: 0}}
+            choices:
+              - {id: choose-retained-card, owner: controller, visibility: private, optional: false, domain: {ref: result.calming_draw.cards}, bind: retained_card, min: 1, max: 1, distinct: true, order_matters: false}
+              - {id: order-bottom-cards, owner: controller, visibility: private, optional: false, domain: {difference: [{ref: result.calming_draw.cards}, [{ref: choice.retained_card}]]}, bind: bottom_order, min: 0, max: 2, distinct: true, order_matters: true}
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: {ref: choice.bottom_order}}
+              - {op: REORDER, zone: deck, selector: {ref: choice.bottom_order}, order: {ref: choice.bottom_order}, position: bottom}
+  - id: recoiling-blow
+    name: Recoiling Blow
+    quantity: 2
+    usable_by: [jekyll-and-hyde]
+    tags: [hyde]
+    type: attack
+    printed_value: 5
+    boost: 2
+    effects:
+      - id: recoiling-blow-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {state: {key: form, equals: hyde}}
+            choices:
+              - {id: choose-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_current_zone_of: jekyll-and-hyde}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: jekyll-and-hyde, destination: {ref: choice.destination}}]
+          - {id: become-jekyll, when: {state: {key: form, equals: hyde}}, choices: [], costs: [], operations: [{op: SET_STATE, key: form, value: jekyll}]}
+  - id: forever-hyde
+    name: Forever Hyde
+    quantity: 2
+    usable_by: [jekyll-and-hyde]
+    tags: [hyde]
+    type: attack
+    printed_value: 5
+    boost: 2
+    effects:
+      - id: forever-hyde-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discards
+            when: {state: {key: form, equals: hyde}}
+            choices:
+              - {id: choose-jekyll-cards, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self, tag: jekyll}, bind: jekyll_cards, min: 1, max: all_available, distinct: true, order_matters: false}
+            costs:
+              - {op: DISCARD, from_zone: hand, selector: {ref: choice.jekyll_cards}, bind_result: discarded_jekyll_cards}
+            operations:
+              - {op: ADD_VALUE, target: this_card, amount: {expr: multiply, left: 2, right: {ref: result.discarded_jekyll_cards.count}}}
+  - {id: madness-relents, name: Madness Relents, quantity: 2, usable_by: [jekyll-and-hyde], tags: [hyde], type: versatile, printed_value: 4, boost: 2, effects: [{id: madness-relents-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: become-jekyll, when: {state: {key: form, equals: hyde}}, choices: [], costs: [], operations: [{op: SET_STATE, key: form, value: jekyll}]}]}]}
+  - id: pure-evil
+    name: Pure Evil
+    quantity: 3
+    usable_by: [jekyll-and-hyde]
+    tags: [hyde]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - id: pure-evil-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {state: {key: form, equals: hyde}}
+            choices:
+              - {id: choose-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: jekyll-and-hyde}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: jekyll-and-hyde, destination: {ref: choice.destination}}]
+          - {id: damage-adjacent, when: {state: {key: form, equals: hyde}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, adjacent_to: jekyll-and-hyde}}, amount: 2}]}
+  - id: strange-case
+    name: Strange Case
+    quantity: 2
+    usable_by: [jekyll-and-hyde]
+    tags: [hyde]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: strange-case-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {state: {key: form, equals: hyde}}
+            choices:
+              - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: jekyll-and-hyde}, bind: target_fighter}
+            costs: []
+            operations: []
+          - id: reveal-top
+            when: {state: {key: form, equals: hyde}}
+            choices: []
+            costs: []
+            operations: [{op: REVEAL, source: deck, count: 1, bind_result: revealed_top}]
+          - id: damage-by-boost
+            when: {result_exists: {ref: result.revealed_top.card}}
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: {ref: result.revealed_top.card.boost}}]
+          - id: take-card
+            when: {result_exists: {ref: result.revealed_top.card}}
+            choices: []
+            costs: []
+            operations: [{op: MOVE_CARD, from_zone: deck, to_zone: hand, selector: {ref: result.revealed_top.card}}]
+  - {id: feint, name: Feint, quantity: 3, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: [jekyll-and-hyde]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - {id: duality-of-man, name: Duality of Man, quantity: 2, usable_by: [jekyll-and-hyde], type: versatile, printed_value: 3, boost: 1, effects: [{id: duality-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {any: [{all: [{state: {key: form, equals: jekyll}}, {combat: {role: defender}}]}, {all: [{state: {key: form, equals: hyde}}, {combat: {role: attacker}}]}]}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}]}
 
-external_definitions:
-  - {id: calming_research_draw_count, kind: integer_choice, controller: owner, min: 0, max: 3, output: chosen_draw_count}
-  - {id: calming_research_keep_one_if_any, kind: choice, controller: owner, domain: cards_drawn_by_this_effect, choose: up_to_one_if_nonempty, retained_zone: hand}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 13}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/jekyll-hyde
-  - https://unmatched.cards/umdb/decks/stats
-  - https://restorationgames.com/shop/cobble-fog-unmatched/
-  - https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf
-  - https://restorationgames.com/the-unmatched-vault-cobble-fog/
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - Jekyll/Hyde card legality is encoded by card tags plus the public form state; all 30 cards remain in one fixed deck.
-  - Calming Research now declares both its 0..3 draw-count choice and the later keep-one choice over cards actually drawn by this effect; integration still needs a generic typed result-binding convention for identifiers such as chosen_draw_count and cards_drawn_by_this_effect.
-  - Strange Case now explicitly declares the adjacent-fighter choice before using chosen_fighter.
-  - Current UmDb recheck preserves the previous Recoiling Blow correction: after the Hyde effect resolves, the form returns to Jekyll.
+  - {id: jekyll-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/jekyll-hyde, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: jekyll-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf, checked_at: 2026-07-27, supports: [form_rules, combat_timing]}
+  - {id: jekyll-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [form_card_legality]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
