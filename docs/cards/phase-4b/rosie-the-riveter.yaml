@@ -1,11 +1,10 @@
 schema_version: 1
 fighter_id: rosie-the-riveter
-status: verified
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-003, D-REQ-012]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
-card_zones:
-- {id: deck, owner: self}
-- {id: hand, owner: self}
-- {id: discard, owner: self}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
 cards:
 - id: we-can-do-it
   name: We Can Do It!
@@ -17,8 +16,7 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: immediately
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]
+  - {id: activate-upgrade, trigger: immediately, requires: [D-REQ-012], operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_next}]}
 - id: overrun
   name: Overrun
   quantity: 3
@@ -29,10 +27,11 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: after_combat
-    operations:
-    - {op: MOVE, target: rosie-the-riveter, max_distance: 3, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}
-    - {op: DEAL_EFFECT_DAMAGE, target: captured.opposing_fighters_moved_through, amount: 1}
+  - id: overrun
+    trigger: after_combat
+    stages:
+    - {id: move, operations: [{op: MOVE, target: rosie-the-riveter, max_distance: 3, overrides: [may_move_through_opposing_fighters], bind: movement_result}]}
+    - {id: damage-crossed, operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.movement_result.opposing_fighters_moved_through, amount: 1}]}
 - id: d-day
   name: D-Day
   quantity: 3
@@ -43,13 +42,23 @@ cards:
   boost: 1
   tags: []
   effects:
-  - trigger: after_combat
-    operations:
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_capture_active_upgrade_count, capture: upgrades_already_active}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_activate_all_upgrades}
-    - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_from: captured.upgrades_already_active}
-    - {op: RECOVER, target: rosie-the-riveter, amount_from: captured.upgrades_already_active}
+  - id: d-day
+    trigger: after_combat
+    requires: [D-REQ-003, D-REQ-012]
+    stages:
+    - id: capture-upgrades
+      bindings: [{id: upgrades_already_active, from: {resource: upgrade-tokens, query: count_active}}]
+    - id: grant-restricted-action
+      operations:
+      - op: GAIN_ACTION
+        count: 1
+        credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
+    - id: activate-all
+      operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_all}]
+    - id: scale-effects
+      operations:
+      - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_from: bound.upgrades_already_active}
+      - {op: RECOVER, target: rosie-the-riveter, amount_from: bound.upgrades_already_active}
 - id: arc-welding
   name: Arc Welding
   quantity: 3
@@ -60,37 +69,14 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: after_combat
-    choices: [{owner: controller, choose: mode, options: [activate_upgrade, damage_adjacent_opponents]}]
+  - id: arc-welding
+    trigger: after_combat
+    choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [activate_upgrade, damage_adjacent_opponents], bind: mode}]
     branches:
-    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
-    - {condition: {chosen_mode: damage_adjacent_opponents}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_adjacent_opposing_fighter, amount: 1}]}
-- id: technological-superiority
-  name: Technological Superiority
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: immediately
-    condition: {state: active_upgrade_count, gte: 3}
-    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
-- id: momentous-shift
-  name: Momentous Shift
-  quantity: 3
-  inclusion: fixed
-  usable_by: any
-  type: versatile
-  printed_value: 3
-  boost: 1
-  tags: []
-  effects:
-  - trigger: during_combat
-    condition: {own_combat_fighter_started_turn_in_different_space: true}
-    operations: [{op: SET_VALUE, target: this_card, value: 5}]
+    - {condition: {bound.mode: activate_upgrade}, requires: [D-REQ-012], operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_next}]}
+    - {condition: {bound.mode: damage_adjacent_opponents}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_adjacent_opposing_fighter, amount: 1}]}
+- {id: technological-superiority, name: Technological Superiority, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: superiority, trigger: immediately, condition: {resource: upgrade-tokens, query: count_active, gte: 3}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+- {id: momentous-shift, name: Momentous Shift, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: momentous, trigger: during_combat, condition: {own_combat_fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
 - id: loose-lips-sink-ships
   name: Loose Lips Sink Ships!
   quantity: 3
@@ -101,22 +87,12 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: during_combat
-    operations:
-    - {op: REVEAL, source: opponent_deck_top, selector: 1, capture: revealed_card}
-    - {op: ADD_VALUE, target: opposing_combat_card, amount_rule: negative_captured_revealed_card_boost}
-- id: full-metal
-  name: Full Metal
-  quantity: 3
-  inclusion: fixed
-  usable_by: [rosie-the-riveter]
-  type: versatile
-  printed_value: 1
-  boost: 3
-  tags: []
-  effects:
-  - trigger: during_combat
-    operations: [{op: ADD_VALUE, target: this_card, amount_from_state: active_upgrade_count}]
+  - id: loose-lips
+    trigger: during_combat
+    stages:
+    - {id: reveal, operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, bind: card}]}
+    - {id: reduce, operations: [{op: ADD_VALUE, target: opposing_combat_card, amount_rule: negative_bound_card_boost}]}
+- {id: full-metal, name: Full Metal, quantity: 3, inclusion: fixed, usable_by: [rosie-the-riveter], type: versatile, printed_value: 1, boost: 3, tags: [], effects: [{id: full-metal, trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: {resource: upgrade-tokens, query: count_active}}]}]}
 - id: hasty-repairs
   name: Hasty Repairs
   quantity: 3
@@ -127,9 +103,11 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: after_combat
-    condition: {state: active_upgrade_count, gt: 0}
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}, {op: RECOVER, target: rosie-the-riveter, amount: 3}]
+  - id: hasty
+    trigger: after_combat
+    condition: {resource: upgrade-tokens, query: count_active, gt: 0}
+    requires: [D-REQ-012]
+    operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: deactivate_next}, {op: RECOVER, target: rosie-the-riveter, amount: 3}]
 - id: e-award
   name: '"E" Award'
   quantity: 2
@@ -140,13 +118,14 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: scheme
-    choices: [{owner: controller, choose: mode, options: [activate_upgrade, deactivate_upgrade]}]
+  - id: e-award-upgrade
+    trigger: scheme
+    requires: [D-REQ-012]
+    choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [activate_upgrade, deactivate_upgrade], bind: mode}]
     branches:
-    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
-    - {condition: {chosen_mode: deactivate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}]}
-  - trigger: scheme
-    operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3}]
+    - {condition: {bound.mode: activate_upgrade}, operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_next}]}
+    - {condition: {bound.mode: deactivate_upgrade}, operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: deactivate_next}]}
+  - {id: e-award-move, trigger: scheme, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3}]}
 - id: rapid-development
   name: Rapid Development
   quantity: 2
@@ -157,23 +136,36 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: scheme
-    operations: [{op: DRAW, count: 2}]
-  - trigger: scheme
-    choices: [{owner: controller, choose: mode, options: [activate_upgrade, deactivate_upgrade]}]
+  - {id: rapid-draw, trigger: scheme, operations: [{op: DRAW, count: 2}]}
+  - id: rapid-upgrade
+    trigger: scheme
+    requires: [D-REQ-012]
+    choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [activate_upgrade, deactivate_upgrade], bind: mode}]
     branches:
-    - {condition: {chosen_mode: activate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_activate_next_ordered_upgrade}]}
-    - {condition: {chosen_mode: deactivate_upgrade}, operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_deactivate_next_ordered_upgrade}]}
-  - trigger: scheme
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_gain_restricted_free_action, allowed_action: attack}]
+    - {condition: {bound.mode: activate_upgrade}, operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_next}]}
+    - {condition: {bound.mode: deactivate_upgrade}, operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: deactivate_next}]}
+  - id: rapid-action
+    trigger: scheme
+    requires: [D-REQ-003]
+    operations:
+    - op: GAIN_ACTION
+      count: 1
+      credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11, result: PASS}
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Current visual action-card corpus transcribed from Club card images supplied during Phase 4B reconciliation.}
+- {id: stars-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', supports: [upgrade_row_rules, action_rules], durability: durable}
+- {id: stars-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: rosie-club, authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
 normalization_notes:
-- All 11 action-card definitions reconcile to 30 physical cards.
-- D-Day captures the number of upgrades already active before activating all four; its damage and recovery scale by that captured count.
-- Ordered upgrade activation/deactivation follows the set-rule token row through source-defined composites.
-- Action-card corpus is verified independently of the still-partial fighter-level token identity/order mapping.
+- All 11 definitions reconcile to 30 cards.
+- Upgrade cards use only D-REQ-012 transitions/queries: activate_next, deactivate_next, activate_all, count_active.
+- D-Day binds count_active before activate_all, preserving source order.
+- Restricted free attacks use D-REQ-003; no source_defined upgrade/action/capture constructs remain.
