@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: medusa
 display_name: Medusa
 set_ids: [battle-of-legends-vol-1]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 3
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,14 +19,28 @@ ability:
   effects:
     - id: gaze-start-turn
       trigger: turn_start
-      optional: true
-      choices: [{owner: controller, choose: opposing_fighter_in_medusa_zone}]
-      operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose-gaze-target
+          when: always
+          choices:
+            - {id: choose-gaze-target, owner: controller, visibility: public, optional: true, domain: {kind: fighter, relation: opposing, zone_relation: same_zone_as_medusa}, bind: target_fighter}
+          costs: []
+          operations:
+            - {op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: 1}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/medusa.yaml, construction: fixed}
-rulings: []
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/medusa}
+  - {id: medusa-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: medusa-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/medusa, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
