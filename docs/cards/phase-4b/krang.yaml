@@ -1,11 +1,10 @@
 schema_version: 1
 fighter_id: krang
-status: verified
+status: partial
+verification: {evidence: qualified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-004, D-REQ-006, D-REQ-009, D-REQ-010, D-REQ-011]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
-card_zones:
-- {id: deck, owner: self}
-- {id: hand, owner: self}
-- {id: discard, owner: self}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
 cards:
 - id: android-arms-powerbomb
   name: 'Android Arms: Powerbomb'
@@ -17,13 +16,15 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: during_combat
+  - id: powerbomb-boost
+    trigger: during_combat
     optional: true
-    choices: [{owner: controller, choose: card_in_hand_for_boost}]
-    operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
-  - trigger: after_combat
-    choices: [{owner: controller, choose: move_distance, min: 0, max_rule: combat_damage_dealt}]
-    operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: chosen_move_distance}]
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+  - id: powerbomb-move
+    trigger: after_combat
+    choices: [{id: distance, owner: controller, visibility: public, optional: true, domain: {integer_range: [0, combat_damage_dealt]}, bind: distance}]
+    operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: bound.distance}]
 - id: android-arms-chain-flail
   name: 'Android Arms: Chain Flail'
   quantity: 3
@@ -34,14 +35,15 @@ cards:
   boost: 3
   tags: [ultimate_destruction]
   effects:
-  - trigger: after_combat
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_ultimate_destruction_roll
-      capture: destruction_result
-      on_number:
-      - condition: {opposing_card_not_played_or_printed_value_lt_captured_result: true}
-        operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 2, controller: opponent}]
+  - id: chain-flail
+    trigger: after_combat
+    requires: [D-REQ-009]
+    stages:
+    - id: roll
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: destruction_result}
+    - id: resolve-number
+      condition: {bound.destruction_result.kind: number, opposing_card_not_played_or_printed_value_lt_bound_result: true}
+      operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 2, controller: opponent}]
 - id: android-arms-missiles
   name: 'Android Arms: Missiles'
   quantity: 3
@@ -51,10 +53,20 @@ cards:
   printed_value: 1
   boost: 1
   tags: [ultimate_destruction]
-  play_overrides: [may_play_face_up_as_ranged_attack]
+  requires: [D-REQ-011]
+  play_modes:
+  - {id: normal, visibility: face_down, attack_type: melee}
+  - {id: face_up_ranged, visibility: face_up_on_commit, attack_type: ranged, replacement_for_normal_commitment: true}
   effects:
-  - trigger: during_combat
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_add_value, target: this_card}]
+  - id: missiles-value
+    trigger: during_combat
+    requires: [D-REQ-009]
+    stages:
+    - id: roll
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: destruction_result}
+    - id: add
+      condition: {bound.destruction_result.kind: number}
+      operations: [{op: ADD_VALUE, target: this_card, amount_from: bound.destruction_result.value}]
 - id: warlord-of-dimension-x
   name: Warlord of Dimension X
   quantity: 3
@@ -65,8 +77,17 @@ cards:
   boost: 3
   tags: []
   effects:
-  - trigger: after_combat
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_reveal_top_cards_compare_name_length_and_draw_own_if_longer}]
+  - id: warlord
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: reveal-own
+      operations: [{op: REVEAL, source: deck_top, selector: 1, bind: own_card}]
+    - id: reveal-opponent
+      operations: [{op: REVEAL, source: opponent_deck_top, selector: 1, bind: opponent_card}]
+    - id: compare-and-draw
+      condition: {bound.own_card.name_length_gt_bound.opponent_card.name_length: true}
+      operations: [{op: DRAW, count: 1}]
 - id: pan-dimensional-portal
   name: Pan-Dimensional Portal
   quantity: 2
@@ -74,21 +95,31 @@ cards:
   usable_by: [krang]
   type: versatile
   printed_value: 3
-  boost: null
-  boost_rule: roll_die_of_ultimate_destruction
+  boost: dynamic
+  boost_resolution: {requires: [D-REQ-010], kind: ultimate_destruction_roll, table: die-of-ultimate-destruction, reroll_contract: D-REQ-009}
   tags: [ultimate_destruction]
   effects:
-  - trigger: after_combat
-    choices: [{owner: controller, choose: combat_fighter, capture: target}, {owner: controller, choose: any_open_space, capture: destination}]
-    operations:
-    - {op: PLACE, target: captured.target, destination_rule: captured.destination}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_lock_fighter_in_space_until_turn_end, target: captured.target}
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_ultimate_destruction_roll
-      capture: hand_bottom_count
-      on_number:
-      - {op: MOVE_CARD, from_zone: each_combat_player_hand, to_zone: each_combat_player_deck, selector: random, count: captured.hand_bottom_count, position: bottom}
-    - {op: DRAW, controller: each_combat_player, count: 2}
+  - id: portal
+    trigger: after_combat
+    requires: [D-REQ-001, D-REQ-006, D-REQ-009]
+    stages:
+    - id: choose-fighter
+      choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: combat_fighters, bind: target}]
+    - id: choose-destination
+      choices: [{id: destination, owner: controller, visibility: public, optional: false, domain: any_open_space, bind: destination}]
+    - id: place-and-lock
+      operations:
+      - {op: PLACE, target: bound.target, destination_rule: bound.destination}
+      - op: SET_STATE
+        key: temporary_space_locks
+        value: {target: bound.target, scope: until_turn_end, restriction: cannot_leave_current_space, excludes: [defeat_removal]}
+    - id: roll
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: hand_bottom_count}
+    - id: bottom-cards
+      condition: {bound.hand_bottom_count.kind: number}
+      operations: [{op: MOVE_CARD, from_zone: each_combat_player_hand, to_zone: each_combat_player_deck, selector: random, count: bound.hand_bottom_count.value, position: bottom}]
+    - id: draw
+      operations: [{op: DRAW, controller: each_combat_player, count: 2}]
 - id: molecular-amplification-unit
   name: Molecular Amplification Unit
   quantity: 4
@@ -99,10 +130,16 @@ cards:
   boost: 2
   tags: [ultimate_destruction]
   effects:
-  - trigger: immediately
-    operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]
-  - trigger: during_combat
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_add_value, target: this_card}]
+  - {id: mau-activate, trigger: immediately, operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]}
+  - id: mau-value
+    trigger: during_combat
+    requires: [D-REQ-009]
+    stages:
+    - id: roll
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: destruction_result}
+    - id: add
+      condition: {bound.destruction_result.kind: number}
+      operations: [{op: ADD_VALUE, target: this_card, amount_from: bound.destruction_result.value}]
 - id: welcome-to-the-technodrome
   name: Welcome to the Technodrome!
   quantity: 3
@@ -113,25 +150,13 @@ cards:
   boost: 2
   tags: []
   effects:
-  - trigger: immediately
-    choices: [{owner: controller, choose: mode, options: [cancel_opponent_card, activate_machine]}]
+  - id: technodrome
+    trigger: immediately
+    choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [cancel_opponent_card, activate_machine], bind: mode}]
     branches:
-    - {condition: {chosen_mode: cancel_opponent_card}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
-    - {condition: {chosen_mode: activate_machine}, operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]}
-- id: minimizer
-  name: Minimizer
-  quantity: 3
-  inclusion: fixed
-  usable_by: [krang]
-  type: defense
-  printed_value: 0
-  boost: 1
-  tags: []
-  effects:
-  - trigger: immediately
-    operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: -4}]
-  - trigger: after_combat
-    operations: [{op: END_TURN}]
+    - {condition: {bound.mode: cancel_opponent_card}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+    - {condition: {bound.mode: activate_machine}, operations: [{op: CHANGE_STATE, key: active_doomsday_machines, transition: plus_one_capped_at_3}]}
+- {id: minimizer, name: Minimizer, quantity: 3, inclusion: fixed, usable_by: [krang], type: defense, printed_value: 0, boost: 1, tags: [], effects: [{id: minimizer-reduce, trigger: immediately, operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: -4}]}, {id: minimizer-end-turn, trigger: after_combat, operations: [{op: END_TURN}]}]}
 - id: android-arms-wings
   name: 'Android Arms: Wings'
   quantity: 3
@@ -142,15 +167,19 @@ cards:
   boost: 3
   tags: [ultimate_destruction]
   effects:
-  - trigger: scheme
-    operations:
-    - op: TRIGGER_COMPOSITE
-      kind: source_defined_ultimate_destruction_roll
-      capture: move_result
-      on_number:
-      - {op: MOVE, target: krang, max_distance: captured.move_result, overrides: [may_move_through_opposing_fighters], capture: opposing_fighters_moved_through}
-      - {op: DEAL_EFFECT_DAMAGE, target: captured.opposing_fighters_moved_through, amount: 1}
-      - {op: GAIN_ACTION, count: 1}
+  - id: wings
+    trigger: scheme
+    requires: [D-REQ-009]
+    stages:
+    - id: roll
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: move_result}
+    - id: move
+      condition: {bound.move_result.kind: number}
+      operations: [{op: MOVE, target: krang, max_distance: bound.move_result.value, overrides: [may_move_through_opposing_fighters], bind: movement_result}]
+    - id: damage-crossed
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.movement_result.opposing_fighters_moved_through, amount: 1}]
+    - id: action
+      operations: [{op: GAIN_ACTION, count: 1}]
 - id: iq-of-968
   name: IQ of 968
   quantity: 3
@@ -158,31 +187,51 @@ cards:
   usable_by: [krang]
   type: scheme
   printed_value: null
-  boost: null
-  boost_rule: roll_die_of_ultimate_destruction
+  boost: dynamic
+  boost_resolution: {requires: [D-REQ-010], kind: ultimate_destruction_roll, table: die-of-ultimate-destruction, reroll_contract: D-REQ-009}
   tags: [ultimate_destruction]
   effects:
-  - trigger: scheme
-    operations:
-    - {op: SET_STATE, key: active_doomsday_machines, value: 3}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_draw}
-    - {op: TRIGGER_COMPOSITE, kind: source_defined_ultimate_destruction_recover, target: krang}
+  - id: iq
+    trigger: scheme
+    requires: [D-REQ-009]
+    stages:
+    - {id: activate-all, operations: [{op: SET_STATE, key: active_doomsday_machines, value: 3}]}
+    - id: roll-draw
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: draw_result}
+    - id: draw
+      condition: {bound.draw_result.kind: number}
+      operations: [{op: DRAW, count: bound.draw_result.value}]
+    - id: roll-recover
+      random_resolution: {table: die-of-ultimate-destruction, reroll_contract: D-REQ-009, bind: recover_result}
+    - id: recover
+      condition: {bound.recover_result.kind: number}
+      operations: [{op: RECOVER, target: krang, amount: bound.recover_result.value}]
 external_definitions:
-- id: ultimate-destruction-symbol
-  kind: random_resolution_rule
-  operations:
-  - Roll the Die of Ultimate Destruction independently for each symbol.
-  - Numbered result supplies that symbol's value.
-  - X counts as zero and the effect for that symbol does not resolve.
-  - Krang may deactivate an active machine after a roll to reroll; repeat while machines remain active.
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 10, result: PASS}
+- id: ultimate-destruction-resolution
+  kind: random_resolution_contract
+  requires: [D-REQ-009]
+  table: die-of-ultimate-destruction
+  semantics:
+    roll_independently_per_symbol: true
+    numbered_face: bind_numeric_value
+    x_face: {value: 0, associated_symbol_effect_resolves: false}
+    after_each_roll: controller_may_deactivate_one_active_machine_to_reroll_and_replace_result
+    repeat_reroll_while_active_machine_available: true
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: QUALIFIED
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf, checked_at: '2026-07-27', note: Set-rules mirror used for authoritative destruction-die procedure.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', note: Current competitive Hero Deck visual corpus transcribed from Club card images supplied during reconciliation.}
+- {id: hero-decks-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27', supports: [official_competitive_release], durability: durable}
+- {id: hero-decks-rules-mirror, authority: published_rules_mirror, url: https://tesera.ru/images/items/2594660/UMA-TMNT-Shredder_and_Krang_Rules_pages_lr.pdf, checked_at: '2026-07-27', supports: [ultimate_destruction_die_and_rerolls], durability: durable}
+- {id: krang-club, authority: reference, url: https://www.the-unmatched.club/heroes/krang, checked_at: '2026-07-27', supports: [competitive_card_visual_corpus]}
 normalization_notes:
-- All 10 competitive Hero Deck definitions reconcile to 30 physical cards.
-- Pan-Dimensional Portal's both-players clause is scoped to the two players participating in the combat, not every player in a multiplayer game.
-- Pan-Dimensional Portal and IQ of 968 use a destruction-die BOOST symbol rather than a numeric BOOST; boost_rule is a provisional corpus-proven field requiring shared schema promotion.
-- Android Arms: Missiles has a face-up ranged-attack play mode; play_overrides is a provisional field pending a generic combat-commitment/visibility override.
+- All 10 competitive Hero Deck definitions reconcile to 30 cards.
+- Every Ultimate Destruction occurrence is an explicit random-resolution stage referencing one generic D-REQ-009 contract; no source_defined roll/add/draw/recover handlers remain.
+- Dynamic BOOST is explicit under D-REQ-010; Missiles face-up ranged commitment is explicit under D-REQ-011.
+- Portal leave-space lock is explicit state under D-REQ-006.
 - Adventures villain AI/scenario behavior is excluded.
