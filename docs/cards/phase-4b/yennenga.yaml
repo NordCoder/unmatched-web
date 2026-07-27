@@ -24,7 +24,7 @@ cards:
   - id: surprise-volley
     name: Surprise Volley
     quantity: 3
-    usable_by: [yennenga]
+    usable_by: any
     type: attack
     printed_value: 3
     boost: 3
@@ -168,11 +168,11 @@ cards:
                   selector: {kind: zone, containing_fighter: {ref: combat.opposing_fighter}}
   - {id: point-blank, name: Point Blank, quantity: 3, usable_by: [yennenga], type: versatile, printed_value: 2, boost: 2, effects: [{id: point-blank-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {relation: {adjacent: [{ref: combat.opposing_fighter}, yennenga]}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 2}]}]}]}
   - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, effects: [{id: momentous-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {own_combat_fighter_started_turn_in_different_space: true}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
-  - {id: divide-and-conquer, name: Divide and Conquer, quantity: 2, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{id: divide-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {zone_relation: {fighter: {ref: combat.own_fighter}, not_same_zone_as: yennenga}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]}]}
+  - {id: divide-and-conquer, name: Divide and Conquer, quantity: 2, usable_by: [archer], type: versatile, printed_value: 2, boost: 1, effects: [{id: divide-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {zone_relation: {fighter: {ref: combat.own_fighter}, not_same_zone_as: yennenga}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]}]}
   - id: pin-the-prey
     name: Pin the Prey
     quantity: 2
-    usable_by: any
+    usable_by: [archer]
     type: versatile
     printed_value: 1
     boost: 2
