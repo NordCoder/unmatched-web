@@ -12,17 +12,38 @@ cards:
   - {id: lurking, name: Lurking, quantity: 2, usable_by: [invisible-man], type: defense, printed_value: 2, boost: 2, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}, {op: REQUEST_CHOICE, definition: lurking_choice}]}], normalization_blocker: choices_reference_positioned_fog_tokens}
   - {id: rolling-fog, name: Rolling Fog, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, operations: [{op: GAIN_ACTION, count: 1}]}], normalization_blocker: move_one_fog_token_to_another_space}
   - {id: reign-of-terror, name: Reign of Terror, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, condition: {invisible_man_on_fog: true}, choices: [{choose: opposing_fighter}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
-  - {id: vanish, name: Vanish, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: RECOVER, target: invisible-man, amount: 1}], normalization_blocker: remove_undefeated_fighter_until_start_of_next_turn_then_place_any_space}, {trigger: scheme, condition: {action_ordinal: 1}, operations: [{op: END_TURN}]}]}
+  - {id: vanish, name: Vanish, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: TRIGGER_COMPOSITE, definition: vanish_ordered_resolution}]}], normalization_blocker: temporary_undefeated_off_board_state_and_source_owned_return_timing}
   - {id: step-lightly, name: Step Lightly, quantity: 2, usable_by: [invisible-man], type: scheme, printed_value: null, boost: 1, effects: [{trigger: scheme, choices: [{choose: adjacent_fighter}], operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: source_defined_1_or_3_based_on_fog}]}], normalization_blocker: opponent_moves_one_fog_up_to_2_spaces}
   - {id: covert-preparation, name: Covert Preparation, quantity: 3, usable_by: [invisible-man], type: versatile, printed_value: 2, boost: 1, effects: [{trigger: after_combat, operations: [{op: DRAW, count: 1}]}], normalization_blocker: sequential_owner_then_opponent_fog_movement}
   - {id: impossible-to-see, name: Impossible to See, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value: 0}, {op: PREVENT_OPERATION, target: opposing_combat_card_value, operation: value_change, duration: combat}]}]}
-  - {id: confound, name: Confound, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: REQUEST_CHOICE, definition: opponent_discard_one_or_owner_moves_each_fog}]}], normalization_blocker: alternate_branch_moves_each_positioned_fog_token}
+  - {id: confound, name: Confound, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: REQUEST_CHOICE, definition: confound_resolution}]}], normalization_blocker: alternate_branch_moves_each_positioned_fog_token}
   - {id: dreaming-of-revenge, name: Dreaming of Revenge, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 1, effects: [{trigger: after_combat, condition: {invisible_man_on_fog: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_on_fog, amount: 1}]}]}
 
 external_definitions:
   - {id: positioned-fog-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, move_token, select_token_space]}
-  - {id: temporary-off-board-undefeated, kind: proposed_generic_fighter_state, return_timing: start_of_next_turn}
+  - id: vanish_ordered_resolution
+    kind: ordered_composite
+    steps:
+      - {op: RECOVER, target: invisible-man, amount: 1}
+      - {semantic: remove_invisible_man_from_board_without_defeating_him}
+      - {semantic: schedule_start_of_next_turn_return_to_any_space}
+      - {if: {action_ordinal: 1}, operation: {op: END_TURN}}
+    blocked_steps: [temporary_undefeated_off_board_state, source_owned_return_timing]
+  - id: coded_notes_return_two
+    kind: choice
+    controller: owner
+    domain: own_hand_after_draw
+    choose: 2
+    outputs: [chosen_two, chosen_order]
   - {id: lurking-choice, kind: choice_bundle, options: [place_invisible_man_on_a_fog_space, move_one_fog_up_to_3]}
+  - id: confound_resolution
+    kind: sequential_choice_dependency
+    steps:
+      - {controller: combat_opponent, optional: true, choose: one_card_from_own_hand_to_discard, bind: discarded_card}
+      - if_no_card_discarded:
+          controller: owner
+          optional: true
+          action: move_each_fog_token_to_any_other_space
 validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 14, attack_count: 7, versatile_count: 9, defense_count: 6, scheme_count: 8}
 sources:
   - https://unmatched.cards/umdb/decks/invisible-man
@@ -34,4 +55,6 @@ sources:
   - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
 normalization_notes:
   - Fog token facts are complete, but token movement/placement and Vanish off-board lifetime remain blocked rather than encoded as custom fighter operations.
+  - Vanish is one ordered Scheme resolution: recover, remove/schedule return, then END_TURN if it was the first action. END_TURN is no longer a separate same-timing effect that could preempt earlier steps.
+  - Coded Notes and Confound no longer reference missing external definitions; their choice dependencies are explicit even though Fog movement itself remains engine-blocked.
   - Current UmDb aggregate statistics reconcile exactly to 7 Attack / 9 Versatile / 6 Defense / 8 Scheme cards; canonical individual-card spot checks were used for source-sensitive entries, and fan patched/remade Invisible Man decks were rejected.
