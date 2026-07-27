@@ -2,7 +2,13 @@ schema_version: 1
 id: ancient-leshen
 display_name: Ancient Leshen
 set_ids: [witcher-steel-and-silver]
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-007, C-REQ-010, C-REQ-011, C-REQ-013]
 movement: source_defined_by_fighter
 
 topology:
@@ -30,7 +36,7 @@ ability:
 resources: []
 persistent_state:
   - {key: ancient_leshen_attacked_this_turn, type: boolean, reset: turn_start}
-  - {key: left_space_this_turn_by_fighter, type: fighter_instance_boolean_map, reset: turn_start}
+  - {key: left_space_this_turn_by_fighter, type: fighter_instance_boolean_map, reset: turn_start, key_domain: controller_fighter_instances}
 
 deck:
   manifest: ../../cards/phase-4b/ancient-leshen.yaml
@@ -38,18 +44,49 @@ deck:
 
 rulings:
   - id: wolves-do-not-arm-leshen-bonus
-    summary: A Wolf attack does not count as the Ancient Leshen having attacked; the +3 applies only after the Leshen itself attacked earlier that turn.
-    source: https://www.the-unmatched.club/heroes/ancient-leshen
+    summary: A Wolf attack does not count as the Ancient Leshen having attacked; only an earlier Leshen attack arms the +3 bonus.
+    source_refs: [leshen-rulings]
   - id: summon-wolf-placement
-    summary: If a Wolf is off-board, Summon returns one; if both Wolves are already on the board, choose one and place it according to the Summon effect.
-    source: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+    summary: Summon returns an off-board Wolf; if both Wolves are already on board, choose one and place it according to the effect.
+    source_refs: [witcher-sas-rules-leshen]
 
 sources:
-  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/ancient-leshen}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/ancient-leshen}
+  - id: witcher-sas-rules-leshen
+    authority: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf
+    checked_at: 2026-07-27
+    supports: [Leshen and Wolf movement, Summon rules, Witcher ongoing schemes]
+  - id: leshen-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/ancient-leshen
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus, Vanish Into Murder sequence]
+  - id: leshen-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/heroes/ancient-leshen
+    checked_at: 2026-07-27
+    supports: [current Ancient Leshen ruling index]
+  - id: dormant-rule-changes
+    authority: official_ruling
+    url: https://www.the-unmatched.club/rules/rule-changes
+    checked_at: 2026-07-27
+    supports: [dormant-player checkpoint and restrictions]
+  - id: worker-c-normalization-leshen
+    authority: project_normalization
+    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
+    checked_at: 2026-07-27
+    supports: [dormant return and draw interpretation]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
-  - Ancient Leshen and Wolves have different base move values (1 and 3 respectively); movement is fighter-definition data, not a permanent SET_STATE mutation. This uses C-EXT-011.
-  - Per-turn movement history is keyed by runtime fighter instance; a shared boolean would conflate the Leshen and two Wolves. This uses C-EXT-010.
-  - Vanish Into Murder's temporary-off-board state is owned by the C-EXT-007 scheduled-removal context; no parallel boolean mirror is authoritative.
+  - Ancient Leshen and Wolves have different fighter-definition move values.
+  - Per-turn movement history is keyed by runtime fighter instance.
+  - Vanish Into Murder temporary absence is owned by the scheduled non-defeat removal context; no duplicate boolean state is authoritative.
