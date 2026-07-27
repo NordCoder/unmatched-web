@@ -8,7 +8,7 @@ verification:
   semantics: qualified
   integration: requires_shared_extension
   policy: not_applicable
-requires: [C-REQ-003, C-REQ-011]
+requires: [C-REQ-003, C-REQ-011, C-REQ-013]
 movement: 2
 
 topology:
@@ -26,15 +26,19 @@ ability:
   effects:
     - id: enraged-state
       trigger: static
+      controller: owner
+      cancellation: source_defined
       continuous: true
-      condition:
-        expr:
-          op: all
-          selector: {fighters: {definition_id: red-rider, controller: self}}
-          predicate: {status: defeated}
-      operations:
-        - {op: ADD_VALUE, target: controller_combat_cards, amount: 1}
-        - {op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: eredin, attribute: move_value, set_value: 3, source_lifetime: while_condition_true}
+      stages:
+        - id: apply
+          when:
+            expr:
+              op: all
+              selector: {fighters: {definition_id: red-rider, controller: self}}
+              predicate: {status: defeated}
+          operations:
+            - {op: ADD_VALUE, target: controller_combat_cards, amount: 1}
+            - {op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: eredin, attribute: move_value, set_value: 3, source_lifetime: while_condition_true}
 
 resources: []
 persistent_state:
@@ -58,31 +62,11 @@ rulings:
     source_refs: [eredin-rulings]
 
 sources:
-  - id: witcher-rf-rules-eredin
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Eredin fighter rules, ongoing schemes]
-  - id: eredin-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/eredin
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus, Icy Guile wording]
-  - id: eredin-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/eredin
-    checked_at: 2026-07-27
-    supports: [Enraged ruling index]
-  - id: core-combat-continuation
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
-    checked_at: 2026-07-27
-    supports: [combat-card resolution after fighter defeat]
-  - id: worker-c-normalization-eredin
-    authority: project_normalization
-    url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md
-    checked_at: 2026-07-27
-    supports: [Icy Guile self-defeat interpretation]
+  - {id: witcher-rf-rules-eredin, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Eredin fighter rules, ongoing schemes]}
+  - {id: eredin-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/eredin, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus, Icy Guile wording]}
+  - {id: eredin-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/eredin, checked_at: 2026-07-27, supports: [Enraged ruling index]}
+  - {id: core-combat-continuation, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat-card resolution after fighter defeat]}
+  - {id: worker-c-normalization-eredin, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [Icy Guile self-defeat interpretation]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
