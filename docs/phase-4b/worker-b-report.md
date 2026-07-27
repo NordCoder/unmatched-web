@@ -9,13 +9,13 @@ Verified: 10 — `daredevil`, `ghost-rider`, `luke-cage`, `moon-knight`, `genie`
 Blocked: 8 — `elektra`, `bullseye`, `dr-ellie-sattler`, `t-rex`, `houdini`, `ms-marvel`, `squirrel-girl`, `spider-man`  
 Quantity validation: PASS — 18/18 deck constructions reconcile.  
 Shared-model extension proposals: 8 generic integration requirements; none implemented by this worker.  
-Source gaps: none remaining after the adversarial audit.  
+Evidence status: no unresolved deck-list/card-text gaps; two narrow interpretations remain explicitly `uncertain` — T. Rex `Momentous Shift` footprint history and Squirrel Girl Go Nuts `empty` correction. Squirrel shared-damage propagation is confirmed by an official ruling and its downstream damage-count normalization is an explicit project decision.  
 Worker-owned artifacts: 37 — 18 fighter manifests, 18 card manifests, this report.  
 Shared semantic/control files changed: none.  
 Black Panther changed: no.  
 Merge to `main`: not performed.
 
-`blocked` means the published game behavior is established but the current shared Phase 4A model cannot encode or execute it faithfully without a reusable extension. A fighter is not kept `verified` merely because its printed data are known.
+`blocked` primarily means the current shared Phase 4A model cannot encode or execute the published behavior faithfully without a reusable extension. A blocked fighter may additionally carry an explicitly documented evidence uncertainty; semantic blocking and evidence confidence are tracked separately rather than conflated.
 
 ## Adversarial consistency audit
 
@@ -90,12 +90,37 @@ The initial manifests sometimes evaluated past-turn predicates without storing t
 - Removed Sattler card references to undeclared `insight_token_locations`. Insight movement is now represented only as explicit blocked token-instance composites tied to B-EXT-006.
 - Ghost Rider's Hellfire maneuver is represented as the maneuver's replacement movement, up to four spaces, after optional BOOST processing; spending Hellfire fixes the effective movement at four rather than adding to a BOOST.
 
+## Evidence decisions
+
+### B-EVID-001 — T. Rex `Momentous Shift` footprint history
+
+- **Status:** `uncertain`; not represented as an established official ruling.
+- **Higher-authority evidence:** published large-fighter rules establish that T. Rex is one fighter occupying two individual spaces, but no captured authoritative ruling resolves the exact `started this turn in a different space` predicate when old and new footprints overlap.
+- **Project interpretation:** conservative. If the turn-start footprint is `{A, B}` and the current footprint is `{B, C}`, T. Rex is still in starting space `B`, so `Momentous Shift` is treated as not satisfied. The condition is true only when the current footprint shares no space with the turn-start footprint.
+- **Conflicting evidence:** current Gridbeast secondary FAQ says occupying at least one new space is sufficient and both occupied spaces need not change.
+- **Disposition:** keep the project interpretation explicit and `uncertain` until an exact authoritative ruling is captured. B-EXT-001 still provides the required runtime footprint/history model independently of this evidence uncertainty.
+
+### B-EVID-002 — Squirrel Girl Go Nuts `empty` correction
+
+- **Status:** `uncertain`.
+- **Official printed evidence:** the Teen Spirit rulebook says the start-turn placement uses an `empty` adjacent space.
+- **Current evidence:** modern reference/index wording omits `empty`, and current secondary FAQ explicitly treats the printed restriction as an error and permits an otherwise legal shared-occupancy destination.
+- **Project interpretation:** follow the modern non-empty-restriction behavior: Go Nuts may use an adjacent space allowed by the small-fighter occupancy rules, including a compatible occupied space.
+- **Disposition:** retain the behavior but mark it `uncertain`; do not claim an official erratum until an exact authoritative correcting ruling is captured.
+
+### B-EVID-003 — Squirrel shared damage
+
+- **Official evidence status:** resolved for propagation. An official ruling confirms that when a small fighter takes damage, all small fighters of the same type in that space take an equal amount; with 1-health Squirrels, any positive propagated damage defeats every Squirrel in that space. The same ruling confirms the four-small-fighter capacity and shared-space adjacency.
+- **Project normalization decision:** every Squirrel that actually receives the propagated damage counts as a damaged fighter. The originating effect remains the source of every resulting damage application while provenance records the primary target separately from recipients introduced by the small-fighter propagation rule.
+- **Example:** an effect dealing 1 damage to one of four co-located Squirrels results in four damaged fighters and 4 total damage caused by that effect.
+- **Disposition:** no remaining evidence blocker for shared-damage propagation/counting under the project normalization. Runtime support remains part of B-EXT-002.
+
 ## Orchestrator decisions
 
 ### B-EXT-001 — Multi-space fighter footprint
 
 Affected: `t-rex`  
-Established rule: T. Rex is one fighter whose extended base can occupy two spaces; movement, placement, attack origin/range and historical movement predicates operate on that footprint.  
+Established rule: T. Rex is one fighter whose extended base can occupy two spaces; movement, placement and attack origin/range operate on that footprint. The exact `Momentous Shift` overlap predicate is tracked separately as B-EVID-001 and is not claimed as an established official ruling.  
 Current gap: fighter occupancy and generic MOVE/PLACE/history assume one occupied space.  
 Proposed extension: reusable fighter footprint/orientation state with occupied-space validation, rotation/path semantics, attack origin/range, turn-start footprint snapshot and movement overrides.  
 Integration status: blocks both fighter and footprint-dependent card verification.
@@ -103,9 +128,9 @@ Integration status: blocks both fighter and footprint-dependent card verificatio
 ### B-EXT-002 — Small-fighter shared occupancy
 
 Affected: `squirrel-girl`  
-Established rule: multiple Squirrels may share a space under small-fighter capacity rules, coexist with an ordinary/opposing fighter, use shared-space/pass-through semantics, and propagate relevant same-space behavior.  
-Current gap: normal fighter occupancy/path semantics assume ordinary single-occupancy fighters.  
-Proposed extension: `occupancy_class`, per-space compatibility/capacity, shared-space adjacency/pass-through and same-type co-located handling.  
+Established rule: multiple Squirrels may share a space under small-fighter capacity rules, coexist with an ordinary/opposing fighter where the small-fighter rules permit it, use shared-space/pass-through semantics, and receive same-type propagated damage. Go Nuts' use of an already occupied destination is tracked separately as B-EVID-002 and remains uncertain.  
+Current gap: normal fighter occupancy/path/damage semantics assume ordinary single-occupancy fighters and do not encode same-type shared-damage propagation/provenance.  
+Proposed extension: `occupancy_class`, per-space compatibility/capacity, shared-space adjacency/pass-through and same-type co-located damage propagation with recipient provenance.  
 Integration status: blocks both fighter and several card effects.
 
 ### B-EXT-003 — Off-board without defeat
@@ -162,16 +187,16 @@ Integration status: blocks Bullseye and Ms. Marvel verification. T. Rex's superf
 - Bullseye `Ricochet` remains reconciled as versatile, value 3, BOOST 2, x3.
 - Set-level battlefield items in the assigned Marvel sets are not fighter-owned resources/card zones and were not duplicated into fighter manifests.
 - No assigned fighter requires card ownership transfer; Black Widow mission acquisition changes location only, and Houdini BOOST cards retain ownership.
-- Metadata/quantity verification and runtime integration verification are deliberately separate: a deck may have fully verified printed data while the fighter remains blocked on a shared semantic extension.
+- Metadata/quantity verification, evidence confidence and runtime integration verification are deliberately separate: a deck may have verified printed data while a fighter remains semantic-blocked, and a specific interpretation may be marked `uncertain` without obscuring otherwise established rules.
 
 ## Validation
 
 - Assigned coverage: PASS — 18/18 fighter manifests and 18/18 card manifests.
 - Deck quantity reconciliation: PASS — 18/18.
-- Published rule/card evidence coverage: PASS — no unresolved factual/source gaps found after the second pass.
+- Published rule/card evidence coverage: QUALIFIED — ordinary printed data are covered; B-EVID-001 and B-EVID-002 remain explicitly uncertain rather than being silently promoted to official rules; B-EVID-003 propagation is official-ruling-backed and its damage-count treatment is an explicit project normalization.
 - Internal status consistency: PASS after corrections — no fighter remains `verified` when its required core runtime semantics are known to be missing.
-- Historical-state audit: PASS for identified Worker B turn-history predicates.
-- Choice/dependency audit: corrected all identified unbound choice and IF/THEN cases in the Worker B corpus.
+- Historical-state audit: PASS for declared Worker B turn-history predicates; T. Rex's exact Momentous Shift overlap interpretation remains B-EVID-001 `uncertain`.
+- Choice/dependency audit: second-pass corrections remain recorded above; this evidence update does not make a new claim that no further semantic-hardening issues exist.
 - Worker-owned path scope: PASS.
 - Shared semantic/control files changed: none.
 - Black Panther changed: no.
