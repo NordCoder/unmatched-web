@@ -54,7 +54,10 @@ rulings:
     summary: T. Rex may attack a fighter up to two spaces away, including across a fighter in an intervening space.
     source: https://unmatched.cards/umdb/decks/t-rex
   - id: t-rex-momentous-shift-footprint
-    summary: For Momentous Shift, T. Rex need only move so that its resulting footprint contains at least one space it did not occupy at turn start; both occupied spaces need not change.
+    summary: "UNCERTAIN project interpretation: a space is an individual battlefield space rather than the whole T. Rex footprint. If T. Rex still occupies any space it occupied at turn start, Momentous Shift is treated as not satisfying 'started this turn in a different space'. The condition is satisfied only when the current footprint shares no space with the turn-start footprint."
+    evidence_status: uncertain
+    project_interpretation: conservative
+    conflicting_secondary_evidence: Gridbeast states that occupying at least one new space is sufficient and that both occupied spaces need not change.
     source: https://gridbeast.gg/unmatched-rules-faq/
   - id: t-rex-still-one-fighter
     summary: Although the base occupies two spaces, T. Rex remains one fighter and space/zone-triggered effects do not trigger twice merely because both spaces qualify.
@@ -75,7 +78,8 @@ sources:
 
 normalization_notes:
   - The factual large-fighter rules are no longer an evidence gap: current sources agree on the two-space footprint, rotation/path semantics, one-way override, secret-passage prohibition, two-space melee reach, and one-fighter trigger identity.
-  - T. Rex remains blocked only because Phase 4A fighter occupancy, attack-origin, historical-footprint and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
+  - Momentous Shift remains evidence-uncertain at the footprint-history boundary. The project uses the conservative no-shared-start-space interpretation until an exact authoritative ruling is captured; current secondary FAQ evidence conflicts with that interpretation.
+  - T. Rex remains blocked because Phase 4A fighter occupancy, attack-origin, historical-footprint and MOVE/PLACE semantics assume one occupied battlefield space per fighter.
   - Audit correction: the previous attack_range_rule object was removed because it was stored in an enum-typed state without any shared semantic contract.
 
 blockers:
