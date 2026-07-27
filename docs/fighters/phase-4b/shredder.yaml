@@ -9,8 +9,7 @@ topology:
   loss_rule: primary_hero_defeated
   fighters:
   - {id: shredder, display_name: Shredder, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
-  - {id: bebop, display_name: Bebop, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
-  - {id: rocksteady, display_name: Rocksteady, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
+  - {id: bebop-and-rocksteady, display_name: Bebop & Rocksteady, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
 setup:
   hooks: []
   state_initialization: []
@@ -45,17 +44,19 @@ deck:
   construction: fixed
 rulings:
 - id: shredder-sidekick-revival
-  summary: Back to Work can recover Bebop and Rocksteady even if they were defeated, then places them as close as possible to Shredder.
+  summary: Back to Work can recover the single Bebop & Rocksteady sidekick or return that sidekick if defeated, using the source-defined placement rule.
   source: https://www.the-unmatched.club/heroes/shredder
 - id: shredder-path-token-rulings
   summary: Foot Soldiers occupy paths. Only an opposing hero moving during a boosted maneuver may remove traversed Foot Soldiers; sidekicks and effect movement cannot. Removed tokens return to supply.
   source: https://www.the-unmatched.club/rules/shredder
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27'}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Visual competitive Hero Deck corpus transcribed from Club card images supplied during reconciliation.}
+- {authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', note: Current competitive Hero Deck reference confirms Bebop & Rocksteady are one seven-health sidekick component.}
 - {authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27'}
 normalization_notes:
-- Bebop and Rocksteady are summonable runtime instances because Back to Work explicitly returns defeated sidekicks.
+- Bebop & Rocksteady are one canonical sidekick fighter instance with one token and one 7-health dial; modeling Bebop and Rocksteady as two independently damageable fighters is invalid.
+- The combined sidekick is summonable because Back to Work can return it after defeat.
 - Every deployed Foot Soldier is a concrete token instance anchored to a path_ref; a scalar deployed count is derived state only.
 - Foot Soldier edge/path semantics remain source-defined composites pending shared path_ref integration.
+- The current rulings index has an official ruling for Foot Soldiers on paths that leave the gamestate, but its verdict body still needs authoritative transcription into shared battlefield integration.
 - Adventures villain deck, threat state, initiative logic and scenario AI are excluded.
