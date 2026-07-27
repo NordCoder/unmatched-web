@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: bigfoot
 display_name: Bigfoot
 set_ids: [robin-hood-vs-bigfoot]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 3
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,14 +19,31 @@ ability:
   effects:
     - id: isolated-end-turn-draw
       trigger: turn_end
-      condition: {no_opposing_fighter_in_zone_of: bigfoot}
-      optional: true
-      operations: [{op: DRAW, count: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: optional-draw
+          when:
+            predicate: no_opposing_fighter_in_zone
+            fighter: bigfoot
+          choices:
+            - {id: draw-if-isolated, owner: controller, visibility: public, optional: true, domain: [draw_1], bind: draw_choice}
+          costs: []
+          operations:
+            - {op: DRAW, count: 1, when: {ref: choice.draw_choice}}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/bigfoot.yaml, construction: fixed}
-rulings: []
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/bigfoot}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {id: bigfoot-product-rules, authority: official_set_rules, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: bigfoot-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/bigfoot, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: bigfoot-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [zone_checks]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
