@@ -29,7 +29,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: attack
+    type: versatile
     printed_value: 0
     boost: 1
     tags: []
@@ -45,7 +45,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: attack
+    type: versatile
     printed_value: 3
     boost: 2
     tags: []
@@ -87,7 +87,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: versatile
+    type: attack
     printed_value: 3
     boost: 2
     tags: []
@@ -105,7 +105,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: versatile
+    type: attack
     printed_value: 2
     boost: 3
     tags: []
@@ -152,7 +152,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: versatile
+    type: defense
     printed_value: 2
     boost: 1
     tags: []
@@ -199,7 +199,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [ghost-rider]
-    type: defense
+    type: versatile
     printed_value: 2
     boost: 1
     tags: []
