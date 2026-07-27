@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: sinbad
 display_name: Sinbad
 set_ids: [battle-of-legends-vol-1]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,18 +19,32 @@ ability:
   effects:
     - id: voyage-maneuver-movement
       trigger: maneuver_movement_value
-      continuous: true
-      operations: [{op: ADD_VALUE, target: maneuver_move_distance, amount: count_voyage_cards_in_discard}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: add-voyage-movement
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: ADD_VALUE
+              target: maneuver_move_distance
+              amount:
+                expr: count
+                selector: {kind: card, owner: self, zone: discard, tag: voyage}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/sinbad.yaml, construction: fixed}
-rulings:
-  - id: sinbad-voyage-count
-    summary: Only Voyage cards currently in Sinbad's discard pile increase maneuver movement and Voyage combat values that count other Voyages.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/battle-of-legends-vol-1-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/sinbad}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
+  - {id: sinbad-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: sinbad-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/sinbad, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, voyage_cards]}
+  - {id: sinbad-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [voyage_discard_count]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
