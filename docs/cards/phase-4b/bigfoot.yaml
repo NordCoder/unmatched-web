@@ -1,28 +1,89 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: bigfoot
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
   - {id: larger-than-life, name: Larger Than Life, quantity: 3, usable_by: [bigfoot], type: attack, printed_value: 6, boost: 3, effects: []}
-  - {id: savagery, name: Savagery, quantity: 3, usable_by: [bigfoot], type: attack, printed_value: 4, boost: 3, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_bigfoot, amount: 1}]}]}
-  - {id: crash-through-the-trees, name: Crash Through the Trees, quantity: 2, usable_by: [bigfoot], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, operations: [{op: MOVE, target: bigfoot, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
-  - {id: jackalope-horns, name: Jackalope Horns, quantity: 3, usable_by: [jackalope], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: MOVE, target: jackalope, max_distance: 5, overrides: [may_move_through_opposing_fighters]}, {op: REQUEST_CHOICE, definition: jackalope_horns_adjacent_fighter}, {op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]}]}
-  - {id: hoax, name: Hoax, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
-  - {id: disengage, name: Disengage, quantity: 2, usable_by: any, type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, choices: [{choose: empty_space_in_own_combat_fighter_zone}], operations: [{op: PLACE, target: own_combat_fighter, destination_rule: chosen_space}]}]}
-  - {id: its-just-your-imagination, name: "It's Just Your Imagination", quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {fighter_started_turn_in_different_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+  - {id: savagery, name: Savagery, quantity: 3, usable_by: [bigfoot], type: attack, printed_value: 4, boost: 3, effects: [{id: savagery-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, adjacent_to: bigfoot}}, amount: 1}]}]}]}
+  - {id: crash-through-the-trees, name: Crash Through the Trees, quantity: 2, usable_by: [bigfoot], type: scheme, printed_value: null, boost: 3, effects: [{id: crash-move, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: bigfoot, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}]}
+  - id: jackalope-horns
+    name: Jackalope Horns
+    quantity: 3
+    usable_by: [jackalope]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: jackalope-horns-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-jackalope, when: always, choices: [], costs: [], operations: [{op: MOVE, target: jackalope, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}
+          - id: choose-adjacent-fighter
+            when: {selector_nonempty: {kind: fighter, adjacent_to: jackalope}}
+            choices:
+              - {id: choose-target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: jackalope}, bind: target_fighter}
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: 2}]
+  - {id: hoax, name: Hoax, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, effects: [{id: hoax-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.own_fighter}, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}]}
+  - id: disengage
+    name: Disengage
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 2
+    effects:
+      - id: disengage-place
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: choose-empty-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, empty: true, in_zone_of: {ref: combat.own_fighter}}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: {ref: combat.own_fighter}, destination: {ref: choice.destination}}]
+  - {id: its-just-your-imagination, name: "It's Just Your Imagination", quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, effects: [{id: imagination-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: momentous-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {own_combat_fighter_started_turn_in_different_space: true}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
 
-external_definitions:
-  - {id: jackalope_horns_adjacent_fighter, kind: choice, domain: fighter_adjacent_to_jackalope_after_move}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/bigfoot
-  - https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-normalization_notes:
-  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
-  - Card quantities, users, values and BOOST values were rechecked against the current published UmDb namespace; fan balance-patch variants were excluded.
+  - {id: bigfoot-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/bigfoot, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: bigfoot-set-rules, authority: official_set_rules, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/, checked_at: 2026-07-27, supports: [set_rules, movement]}
+  - {id: bigfoot-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [disengage_errata]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
