@@ -1,0 +1,67 @@
+schema_version: 1
+id: annie-christmas
+display_name: Annie Christmas
+set_ids: [tales-to-amaze]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-012, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: annie-christmas, display_name: Annie Christmas, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: charlie, display_name: Charlie, role: sidekick, count: 1, attack_type: ranged, starting_health: 8, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: necklace-of-pearls
+  controller: owner
+  effects:
+    - id: underdog-attack-bonus
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      continuous: true
+      stages:
+        - id: apply
+          when: {attacker: annie-christmas, annie_health_less_than_defender: true}
+          operations: [{op: ADD_VALUE, target: annie_attack, amount: 2}]
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/annie-christmas.yaml
+  construction: fixed
+
+rulings:
+  - id: annie-static-bonus-not-cancelable
+    summary: Necklace of Pearls is a character ability/static bonus, not an effect on the combat card, so ordinary effect cancellation does not cancel it.
+    source_refs: [annie-rulings]
+  - id: mississippi-queen-damage-still-dealt
+    summary: Mississippi Queen clamps Annie's health at 1 but does not convert incoming damage into prevented damage; damage still counts as dealt for rules that observe damage dealt.
+    source_refs: [annie-mississippi-ruling]
+
+sources:
+  - {id: annie-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/annie-christmas, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: annie-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/annie-christmas, checked_at: 2026-07-27, supports: [Necklace of Pearls ruling index]}
+  - {id: annie-mississippi-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01, checked_at: 2026-07-27, supports: [Mississippi Queen damage-preserving health floor]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - Competitive hero behavior only. No Adventures villain, minion, initiative, threat, or scenario state is modeled here.

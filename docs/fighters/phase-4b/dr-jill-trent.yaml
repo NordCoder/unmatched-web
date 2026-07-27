@@ -1,0 +1,91 @@
+schema_version: 1
+id: dr-jill-trent
+display_name: Dr. Jill Trent
+set_ids: [tales-to-amaze]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: dr-jill-trent, display_name: Dr. Jill Trent, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: daisy, display_name: Daisy, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: active_gadget, value: none}
+
+ability:
+  id: gadgetology
+  controller: owner
+  effects:
+    - id: choose-active-gadget
+      trigger: turn_start
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose
+          choices: [{id: gadget, owner: controller, visibility: public, optional: false, domain: [hypnoray-blaster, ultrabiotic-tonic], bind: active_gadget_choice}]
+        - id: set
+          operations: [{op: SET_STATE, key: active_gadget, value: {ref: active_gadget_choice}}]
+    - id: hypnoray-blaster
+      trigger: during_combat
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: reveal
+          when: {attacker: dr-jill-trent, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
+          operations: [{op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed_card}]
+        - id: add
+          when: {ref: revealed_card, exists: true}
+          operations: [{op: ADD_VALUE, target: own_attack_card, amount: {ref: revealed_card.boost_or_0}}]
+    - id: ultrabiotic-tonic
+      trigger: after_combat
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: recover
+          when: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
+          operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
+
+resources: []
+persistent_state:
+  - {key: active_gadget, type: enum, reset: never, visibility: public}
+
+deck:
+  manifest: ../../cards/phase-4b/dr-jill-trent.yaml
+  construction: fixed
+
+rulings:
+  - id: no-gadget-before-first-turn
+    summary: Before Jill has taken her first turn, no gadget is active; the first choice occurs at the start of that turn.
+    source_refs: [jill-rulings]
+  - id: gadgets-use-printed-values
+    summary: Gadget comparisons use printed combat-card values; an undefended attack treats the absent defense printed value as 0.
+    source_refs: [jill-rulings]
+
+sources:
+  - {id: tta-set-rules-jill, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf, checked_at: 2026-07-27, supports: [competitive hero setup and gadget component context]}
+  - {id: jill-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/dr-jill-trent, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: jill-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/dr-jill-trent, checked_at: 2026-07-27, supports: [gadget timing and printed-value rulings]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - Competitive hero behavior only. Adventures enemies and scenario systems are intentionally excluded.
+  - active_gadget is the single authoritative public enum state; the physical gadget token is presentation only.

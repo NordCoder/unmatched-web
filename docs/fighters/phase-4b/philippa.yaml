@@ -1,0 +1,73 @@
+schema_version: 1
+id: philippa
+display_name: Philippa
+set_ids: [witcher-realms-fall]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-008, C-REQ-011, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: philippa, display_name: Philippa, role: hero, count: 1, attack_type: ranged, starting_health: 12, starts_on_board: true, summonable: false}
+    - {id: dijkstra, display_name: Dijkstra, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks: []
+  state_initialization:
+    - {key: maneuver_actions_taken_this_turn, value: 0}
+
+ability:
+  id: two-steps-ahead
+  controller: owner
+  effects:
+    - id: refill-to-four
+      trigger: turn_end
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: optional-refill
+          when: {hand_size: {lt: 4}}
+          choices: [{id: refill, owner: controller, visibility: private, optional: true, domain: [refill_to_four], bind: refill_choice}]
+        - id: draw
+          when: {ref: refill_choice, exists: true}
+          operations:
+            - op: DRAW
+              count: {expr: {op: subtract, left: 4, right: {ref: controller.hand_size}}}
+
+resources: []
+persistent_state:
+  - {key: maneuver_actions_taken_this_turn, type: integer, reset: turn_start}
+
+deck:
+  manifest: ../../cards/phase-4b/philippa.yaml
+  construction: fixed
+
+rulings:
+  - id: ability-not-usable-at-four-plus
+    summary: Two Steps Ahead is available only when Philippa's controller has fewer than four cards; it never discards down to four.
+    source_refs: [philippa-rulings]
+
+sources:
+  - {id: witcher-rf-rules-philippa, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Philippa fighter rules, Witcher ongoing schemes]}
+  - {id: philippa-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/philippa, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: philippa-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/philippa, checked_at: 2026-07-27, supports: [Two Steps Ahead and Philippa ruling index]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - The canonical published ability name is TWO STEPS AHEAD.
+  - Backup Plan requires exact health assignment; Polymorphy requires source-lifetime movement override.

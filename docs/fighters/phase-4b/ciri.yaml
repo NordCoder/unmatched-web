@@ -1,0 +1,77 @@
+schema_version: 1
+id: ciri
+display_name: Ciri
+set_ids: [witcher-steel-and-silver]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-005, C-REQ-006, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: ciri, display_name: Ciri, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: ihuarraquax, display_name: Ihuarraquax, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: source
+  controller: owner
+  effects:
+    - id: source-cancellation-protection
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      continuous: true
+      stages:
+        - id: protect
+          when: {expr: {op: gte, left: {ref: resource.source-count}, right: 7}}
+          operations: [{op: PREVENT_OPERATION, target_operation: CANCEL_EFFECTS, scope: effects_on_controller_action_cards}]
+
+resources:
+  - id: source-count
+    kind: counter
+    visibility: public
+    mutable: false
+    initial: 0
+    derivation:
+      expr: count
+      selector: {zone: discard, owner: self, card_filter: {tag: source}}
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/ciri.yaml
+  construction: fixed
+
+rulings:
+  - id: source-threshold-resolution
+    summary: Count Source cards in discard when a Source effect resolves and apply only the highest listed threshold currently met.
+    source_refs: [witcher-sas-rules-ciri]
+  - id: seven-source-protection
+    summary: At seven or more Source cards in discard, effects on the controller's action cards cannot be canceled; this is deck scope, not only cards used by Ciri herself.
+    source_refs: [witcher-sas-rules-ciri]
+
+sources:
+  - {id: witcher-sas-rules-ciri, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-SaS-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Source threshold rules, cancellation protection, Witcher ongoing scheme lifecycle]}
+  - {id: ciri-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ciri, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus, Source tags]}
+  - {id: ciri-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/ciri, checked_at: 2026-07-27, supports: [current Ciri ruling index]}
+  - {id: general-search-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/general-rulings, checked_at: 2026-07-27, supports: [post-search deck shuffle rule]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, source_card_copies: 13}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - source-count is a read-only derived expression over authoritative discard-zone card instances, not a mutable token.
+  - Cancellation protection applies to the controller's action cards, including Ihuarraquax and ANY cards.

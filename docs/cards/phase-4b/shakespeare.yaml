@@ -1,0 +1,241 @@
+schema_version: 1
+fighter_id: shakespeare
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-001, C-REQ-013]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+card_zones:
+  - {id: line, owner: self, visibility: public, ordered: true, lifecycle: shakespeare_line}
+
+cards:
+  - id: horror
+    name: Horror
+    quantity: 5
+    usable_by: [shakespeare]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: [line, syllables:2]
+    effects:
+      - id: horror-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {zone: line, owner: self, card_filter: {definition_id: horror}, exclude: this_card}
+    completion_effects:
+      - id: horror-completion
+        trigger: line_completion
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: resolve
+            operations:
+              - op: DEAL_EFFECT_DAMAGE
+                target: opposing_combat_fighter
+                amount:
+                  expr: count
+                  selector: {zone: line, owner: self, exclude: this_card}
+  - id: my-kingdom-for-a-horse
+    name: My Kingdom For A Horse
+    quantity: 3
+    usable_by: [shakespeare]
+    type: attack
+    printed_value: 5
+    boost: 3
+    tags: [line, syllables:6]
+    effects: []
+    completion_effects: [{id: kingdom-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: GAIN_ACTION, count: 2}]}]}]
+  - id: the-ides-of-march
+    name: The Ides Of March
+    quantity: 2
+    usable_by: [shakespeare]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: [line, syllables:4]
+    effects: []
+    completion_effects:
+      - id: ides-completion
+        trigger: line_completion
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: choose-target
+            choices: [{id: target, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: opposing_fighters}}, bind: damage_target}]
+          - {id: damage, when: {ref: damage_target, exists: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: damage_target}, amount: 2}]}
+  - id: alas
+    name: Alas
+    quantity: 2
+    usable_by: [shakespeare]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: [line, syllables:2]
+    effects: [{id: alas-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: recover, when: {combat_result: lost}, operations: [{op: RECOVER, target: shakespeare, amount: 1}]}]}]
+    completion_effects: [{id: alas-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: DRAW, count: 2}, {op: RECOVER, target: shakespeare, amount: 2}]}]}]
+  - id: once-more-unto-the-breach
+    name: Once More Unto The Breach
+    quantity: 2
+    usable_by: [shakespeare]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [line, syllables:6]
+    effects:
+      - id: breach-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-actor
+            choices: [{id: actor, owner: controller, visibility: public, optional: false, domain: {selector: {fighters: {definition_id: actor, status: defeated}}}, bind: actor_to_return}]
+          - {id: return, when: {ref: actor_to_return, exists: true}, operations: [{op: RETURN_FIGHTER, target: {ref: actor_to_return}, destination: any_space_in_shakespeare_zone, health_rule: source_defined_full_token_health}]}
+    completion_effects:
+      - id: breach-completion
+        trigger: line_completion
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: choose-destinations
+            choices:
+              - id: actor-destinations
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {mapping: {keys: {selector: {fighters: {definition_id: actor, status: defeated}}}, values: {selector: {spaces: in_shakespeare_zone}}}}
+                bind: actor_destinations
+          - {id: return-all, operations: [{op: RETURN_FIGHTER, target: {selector: {fighters: {definition_id: actor, status: defeated}}}, destination_rule: {ref: actor_destinations}, health_rule: source_defined_full_token_health}]}
+  - id: again
+    name: Again
+    quantity: 3
+    usable_by: [actor]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [line, syllables:2]
+    effects:
+      - id: again-after
+        trigger: after_combat_before_line_append
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-return
+            choices: [{id: return-first, owner: controller, visibility: public, optional: true, domain: [return_first_line_card], bind: return_first}]
+          - {id: return, when: {ref: return_first, exists: true}, operations: [{op: MOVE_CARD, from_zone: line, to_zone: hand, selector: first_card}]}
+    completion_effects: [{id: again-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: DRAW, count: 1}]}]}]
+  - id: such-sweet-sorrow
+    name: Such Sweet Sorrow
+    quantity: 2
+    usable_by: [actor]
+    type: versatile
+    printed_value: 4
+    boost: 2
+    tags: [line, syllables:4]
+    effects: [{id: sorrow-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}]}]}]
+    completion_effects: [{id: sorrow-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: DRAW, count: 1}]}]}]
+  - id: all-are-punished
+    name: All Are Punished
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: [line, syllables:4]
+    effects: [{id: punished-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_other_fighter_in_own_combat_fighter_zone, amount: 1}]}]}]
+    completion_effects: [{id: punished-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: DRAW, count: 1}]}]}]
+  - id: places-places
+    name: "Places, Places!"
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: [line, syllables:4]
+    effects: [{id: places-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: {selector: {fighters: {definition_id: actor, controller: self}}}, max_distance: 3}]}]}]
+    completion_effects: [{id: places-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: resolve, operations: [{op: PLACE, target: shakespeare, destination: {selector: {spaces: in_zone_with_no_controller_actor}}}]}]}]
+  - id: deceive
+    name: Deceive
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: [line, syllables:2]
+    effects: [{id: deceive-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]
+    completion_effects: [{id: deceive-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: return-self, operations: [{op: MOVE_CARD, from_zone: line, to_zone: hand, selector: this_card}]}]}]
+  - id: et-tu-brute
+    name: "Et Tu, Brute?"
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: [line, syllables:4]
+    effects:
+      - id: brute-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {fighters: controller_fighters, adjacent_to: opposing_combat_fighter}
+    completion_effects:
+      - id: brute-completion
+        trigger: line_completion
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: choose-destinations
+            choices:
+              - id: destinations
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {mapping: {keys: {selector: {fighters: controller_fighters}}, values: {selector: {spaces: any}}}}
+                bind: fighter_destinations
+          - {id: place, operations: [{op: PLACE, target: {selector: {fighters: controller_fighters}}, destination_rule: {ref: fighter_destinations}}]}
+  - id: revise
+    name: Revise
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 2
+    tags: [line, syllables:2]
+    effects: [{id: revise-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, operations: [{op: DRAW, count: {expr: {op: if, condition: {combat_result: won}, then: 2, else: 1}}}]}]}]
+    completion_effects: [{id: revise-completion, trigger: line_completion, controller: owner, cancellation: protected, stages: [{id: move-all, operations: [{op: MOVE, target: {selector: {fighters: all_fighters}}, max_distance: 2}]}]}]
+
+external_definitions: []
+sources:
+  - {id: slings-rules-shakespeare, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Line lifecycle and completion semantics]}
+  - {id: shakespeare-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/william-shakespeare, checked_at: 2026-07-27, supports: [published card metadata, syllables and effects]}
+  - {id: shakespeare-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/shakespeare, checked_at: 2026-07-27, supports: [current Shakespeare rulings]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+normalization_notes:
+  - completion_effects are definition-level effect records consumed by the first-class Line system; they are not procedural external definitions.
+  - Completion effects are cancellation-protected relative to ordinary combat-card effect cancellation.
+  - Line cleanup discards only card instances still in the Line after completion; Deceive can move itself to hand before that cleanup.

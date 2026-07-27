@@ -1,0 +1,78 @@
+schema_version: 1
+id: titania
+display_name: Titania
+set_ids: [slings-and-arrows]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-002, C-REQ-003, C-REQ-011, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: titania, display_name: Titania, role: hero, count: 1, attack_type: ranged, starting_health: 12, starts_on_board: true, summonable: false}
+    - {id: oberon, display_name: Oberon, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+
+setup:
+  hooks:
+    - stage: character_configuration
+      operations: [{op: SHUFFLE, zone: glamour-deck}]
+  state_initialization: []
+
+ability:
+  id: fairy-magic
+  controller: owner
+  effects:
+    - id: expose-glamour
+      trigger: turn_start
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: expose
+          when: {active_glamour_zone_empty: true, glamour_deck_not_empty: true}
+          operations: [{op: MOVE_CARD, from_zone: glamour-deck, to_zone: active-glamour, selector: top_card, face_up: true}]
+
+resources:
+  - id: glamour-card-pool
+    kind: auxiliary_card_pool
+    visibility: public
+    definitions_from: ../../cards/phase-4b/titania.yaml#auxiliary_cards
+  - {id: glamour-deck, kind: card_zone, visibility: private_order, initial: six_glamour_instances}
+  - {id: active-glamour, kind: card_zone, visibility: public, initial: empty}
+  - {id: glamour-discard, kind: card_zone, visibility: public, initial: empty}
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/titania.yaml
+  construction: fixed
+
+rulings:
+  - id: glamour-lifecycle
+    summary: The six Glamour runtime instances are shuffled at setup; reveal one at turn start only when none is active; discarded Glamours do not automatically reshuffle.
+    source_refs: [slings-rules-titania]
+  - id: active-glamour-opponent-protection
+    summary: An opponent cannot discard Titania's active face-up Glamour without explicit authority.
+    source_refs: [titania-rulings]
+
+sources:
+  - {id: slings-rules-titania, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Glamour setup and lifecycle, Titania fighter rules]}
+  - {id: titania-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/titania, checked_at: 2026-07-27, supports: [fighter metadata, published action deck and Glamour definitions]}
+  - {id: titania-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/titania, checked_at: 2026-07-27, supports: [current Titania ruling index]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, external_gameplay_cards: 6}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - Glamour definitions live under the deck manifest auxiliary_cards section; runtime instances occupy explicit zones.
+  - The setup SHUFFLE hook is the single authoritative randomization step.
