@@ -1,0 +1,50 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: sinbad
+display_name: Sinbad
+set_ids: [battle-of-legends-vol-1]
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: sinbad, display_name: Sinbad, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: porter, display_name: Porter, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: voyages
+  controller: owner
+  effects:
+    - id: voyage-maneuver-movement
+      trigger: maneuver_movement_value
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: add-voyage-movement
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - op: ADD_VALUE
+              target: maneuver_move_distance
+              amount:
+                expr: count
+                selector: {kind: card, owner: self, zone: discard, tag: voyage}
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/sinbad.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: sinbad-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: sinbad-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/sinbad, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, voyage_cards]}
+  - {id: sinbad-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [voyage_discard_count]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none

@@ -1,0 +1,125 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: medusa
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: gaze-of-stone, name: Gaze of Stone, quantity: 3, usable_by: [medusa], type: attack, printed_value: 2, boost: 4, effects: [{id: gaze-of-stone-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 8}]}]}]}
+  - id: second-shot
+    name: Second Shot
+    quantity: 3
+    usable_by: [medusa]
+    type: attack
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: second-shot-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-boost
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+  - id: hiss-and-slither
+    name: Hiss and Slither
+    quantity: 3
+    usable_by: [medusa]
+    type: defense
+    printed_value: 4
+    boost: 3
+    effects:
+      - id: hiss-and-slither-discard
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: opponent-chooses-discard
+            when: always
+            choices:
+              - {id: opponent-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1}]
+  - id: a-momentary-glance
+    name: A Momentary Glance
+    quantity: 2
+    usable_by: [medusa]
+    type: scheme
+    printed_value: null
+    boost: 4
+    effects:
+      - id: momentary-glance-damage
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: always
+            choices:
+              - {id: choose-target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, zone_relation: same_zone_as_medusa}, bind: target_fighter}
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: 2}]
+  - id: clutching-claws
+    name: Clutching Claws
+    quantity: 3
+    usable_by: [harpy]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: clutching-claws-discard
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: opponent-chooses-discard
+            when: always
+            choices:
+              - {id: opponent-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1}]
+  - {id: the-hounds-of-mighty-zeus, name: The Hounds of Mighty Zeus, quantity: 2, usable_by: [harpy], type: versatile, printed_value: 4, boost: 3, effects: [{id: hounds-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-harpies, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self, fighter_id: harpy}}, max_distance: 3}]}]}]}
+  - id: winged-frenzy
+    name: Winged Frenzy
+    quantity: 2
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: winged-frenzy-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-friendly, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self}}, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]}
+          - id: choose-defeated-harpy
+            when: {selector_nonempty: {kind: fighter, owner: self, fighter_id: harpy, state: defeated}}
+            choices:
+              - {id: choose-harpy, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: harpy, state: defeated}, bind: returned_harpy}
+              - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: medusa}, bind: return_space}
+            costs: []
+            operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_harpy}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}]
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: dash, name: Dash, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: dash-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.own_fighter}, max_distance: 3}]}]}]}
+  - {id: snipe, name: Snipe, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: snipe-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: medusa-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/medusa, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: medusa-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat_timing, harpy_return]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none

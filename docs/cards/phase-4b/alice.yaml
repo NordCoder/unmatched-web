@@ -1,0 +1,217 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: alice
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: claws-that-catch
+    name: Claws That Catch
+    quantity: 2
+    usable_by: [jabberwock]
+    type: attack
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: claws-that-catch-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {combat: {opposing_fighter_role: hero}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - id: momentous-shift
+    name: Momentous Shift
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - id: momentous-shift-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {history: {own_combat_fighter_started_turn_in_different_space: true}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - id: mad-as-a-hatter
+    name: Mad as a Hatter
+    quantity: 2
+    usable_by: [alice]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    effects:
+      - id: mad-as-a-hatter-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-friendly-fighters, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self}}, max_distance: 2}]}
+          - {id: toggle-size, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}
+  - id: manxome-foe
+    name: Manxome Foe
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: manxome-foe-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: discard-top-card
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DISCARD, from_zone: deck, selector: {position: top}, count: 1, bind_result: discarded_top}
+          - id: add-discarded-boost
+            when: {result_exists: {ref: result.discarded_top.card}}
+            choices: []
+            costs: []
+            operations:
+              - {op: ADD_VALUE, target: this_card, amount: {ref: result.discarded_top.card.boost}}
+  - id: feint
+    name: Feint
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 2
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+  - id: regroup
+    name: Regroup
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 2
+    effects:
+      - id: regroup-draw
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: looking-glass
+    name: Looking Glass
+    quantity: 2
+    usable_by: [alice]
+    type: defense
+    printed_value: 2
+    boost: 4
+    effects:
+      - id: looking-glass-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-two-effects
+            when: always
+            choices:
+              - id: choose-looking-glass-effects
+                owner: controller
+                visibility: public
+                optional: false
+                domain: [draw_2, recover_alice_3, place_alice_any_other_space]
+                bind: selected_effects
+                min: 2
+                max: 2
+                distinct: true
+                order_matters: true
+            costs: []
+            operations: []
+          - {id: first-draw, when: {choice_item: {ref: choice.selected_effects[0]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: first-recover, when: {choice_item: {ref: choice.selected_effects[0]}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
+          - {id: first-place, when: {choice_item: {ref: choice.selected_effects[0]}, equals: place_alice_any_other_space}, choices: [{id: choose-first-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: first_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.first_place_space}}]}
+          - {id: second-draw, when: {choice_item: {ref: choice.selected_effects[1]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: second-recover, when: {choice_item: {ref: choice.selected_effects[1]}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
+          - {id: second-place, when: {choice_item: {ref: choice.selected_effects[1]}, equals: place_alice_any_other_space}, choices: [{id: choose-second-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: second_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.second_place_space}}]}
+  - id: snicker-snack
+    name: Snicker-Snack
+    quantity: 1
+    usable_by: [alice]
+    type: attack
+    printed_value: 3
+    boost: 4
+    effects:
+      - id: snicker-snack-discard
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: inspect-hand, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: LOOK_AT, source: {zone: hand, owner: combat_opponent}, viewer: controller}]}
+          - id: choose-discard
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-opponent-card, owner: controller, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1}]
+  - {id: o-frabjous-day, name: O Frabjous Day!, quantity: 1, usable_by: [alice], type: attack, printed_value: 4, boost: 4, effects: [{id: o-frabjous-toggle, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: toggle, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}]}
+  - {id: the-other-side-of-the-mushroom, name: The Other Side of the Mushroom, quantity: 1, usable_by: [alice], type: attack, printed_value: 3, boost: 4, effects: [{id: mushroom-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: alice, max_distance: 3}]}, {id: toggle, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}]}
+  - {id: eat-me, name: Eat Me, quantity: 2, usable_by: [alice], type: scheme, printed_value: null, boost: 3, effects: [{id: eat-me-effect, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: alice, max_distance: 3}]}, {id: toggle, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}]}
+  - {id: im-late-im-late, name: "I'm Late, I'm Late", quantity: 3, usable_by: [alice], type: versatile, printed_value: 2, boost: 3, effects: [{id: im-late-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: alice, max_distance: 5}]}, {id: toggle, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}]}
+  - {id: drink-me, name: Drink Me, quantity: 2, usable_by: [alice], type: scheme, printed_value: null, boost: 2, effects: [{id: drink-me-effect, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: toggle, when: always, choices: [], costs: [], operations: [{op: CHANGE_STATE, key: alice_size, transition: toggle_big_small}]}]}]}
+  - id: jaws-that-bite
+    name: Jaws That Bite
+    quantity: 2
+    usable_by: [jabberwock]
+    type: attack
+    printed_value: 4
+    boost: 2
+    effects:
+      - id: jaws-that-bite-damage
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: always
+            choices:
+              - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: jabberwock}, bind: target_fighter}
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: 2}]
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: alice-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/alice, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: alice-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat_timing, general_resolution]}
+  - {id: alice-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [size_state, choice_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none

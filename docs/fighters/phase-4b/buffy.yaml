@@ -1,0 +1,61 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: buffy
+display_name: Buffy
+set_ids: [buffy-the-vampire-slayer]
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-014]
+movement: 3
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: buffy, display_name: Buffy, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: giles, display_name: Giles, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: false, summonable: false, setup_selectable: true}
+    - {id: xander, display_name: Xander, role: sidekick, count: 1, attack_type: melee, starting_health: 6, starts_on_board: false, summonable: false, setup_selectable: true}
+setup:
+  hooks:
+    - stage: CHARACTER_CONFIGURATION
+      requires: [A-REQ-014]
+      choices:
+        - {id: choose-active-sidekick, owner: controller, visibility: public, optional: false, domain: [giles, xander], bind: selected_sidekick}
+      operations:
+        - {op: SET_STATE, key: selected_sidekick, value: {ref: choice.selected_sidekick}}
+        - {op: SET_ACTIVE_ROSTER, active: [buffy, {ref: choice.selected_sidekick}], inactive_definitions: {all_except_selected: [giles, xander]}, requires: A-REQ-014}
+    - stage: DECK_CONSTRUCTION
+      operations:
+        - {op: CONSTRUCT_DECK, base_card_count: 25, selected_group_from_state: selected_sidekick, selected_group_card_count: 5, final_count: 30}
+  state_initialization: []
+ability:
+  id: slayer
+  controller: owner
+  effects:
+    - id: pass-through-opponents
+      trigger: movement_rule
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: apply-pass-through
+          when: {moving_fighter: buffy}
+          choices: []
+          costs: []
+          operations:
+            - {op: MODIFY_MOVEMENT_LEGALITY, target: buffy, allow_pass_through: opposing_fighters, forbid_end_occupied: true}
+resources: []
+persistent_state:
+  - {key: selected_sidekick, type: fighter_ref, reset: never, visibility: public}
+deck: {manifest: ../../cards/phase-4b/buffy.yaml, construction: choose_groups}
+interpretations: []
+sources:
+  - {id: buffy-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, sidekick_choice, deck_construction, ability]}
+  - {id: buffy-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/buffy, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, sidekick_packages]}
+  - {id: buffy-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [setup_order, movement_scope]}
+validation:
+  quantity: {result: pass, available_pool_count: 35, game_deck_count: 30, quantity_sum: 35}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

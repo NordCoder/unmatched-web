@@ -1,0 +1,64 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: alice
+display_name: Alice
+set_ids: [battle-of-legends-vol-1]
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: alice, display_name: Alice, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - {id: jabberwock, display_name: Jabberwock, role: sidekick, count: 1, attack_type: melee, starting_health: 8, starts_on_board: true, summonable: false}
+setup:
+  hooks:
+    - stage: POST_PLACEMENT_CONFIGURATION
+      choices:
+        - {id: choose-alice-size, owner: controller, visibility: public, optional: false, domain: [big, small], bind: chosen_size}
+      operations:
+        - {op: SET_STATE, key: alice_size, value: {ref: choice.chosen_size}}
+  state_initialization: [{key: alice_size, value: setup_choice}]
+ability:
+  id: the-big-and-small-of-it
+  controller: owner
+  effects:
+    - id: alice-big-attack
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: apply-big-attack
+          when: {state: {key: alice_size, equals: big}, combat: {attacker: alice}}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: alice_attack, amount: 2}]
+    - id: alice-small-defense
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: apply-small-defense
+          when: {state: {key: alice_size, equals: small}, combat: {defender: alice}}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: alice_defense, amount: 1}]
+resources: []
+persistent_state:
+  - {key: alice_size, type: enum, values: [big, small], reset: never, visibility: public}
+deck: {manifest: ../../cards/phase-4b/alice.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: alice-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, setup, ability]}
+  - {id: alice-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/alice, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: alice-current-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [size_state_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none

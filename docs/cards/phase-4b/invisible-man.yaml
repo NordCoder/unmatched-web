@@ -1,0 +1,309 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: invisible-man
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-005]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: slip-away
+    name: Slip Away
+    quantity: 3
+    usable_by: [invisible-man]
+    type: attack
+    printed_value: 3
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: slip-away-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-fog
+            when: always
+            choices:
+              - {id: choose-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-empty-space, owner: controller, visibility: public, optional: false, domain: {kind: space, occupancy: no_fighter}, bind: fog_destination}
+            costs: []
+            operations:
+              - {op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.fog_destination}, requires: A-REQ-003}
+          - {id: place-invisible-man, when: always, choices: [], costs: [], operations: [{op: PLACE, target: invisible-man, destination: {ref: choice.fog_destination}}]}
+  - id: surprise-attack
+    name: Surprise Attack
+    quantity: 2
+    usable_by: [invisible-man]
+    type: attack
+    printed_value: 5
+    boost: 1
+    requires: [A-REQ-003]
+    effects:
+      - {id: surprise-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+      - id: surprise-move-fog
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-fog-and-destination
+            when: {position: {fighter: invisible-man, on_component_type: fog}}
+            choices:
+              - {id: choose-current-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self, same_space_as: invisible-man}, bind: chosen_fog}
+              - {id: choose-fog-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, destination_rule: any_other_legal_space}, bind: destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, requires: A-REQ-003}]
+  - {id: emerge-from-mist, name: Emerge from Mist, quantity: 2, usable_by: [invisible-man], type: attack, printed_value: 3, boost: 2, effects: [{id: emerge-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {fighter: invisible-man, started_turn_on_component_type: fog}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - id: coded-notes
+    name: Coded Notes
+    quantity: 2
+    usable_by: [invisible-man]
+    type: defense
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: coded-notes-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 3}]}
+          - id: choose-two-from-hand
+            when: always
+            choices:
+              - {id: choose-two, owner: controller, visibility: private, optional: false, domain: {zone: hand, owner: self}, bind: chosen_two, min: 2, max: 2, distinct: true, order_matters: true}
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: {ref: choice.chosen_two}}
+              - {op: REORDER, zone: deck, selector: {ref: choice.chosen_two}, order: {ref: choice.chosen_two}, position: top}
+  - id: into-thin-air
+    name: Into Thin Air
+    quantity: 2
+    usable_by: [invisible-man]
+    type: defense
+    printed_value: 4
+    boost: 1
+    requires: [A-REQ-003]
+    effects:
+      - id: into-thin-air-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - {id: move-invisible-man, when: always, choices: [], costs: [], operations: [{op: MOVE, target: invisible-man, max_distance: 1}]}
+          - id: opponent-moves-fog
+            when: always
+            choices:
+              - {id: choose-fog, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-fog-path, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, max_distance: 3}, bind: fog_destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.fog_destination}, max_distance: 3, requires: A-REQ-003}]
+  - id: lurking
+    name: Lurking
+    quantity: 2
+    usable_by: [invisible-man]
+    type: defense
+    printed_value: 2
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: lurking-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+          - id: choose-effect
+            when: always
+            choices:
+              - {id: choose-lurking-effect, owner: controller, visibility: public, optional: false, domain: [place_on_fog, move_fog_up_to_3], bind: selected_effect}
+            costs: []
+            operations: []
+          - id: place-on-fog
+            when: {choice: {ref: choice.selected_effect, equals: place_on_fog}}
+            choices:
+              - {id: choose-fog-space, owner: controller, visibility: public, optional: false, domain: {kind: space, containing_component_type: fog}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: invisible-man, destination: {ref: choice.destination}}]
+          - id: move-fog
+            when: {choice: {ref: choice.selected_effect, equals: move_fog_up_to_3}}
+            choices:
+              - {id: choose-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, max_distance: 3}, bind: destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, max_distance: 3, requires: A-REQ-003}]
+  - id: rolling-fog
+    name: Rolling Fog
+    quantity: 2
+    usable_by: [invisible-man]
+    type: scheme
+    printed_value: null
+    boost: 1
+    requires: [A-REQ-003]
+    effects:
+      - id: rolling-fog-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: move-fog
+            when: always
+            choices:
+              - {id: choose-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, destination_rule: any_other_legal_space}, bind: destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, requires: A-REQ-003}]
+          - {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
+  - id: reign-of-terror
+    name: Reign of Terror
+    quantity: 2
+    usable_by: [invisible-man]
+    type: scheme
+    printed_value: null
+    boost: 1
+    effects:
+      - id: reign-damage
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {position: {fighter: invisible-man, on_component_type: fog}}
+            choices:
+              - {id: choose-opposing-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: opposing}, bind: target_fighter}
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: choice.target_fighter}, amount: 2}]
+  - id: vanish
+    name: Vanish
+    quantity: 2
+    usable_by: [invisible-man]
+    type: scheme
+    printed_value: null
+    boost: 3
+    requires: [A-REQ-005]
+    effects:
+      - id: vanish-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-005]
+        stages:
+          - {id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: invisible-man, amount: 1}]}
+          - {id: leave-board, when: always, choices: [], costs: [], operations: [{op: SET_FIGHTER_PRESENCE, target: invisible-man, presence: off_board_undefeated, requires: A-REQ-005}]}
+          - {id: schedule-return, when: always, choices: [], costs: [], operations: [{op: SCHEDULE_RETURN, target: invisible-man, timing: start_of_next_turn, destination_choice: any_space, requires: A-REQ-005}]}
+          - {id: end-turn, when: {turn: {action_ordinal: 1}}, choices: [], costs: [], operations: [{op: END_TURN}]}
+  - id: step-lightly
+    name: Step Lightly
+    quantity: 2
+    usable_by: [invisible-man]
+    type: scheme
+    printed_value: null
+    boost: 1
+    requires: [A-REQ-003]
+    effects:
+      - id: step-lightly-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-target
+            when: always
+            choices:
+              - {id: choose-adjacent-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, adjacent_to: invisible-man}, bind: target_fighter}
+            costs: []
+            operations:
+              - op: DEAL_EFFECT_DAMAGE
+                target: {ref: choice.target_fighter}
+                amount: {expr: if, condition: {position: {fighter: invisible-man, on_component_type: fog}}, then: 3, else: 1}
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - id: opponent-moves-fog
+            when: always
+            choices:
+              - {id: choose-fog, owner: {ref: choice.chosen_opponent}, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: chosen_fog}
+              - {id: choose-destination, owner: {ref: choice.chosen_opponent}, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.chosen_fog}, max_distance: 2}, bind: destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_fog}, destination: {ref: choice.destination}, max_distance: 2, requires: A-REQ-003}]
+  - id: covert-preparation
+    name: Covert Preparation
+    quantity: 3
+    usable_by: [invisible-man]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    requires: [A-REQ-003]
+    effects:
+      - id: covert-preparation-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+          - id: owner-moves-fog
+            when: always
+            choices:
+              - {id: choose-own-fog, owner: controller, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self}, bind: owner_fog}
+              - {id: choose-own-destination, owner: controller, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.owner_fog}, max_distance: 2}, bind: owner_destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.owner_fog}, destination: {ref: choice.owner_destination}, max_distance: 2, requires: A-REQ-003}]
+          - id: opponent-moves-different-fog
+            when: always
+            choices:
+              - {id: choose-opponent-fog, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component, type: fog, owner: self, exclude: {ref: choice.owner_fog}}, bind: opponent_fog}
+              - {id: choose-opponent-destination, owner: combat_opponent, visibility: public, optional: false, domain: {kind: component_move, component: {ref: choice.opponent_fog}, max_distance: 2}, bind: opponent_destination}
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.opponent_fog}, destination: {ref: choice.opponent_destination}, max_distance: 2, requires: A-REQ-003}]
+  - {id: impossible-to-see, name: Impossible to See, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 2, boost: 2, effects: [{id: impossible-to-see-effect, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: lock-value, when: always, choices: [], costs: [], operations: [{op: SET_VALUE, target: opposing_combat_card, value: 0}, {op: PREVENT_OPERATION, target: opposing_combat_card_value, operation: value_change, duration: combat}]}]}]}
+  - id: confound
+    name: Confound
+    quantity: 2
+    usable_by: [invisible-man]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: confound-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: opponent-discard-choice
+            when: always
+            choices:
+              - {id: discard-or-decline, owner: combat_opponent, visibility: private, optional: true, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1, when: {choice_bound: discarded_card}}]
+          - id: owner-moves-fogs
+            when: {choice_unbound: discarded_card}
+            choices:
+              - {id: move-fogs, owner: controller, visibility: public, optional: true, domain: {kind: component_relocations, selector: {kind: component, type: fog, owner: self}, each_destination: any_other_legal_space}, bind: fog_relocations}
+            costs: []
+            operations: [{op: MOVE_COMPONENTS, relocations: {ref: choice.fog_relocations}, requires: A-REQ-003}]
+  - {id: dreaming-of-revenge, name: Dreaming of Revenge, quantity: 2, usable_by: [invisible-man], type: versatile, printed_value: 3, boost: 1, effects: [{id: dreaming-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {position: {fighter: invisible-man, on_component_type: fog}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, on_component_type: fog}}, amount: 1}]}]}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: invisible-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: invisible-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf, checked_at: 2026-07-27, supports: [fog_components, movement]}
+  - {id: invisible-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [fog_adjacency, vanish_dormancy]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

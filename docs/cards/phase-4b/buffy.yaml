@@ -1,0 +1,148 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: buffy
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-014]
+construction:
+  kind: choose_groups
+  available_pool_count: 35
+  game_deck_count: 30
+  rules:
+    - {include: base, quantity: 25}
+    - {include_group_matching_state: selected_sidekick, quantity: 5}
+
+cards:
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    inclusion: base
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 3
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - id: daring-strike
+    name: Daring Strike
+    quantity: 3
+    inclusion: base
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 3
+    effects:
+      - id: daring-strike-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.own_fighter}, amount: 1}]}
+  - id: cartwheel-kick
+    name: Cartwheel Kick
+    quantity: 2
+    inclusion: base
+    usable_by: [buffy]
+    type: defense
+    printed_value: 2
+    boost: 2
+    effects:
+      - id: cartwheel-kick-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-buffy, when: always, choices: [], costs: [], operations: [{op: MOVE, target: buffy, max_distance: 3}]}
+          - {id: damage-adjacent, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, adjacent_to: buffy}}, amount: 1}]}
+  - {id: rapid-recovery, name: Rapid Recovery, quantity: 3, inclusion: base, usable_by: [buffy], type: versatile, printed_value: 3, boost: 3, effects: [{id: rapid-recovery-effect, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: recover, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: buffy, amount: 1}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, inclusion: base, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: mr-pointy, name: Mr. Pointy, quantity: 2, inclusion: base, usable_by: [buffy], type: attack, printed_value: 5, boost: 4, effects: []}
+  - id: slayers-strength
+    name: Slayer's Strength
+    quantity: 3
+    inclusion: base
+    usable_by: [buffy]
+    type: attack
+    printed_value: 4
+    boost: 3
+    effects:
+      - id: slayers-strength-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-use-effect
+            when: always
+            choices:
+              - {id: use-slayers-strength, owner: controller, visibility: public, optional: true, domain: [move_all_adjacent_fighters], bind: use_effect}
+            costs: []
+            operations: []
+          - id: move-all-adjacent
+            when: {choice_bound: use_effect}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: {selector: {kind: fighter, adjacent_to: buffy}}, destination_rule: another_space_in_that_fighters_zone, bind_result: moved_fighters}
+          - id: damage-moved
+            when: {result_exists: {ref: result.moved_fighters}}
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: result.moved_fighters.successfully_moved}, amount: 1}]
+  - {id: feint, name: Feint, quantity: 3, inclusion: base, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: swift-strike, name: Swift Strike, quantity: 3, inclusion: base, usable_by: any, type: attack, printed_value: 3, boost: 2, effects: [{id: swift-strike-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.own_fighter}, max_distance: 4}]}]}]}
+  - id: insight
+    name: Insight
+    quantity: 3
+    inclusion: choose_group
+    tags: [sidekick:giles]
+    usable_by: [giles]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - id: insight-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: [{op: LOOK_AT, source: {zone: hand, owner: {ref: choice.chosen_opponent}}, viewer: controller}]
+          - id: choose-discard
+            when: always
+            choices:
+              - {id: choose-card, owner: controller, visibility: private, optional: false, domain: {zone: hand, owner: {ref: choice.chosen_opponent}}, bind: chosen_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: {ref: choice.chosen_opponent}}, selector: {ref: choice.chosen_card}, count: 1}]
+  - {id: training, name: Training, quantity: 2, inclusion: choose_group, tags: [sidekick:giles], usable_by: [giles], type: scheme, printed_value: null, boost: 3, effects: [{id: training-draw, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 3}]}]}]}
+  - {id: right-hand-man, name: Right-hand Man, quantity: 2, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: versatile, printed_value: 2, boost: 3, effects: [{id: right-hand-man-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {relation: {adjacent: [xander, buffy]}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}]}
+  - {id: military-knowledge, name: Military Knowledge, quantity: 3, inclusion: choose_group, tags: [sidekick:xander], usable_by: [xander], type: attack, printed_value: 4, boost: 3, effects: [{id: military-knowledge-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: buffy-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/buffy, checked_at: 2026-07-27, supports: [card_identity, quantities, inclusion_groups, usable_by, type, printed_value, boost, card_text]}
+  - {id: buffy-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [sidekick_packages, combat_timing]}
+  - {id: buffy-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [setup_order, slayers_strength_all_or_none]}
+validation:
+  quantity: {result: pass, available_pool_count: 35, game_deck_count: 30, quantity_sum: 35}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
