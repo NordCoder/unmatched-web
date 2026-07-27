@@ -2,26 +2,24 @@ schema_version: 1
 id: spider-man
 display_name: Spider-Man
 set_ids: [marvel-brains-and-brawn]
-status: blocked
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-005]
 movement: 3
 
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
   fighters:
-    - id: spider-man
-      display_name: Spider-Man
-      role: hero
-      count: 1
-      attack_type: melee
-      starting_health: 15
-      starts_on_board: true
-      summonable: false
+    - {id: spider-man, display_name: Spider-Man, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
 
 setup:
   hooks: []
-  state_initialization:
-    - {key: spider_man_attack_bonus_this_turn, value: 0}
+  state_initialization: [{key: spider_man_attack_bonus_this_turn, value: 0}]
 
 ability:
   id: spidey-sense
@@ -29,53 +27,74 @@ ability:
   effects:
     - id: printed-value-disclosure
       trigger: after_attack_card_committed_before_defense_choice
-      condition: {defender: spider-man}
-      normalization_blocker: Attacker must disclose only the printed numeric value of the committed attack card without changing card visibility or exposing identity.
+      controller: attacker
+      cancellation: protected
+      stages:
+        - id: disclose
+          when: {defender: spider-man}
+          choices: []
+          costs: []
+          operations:
+            - op: DISCLOSE_CARD_FIELD
+              requirement: B-REQ-005
+              card: committed_attack_card
+              field: printed_value
+              audience: spider-man-controller
+              preserve_card_identity_hidden: true
     - id: with-great-power-floating-attack-bonus
       trigger: static
-      continuous: true
-      condition:
-        all:
-          - {attacker: spider-man}
-          - {state_gt: {spider_man_attack_bonus_this_turn: 0}}
-      operations:
-        - {op: ADD_VALUE, target: current_spider_man_attack, amount_rule: state.spider_man_attack_bonus_this_turn}
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: apply
+          when:
+            all:
+              - {attacker: spider-man}
+              - {state_gt: {spider_man_attack_bonus_this_turn: 0}}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: current_spider_man_attack, amount_ref: {state: spider_man_attack_bonus_this_turn}}]
 
 resources: []
-
 persistent_state:
-  - key: spider_man_attack_bonus_this_turn
-    type: integer
-    reset: turn_end
-  - key: turn_start_space
-    type: space_ref
-    reset: turn_start
-    note: Required by Momentous Shift; current position alone cannot prove whether Spider-Man started the turn elsewhere.
+  - {key: spider_man_attack_bonus_this_turn, type: integer, reset: turn_end}
+  - {key: turn_start_space, type: space_ref, reset: turn_start, capture: spider-man.current_space}
 
 deck:
   manifest: ../../cards/phase-4b/spider-man.yaml
   construction: fixed
 
 rulings:
-  - id: spidey-sense-printed-value-only
-    summary: When an opponent attacks Spider-Man, the attacker announces the printed banner value before Spider-Man chooses whether and how to defend; modifiers from abilities, battlefield items, and other effects are not included.
-    source: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
+  - {id: spidey-sense-printed-value-only, source_ref: spider-man-official-rulebook, summary: After the attack card is committed and before Spider-Man chooses a defense, only the attack card printed numeric value is disclosed; modifiers are not included.}
+interpretations: []
 
 sources:
-  - type: official_product
+  - id: spider-man-official-product
+    authority: official
     url: https://restorationgames.com/shop/marvel-brains-and-brawn-unmatched/
-  - type: official_rulebook
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: spider-man-official-rulebook
+    authority: official
     url: https://restorationgames.com/wp-content/uploads/2023/05/UM-M-BaB-Rulebook.pdf
-  - type: published_database
+    checked_at: 2026-07-27
+    supports: [spidey_sense_timing, printed_value_disclosure]
+  - id: spider-man-umdb
+    authority: published_umdb
     url: https://unmatched.cards/umdb/decks/spider_man
-  - type: current_rulings_index
+    checked_at: 2026-07-27
+    supports: [fighter_stats, deck_construction, card_text]
+  - id: spider-man-rulings-index
+    authority: secondary_cross_check
     url: https://www.the-unmatched.club/heroes/spiderman
+    checked_at: 2026-07-27
+    supports: [spidey_sense_cross_check]
 
-normalization_notes:
-  - The official rulebook explicitly places Spidey-Sense after the attacker commits an attack card and before Spider-Man chooses a defense card.
-  - With Great Power is a separate floating turn-scoped modifier and is representable with existing state/value primitives.
-  - Audit correction: Momentous Shift's turn-start comparison is backed by explicit historical state.
-
-blockers:
-  - id: semantic-extension-pre-defense-scalar-disclosure
-    reason: Current effect vocabulary has no generic operation that discloses one field of a hidden committed card while preserving all other card information and no named reusable hook for the attack-commit/pre-defense-choice boundary.
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
