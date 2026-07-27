@@ -1,34 +1,240 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: spike
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-007]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: arrogance, name: Arrogance, quantity: 1, usable_by: [spike], type: attack, printed_value: 4, boost: 2, effects: [{trigger: during_combat, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}, {op: MOVE_CARD, from_zone: hand, to_zone: deck_bottom, selector: all_remaining_hand_cards}, {op: REORDER, zone: deck_bottom, selector: moved_hand_cards, order: chosen_order}]}]}
-  - {id: the-rush, name: The Rush, quantity: 2, usable_by: [spike], type: attack, printed_value: 3, boost: 3, effects: [{trigger: during_combat, condition: {any_of: [spike_on_shadow, opposing_combat_fighter_on_shadow]}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: leap-away, name: Leap Away, quantity: 2, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 2, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
-  - {id: lets-dance, name: "Let's Dance", quantity: 3, usable_by: [spike], type: versatile, printed_value: 4, boost: 3, effects: [{trigger: during_combat, condition: {any_of: [spike_on_shadow, opposing_combat_fighter_on_shadow]}, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
-  - {id: bloody-hell, name: Bloody Hell!, quantity: 3, usable_by: [spike], type: versatile, printed_value: 3, boost: 2, effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: count_shadow_spaces_adjacent_to_opposing_combat_fighter}]}], normalization_blocker: second_damage_amount_reads_positioned_shadow_tokens}
-  - {id: empathy, name: Empathy, quantity: 2, usable_by: [drusilla], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: after_combat, branches: [{condition: {opposing_combat_fighter_on_shadow: true}, operations: [{op: DRAW, count: 3}]}, {condition: {opposing_combat_fighter_on_shadow: false}, operations: [{op: DRAW, count: 1}]}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: always-surprising, name: Always Surprising, quantity: 3, usable_by: [drusilla], type: versatile, printed_value: 1, boost: 2, effects: [{trigger: during_combat, operations: [{op: BOOST, target: this_card, card_or_blind_source: top_of_deck}]}], normalization_blocker: if_drusilla_on_shadow_double_the_blind_boost_value_before_applying_it}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: the-sight, name: The Sight, quantity: 2, usable_by: [drusilla], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, choices: [{choose: opponent}], operations: [{op: LOOK_AT, source: chosen_opponent_hand, viewer: owner}, {op: DISCARD, from: chosen_opponent_hand, selector: owner_choice, count: source_defined_1_or_2_based_on_any_opposing_fighter_on_shadow}]}], normalization_blocker: positioned_shadow_predicate}
-  - {id: seek-the-shadows, name: Seek the Shadows, quantity: 4, usable_by: [spike], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: DRAW, count: 2}]}], normalization_blocker: place_available_shadows_in_spikes_space_and_adjacent_spaces}
+  - id: arrogance
+    name: Arrogance
+    quantity: 1
+    usable_by: [spike]
+    type: attack
+    printed_value: 4
+    boost: 2
+    effects:
+      - id: arrogance-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-boost-card
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: false, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+          - id: capture-remaining-hand
+            when: always
+            choices:
+              - {id: order-remaining-hand, owner: controller, visibility: private, optional: false, domain: {zone: hand, owner: self}, bind: bottom_order, min: 0, max: all_available, distinct: true, order_matters: true}
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: {ref: choice.bottom_order}}
+              - {op: REORDER, zone: deck, selector: {ref: choice.bottom_order}, order: {ref: choice.bottom_order}, position: bottom}
+  - {id: the-rush, name: The Rush, quantity: 2, usable_by: [spike], type: attack, printed_value: 3, boost: 3, requires: [A-REQ-003], effects: [{id: rush-value, trigger: during_combat, controller: owner, cancellation: cancelable, requires: [A-REQ-003], stages: [{id: set-value, when: {any: [{position: {fighter: spike, on_component_type: shadow}}, {position: {fighter: {ref: combat.opposing_fighter}, on_component_type: shadow}}]}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - id: leap-away
+    name: Leap Away
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: leap-away-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 4}]
+  - id: skirmish
+    name: Skirmish
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+  - id: lets-dance
+    name: Let's Dance
+    quantity: 3
+    usable_by: [spike]
+    type: versatile
+    printed_value: 4
+    boost: 3
+    requires: [A-REQ-003]
+    effects:
+      - id: lets-dance-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-boost
+            when: {any: [{position: {fighter: spike, on_component_type: shadow}}, {position: {fighter: {ref: combat.opposing_fighter}, on_component_type: shadow}}]}
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+  - id: bloody-hell
+    name: Bloody Hell!
+    quantity: 3
+    usable_by: [spike]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: bloody-hell-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - {id: first-damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 1}]}
+          - id: shadow-damage
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - op: DEAL_EFFECT_DAMAGE
+                target: {ref: combat.opposing_fighter}
+                amount:
+                  expr: count
+                  selector: {kind: component, type: shadow, adjacent_to: {ref: combat.opposing_fighter}}
+  - id: empathy
+    name: Empathy
+    quantity: 2
+    usable_by: [drusilla]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    requires: [A-REQ-003]
+    effects:
+      - id: empathy-draw
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: on-shadow, when: {position: {fighter: {ref: combat.opposing_fighter}, on_component_type: shadow}}, choices: [], costs: [], operations: [{op: DRAW, count: 3}]}
+          - {id: not-on-shadow, when: {not: {position: {fighter: {ref: combat.opposing_fighter}, on_component_type: shadow}}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: always-surprising
+    name: Always Surprising
+    quantity: 3
+    usable_by: [drusilla]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    requires: [A-REQ-003, A-REQ-007]
+    effects:
+      - id: always-surprising-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-007]
+        stages:
+          - id: blind-boost
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - op: BOOST
+                target: this_card
+                source: {zone: deck, position: top}
+                blind: true
+                resolved_amount_transform:
+                  when: {position: {fighter: drusilla, on_component_type: shadow}}
+                  expr: {multiply: [2, {ref: boost.resolved_amount}]}
+                  requires: A-REQ-007
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: the-sight
+    name: The Sight
+    quantity: 2
+    usable_by: [drusilla]
+    type: scheme
+    printed_value: null
+    boost: 3
+    requires: [A-REQ-003]
+    effects:
+      - id: the-sight-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: [{op: LOOK_AT, source: {zone: hand, owner: {ref: choice.chosen_opponent}}, viewer: controller}]
+          - id: choose-discards
+            when: always
+            choices:
+              - id: choose-cards
+                owner: controller
+                visibility: private
+                optional: false
+                domain: {zone: hand, owner: {ref: choice.chosen_opponent}}
+                bind: discarded_cards
+                min: {expr: if, condition: {selector_nonempty: {kind: fighter, relation: opposing, on_component_type: shadow}}, then: 2, else: 1}
+                max: {expr: if, condition: {selector_nonempty: {kind: fighter, relation: opposing, on_component_type: shadow}}, then: 2, else: 1}
+                distinct: true
+                order_matters: false
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: {ref: choice.chosen_opponent}}, selector: {ref: choice.discarded_cards}}]
+  - id: seek-the-shadows
+    name: Seek the Shadows
+    quantity: 4
+    usable_by: [spike]
+    type: scheme
+    printed_value: null
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: seek-the-shadows-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - id: choose-shadow-placements
+            when: {component_pool_available: shadows}
+            choices:
+              - {id: choose-shadow-spaces, owner: controller, visibility: public, optional: false, domain: {kind: space, in: [spike_space, spaces_adjacent_to_spike], legal_for_component: shadow}, bind: shadow_spaces, min: all_available_components, max: all_available_components, distinct: true, order_matters: false}
+            costs: []
+            operations: [{op: PLACE_COMPONENTS, component_pool: shadows, destinations: {ref: choice.shadow_spaces}, requires: A-REQ-003}]
 
-external_definitions:
-  - {id: positioned-shadow-component, kind: proposed_generic_component_semantics, operations_needed: [place_token, move_token, select_token_space, count_token_spaces]}
-  - {id: blind-boost-value-multiplier, kind: proposed_generic_value_transform, affected_card: always-surprising, semantics: multiply_the_revealed_blind_boost_value_before_adding_it_to_the_combat_card}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, attack_count: 3, versatile_count: 21, defense_count: 0, scheme_count: 6}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/spike
-  - https://unmatched.cards/umdb/decks/stats
-  - https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - Shadow-sensitive predicates are preserved but blocked until positioned special-token semantics exist generically.
-  - Bloody Hell resolves as two damage effects: the initial 1 damage, then one aggregate additional damage effect based on adjacent Shadow spaces.
-  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
-  - Current UmDb aggregate statistics reconcile exactly to 3 Attack / 21 Versatile / 0 Defense / 6 Scheme cards. Fan rebalances, including altered Seek the Shadows/Empathy/Arrogance versions, were excluded.
+  - {id: spike-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/spike, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: spike-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [shadow_components, combat_timing]}
+  - {id: spike-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [shadow_placement, blind_boost]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
