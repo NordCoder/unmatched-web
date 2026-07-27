@@ -6,7 +6,7 @@ verification:
   semantics: verified
   integration: requires_shared_extension
   policy: not_applicable
-requires: [C-REQ-001]
+requires: [C-REQ-001, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 card_zones:
