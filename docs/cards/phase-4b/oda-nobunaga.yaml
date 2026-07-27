@@ -6,7 +6,7 @@ verification:
   semantics: verified
   integration: requires_shared_extension
   policy: not_applicable
-requires: [C-REQ-003, C-REQ-010]
+requires: [C-REQ-003, C-REQ-010, C-REQ-013]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
@@ -32,8 +32,7 @@ cards:
         cancellation: cancelable
         stages:
           - id: choose-replacement
-            choices:
-              - {id: replacement, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: friendly_fighters, adjacent_to: own_combat_fighter}}, bind: replacement_defender}
+            choices: [{id: replacement, owner: controller, visibility: public, optional: true, domain: {selector: {fighters: friendly_fighters, adjacent_to: own_combat_fighter}}, bind: replacement_defender}]
           - id: swap
             when: {ref: replacement_defender, exists: true}
             operations: [{op: SWAP, a: own_combat_fighter, b: {ref: replacement_defender}, bind_result: defender_swap}]
