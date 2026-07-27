@@ -1,476 +1,259 @@
-# Phase 4B Worker A — canonical handoff
+# Phase 4B Worker A — Reconciliation Contract v1
 
-Scope: early/classic + retired licensed fighters assigned to Worker A.
+## 1. Worker identity
 
-Branch: `phase-4b-worker-a-classics`  
-Authorized Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Base verification: branch was identical to Authorized Base before Worker A writes (`ahead=0`, `behind=0`).
-
-## Source discipline
-
-Canonical evidence order:
-
-1. official Restoration Games / IELLO / Mondo product, rulebook, release, errata and set-rule material;
-2. current Unmatched Reference and publisher-backed Rulings Archive;
-3. published UmDb `/umdb/...` records for official deck/card metadata and normalized card text;
-4. secondary indexes only for discovery/cross-checking.
-
-Community/fan `/decks/...`, reskins, `UnPatched` records and balance patches are excluded from canonical provenance.
-
-Current Reference:
-- https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-
-Official Rulings Archive:
-- https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-
-## Validation summary
-
+- Repository: `NordCoder/unmatched-web`
+- Branch: `phase-4b-worker-a-classics`
+- Authorized Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`
+- Scope: early/classic + retired licensed
 - Assigned fighters: **17**
-- Fighter manifests: **17**
-- Deck manifests: **17**
-- Quantity validation: **PASS (17/17)**
-- Current UmDb quantity/type reconciliation: **PASS (17/17)**
-- Blocking evidence gaps: **0**
-- Fan-patch contamination: **none found**
-
-`verified` in this Worker A corpus means **published content/evidence and fighter-specific normalization are verified to the level recorded here**. It does **not** mean the current shared DSL/runtime is developer-ready for every selector, binding, batch operation or cross-fighter interaction. Shared integration-contract gaps are listed separately below.
-
-## Fighter results
-
-| Fighter | Result | Primary note |
-| --- | --- | --- |
-| `alice` | verified | Big/Small state and 30-card deck reconcile. |
-| `king-arthur` | blocked | `The Holy Grail` requires exact health assignment; `Prophecy` choice dependency is now explicit. |
-| `medusa` | verified | Multi-Harpy topology and deck reconcile. |
-| `sinbad` | verified | Voyage/discard-state semantics sourced and normalized. |
-| `robin-hood` | verified | Outlaw topology, Hit and Run and multiplayer `Steal From the Rich` flow recorded. |
-| `bigfoot` | verified | End-turn zone condition and optional draw recorded. |
-| `robert-muldoon` | blocked | Positioned trap lifecycle plus movement-entry interruption need shared support; trap lifecycle is consistently `available → board → box`. |
-| `invisible-man` | blocked | Fog positioning/dynamic movement adjacency and `Vanish` undefeated off-board lifetime need shared support; ordered `Vanish` resolution is now explicit. |
-| `jekyll-and-hyde` | verified | Form state and card legality are sourced; choice dependencies are explicit. |
-| `buffy` | verified | 35→30 construction, setup stages, Xander-only `Right-hand Man`, `Cartwheel Kick`, and all-or-none `Slayer's Strength` semantics are resolved. |
-| `willow` | blocked | `Resurrect` requires exact post-return health assignment; `Love and Loss` printed order is now preserved. |
-| `spike` | blocked | Positioned Shadows and conditional blind-BOOST multiplication need shared support. |
-| `angel` | verified | Angel/Faith topology and card distribution reconcile. |
-| `little-red-riding-hood` | blocked | Conditional combat-card mode plus Basket-as-zone-component support are missing from the shared model. |
-| `beowulf` | verified | Rage is one canonical resource; `Ancient Heirloom` printed clause order is explicit. |
-| `deadpool` | blocked | Dynamic attack mode plus digital-adaptation policy are unresolved; ordinary deterministic card semantics have been hardened. |
-| `yennenga` | blocked | `Stallion Charge` path capture and partial pending-damage allocation need shared support; `Surprise Volley`/`Shield Formation` are corrected. |
-
-Verified: **9** — `alice`, `medusa`, `sinbad`, `robin-hood`, `bigfoot`, `jekyll-and-hyde`, `buffy`, `angel`, `beowulf`.  
-Blocked: **8** — `king-arthur`, `robert-muldoon`, `invisible-man`, `willow`, `spike`, `little-red-riding-hood`, `deadpool`, `yennenga`.
-
-# Completed normalization corrections
-
-## Source-hardening corrections
-
-The source-hardening pass corrected:
-
-- Alice `Manxome Foe` discard semantics;
-- Alice `Claws That Catch` type;
-- Bigfoot optional end-turn draw;
-- Buffy setup order;
-- Spike Shadow reuse when all three are already on board;
-- Yennenga VOLLEY defeat condition;
-- Angel `Wisdom of Ages` type;
-- Medusa `Snipe` type;
-- Buffy `Right-hand Man`: Xander-only; adjacency changes value only.
-
-No correction came from fan balance patches.
-
-## First logic-audit corrections
-
-### Regroup replacement semantics
-
-All **11 Worker A decks containing published `Regroup`** use mutually exclusive branches:
-
-- won combat → `DRAW 2`;
-- did not win → `DRAW 1`.
-
-This preserves the published `draw 2 instead` semantics rather than representing it as two independent draw effects.
-
-Affected: Alice, King Arthur, Medusa, Sinbad, Robin Hood, Bigfoot, InGen, Buffy, Willow, Spike, Angel.
-
-### Buffy
-
-- `Cartwheel Kick`: only movement is optional through `up to 3`; adjacent damage still resolves.
-- `Insight`: explicitly chooses an opponent before hand inspection/discard.
-- setup uses `CHARACTER_CONFIGURATION` and `DECK_CONSTRUCTION`.
-
-### Robin Hood
-
-`Steal From the Rich` records the multiplayer flow: draw 1 → choose opponent → chosen opponent privately discards or declines → owner draws one more if they decline.
-
-### Willow
-
-`Hacker` records the actual top-or-bottom disposition after the private look/choice.
-
-### Jekyll & Hyde
-
-- `Strange Case` declares its adjacent-fighter choice.
-- `Calming Research` declares draw-count and keep-one choices.
-
-### Duplicate mutable state cleanup
-
-- Beowulf Rage exists only as `resources.rage`.
-- Muldoon trap availability derives from token lifecycle.
-- Spike Shadow availability derives from token lifecycle.
-
-### Yennenga damage allocation
-
-The previous plain `REDIRECT_DAMAGE` approximation was removed. Yennenga requires partial allocation of one pending damage event across eligible Archers, with per-Archer health caps and residual damage staying on Yennenga without changing damage type/event identity.
-
-# Second logic-audit corrections
-
-## Yennenga
-
-### `Surprise Volley`
-
-Corrected from a false AFTER COMBAT/VOLLEY interpretation to its published IMMEDIATELY semantics:
-
-- optionally return a defeated Archer to the opposing fighter's zone;
-- if returned, that Archer becomes the attacker in the **current combat**;
-- if no Archer is returned, gain 1 action;
-- absence of a defeated Archer must not create an empty mandatory choice that blocks the gain-action branch.
-
-### `Shield Formation`
-
-Corrected card identity and timing:
-
-- canonical name: `Shield Formation`;
-- timing: `IMMEDIATELY`;
-- combat opponent may discard one card;
-- only if they do not discard does Yennenga's owner attempt to return a defeated Archer to Yennenga's zone.
-
-### Multiplayer relation
-
-`Pin the Prey` now scopes its discard to the current combat opponent rather than an arbitrary opponent.
-
-## Buffy — `Slayer's Strength`
-
-The manifest no longer allows an arbitrary subset of adjacent fighters.
-
-Published semantics are represented as one optional all-or-none effect choice:
-
-- if used, attempt to move **all** fighters adjacent to Buffy;
-- then deal 1 damage only to fighters actually moved.
-
-## Willow — `Love and Loss`
-
-The card is now one ordered Scheme resolution:
-
-1. draw 2;
-2. if Dark Willow, discard the top 2 cards;
-3. choose a sidekick in Willow's zone;
-4. deal 3 damage to that sidekick.
-
-The DARK clause is no longer an independently reorderable same-timing Scheme effect.
-
-## Invisible Man
-
-### `Vanish`
-
-`Vanish` is now one ordered resolution:
-
-1. recover 1;
-2. remove Invisible Man without defeating him;
-3. schedule source-owned return at the start of the next turn;
-4. if played as action 1, end the turn **after** those preceding steps.
-
-The off-board/return primitives remain engine-blocked, but `END_TURN` can no longer preempt the earlier printed steps through same-timing reordering.
-
-### Choice closure
-
-Added explicit definitions for:
-
-- `Coded Notes` choose-two-and-order dependency;
-- `Confound` opponent-discard-or-owner-Fog-movement dependency.
-
-## Deadpool
-
-### `Excuse me while I grow some limbs.`
-
-Corrected to replacement-style branches:
-
-- won → combat opponent discards 2;
-- did not win → combat opponent discards 1.
-
-It is no longer represented as two independent discard effects.
-
-### `They Have An Amazing Buffet`
-
-Preserves printed order:
-
-1. recover 2;
-2. then test whether Deadpool is at full health;
-3. if yes, Deadpool takes 2 damage.
-
-### Multiplayer relation
-
-Combat-card uses of `opponent` are explicitly scoped to the current combat opponent where relevant, distinct from Scheme effects that intentionally choose any opponent.
-
-## Beowulf — `The Ancient Heirloom`
-
-The two DURING COMBAT clauses are represented as one ordered source effect rather than independently reorderable same-timing effects:
-
-1. optionally spend 2 Rage to make value 5;
-2. optionally spend 1 Rage to BOOST;
-3. either or both clauses may be used.
-
-`Golden Drinking Horn` also records precommitted distinct choices plus owner-selected resolution order; shared choice serialization still needs to formalize this centrally.
-
-## Robert Muldoon
-
-Removed stale `supply` terminology from `Remote Detonation` and the proposed component semantics.
-
-Canonical trap lifecycle is consistently:
-
-`available → board → box`
-
-A returned/triggered trap is not reusable from the box. `Remote Detonation` returns its selected trap to the box and participates in Muldoon's draw-on-trap-return ability.
-
-## King Arthur — `Prophecy`
-
-Closed the dangling `prophecy_keep_two` reference:
-
-- look at top 4;
-- choose exactly 2 for hand;
-- leave the other 2 on top;
-- owner chooses the order of those remaining 2.
-
-## Little Red Riding Hood
-
-### Setup hook
-
-The old ad-hoc `before_shuffle` stage was replaced with canonical `BEFORE_STARTING_HAND` for the start-of-game Basket initialization.
-
-### Wild Basket binding
-
-A wild Basket now binds to exactly **one** effective item for the current source resolution. It must not independently satisfy multiple Basket-item branches in the same resolution.
-
-`Never Leave the Path` therefore resolves exactly one of its wolf / knife / pelt branches when the Basket is wild.
-
-### Basket runtime gap
-
-The Basket is not an action card but physically occupies the ordered discard zone and can be the top discard object. Worker A records this source fact but does not invent a shared runtime primitive for it.
-
-# 1. Evidence blockers
-
-**None.**
-
-No assigned fighter remains blocked because a required published rule/card fact is unknown or unconfirmed.
-
-### Non-blocking provenance limitation
-
-**Deadpool:** official Mondo material establishes first-party release provenance and published UmDb supplies the complete 30-card corpus. A first-party online full card-text/rulebook dump was not located. This is weaker primary card-level provenance than ordinary Restoration rulebook sets, but it does not block deck/card reconstruction.
-
-# 2. Engine blockers
-
-## Exact health semantics
-
-Affected:
-- King Arthur — `The Holy Grail`;
-- Willow — `Resurrect`.
-
-Need:
-
-- exact health assignment on an undefeated fighter;
-- atomic return/revive with source-defined exact health, avoiding an invalid intermediate health state.
-
-## Positioned special components
-
-Affected:
-- Muldoon — traps;
-- Invisible Man — Fog;
-- Spike — Shadows.
-
-Need reusable component instances with identity, owner/controller, lifecycle/location, space, placement/movement rules, occupancy/stacking policy and selectors.
-
-Invisible Man additionally needs scoped dynamic adjacency: Fog spaces are mutually adjacent for Invisible Man's **movement only**.
-
-## Movement-entry interruption
-
-Affected: Muldoon traps.
-
-Need movement/placement entry events plus protected interruption semantics capable of stopping a move immediately when a trap is entered. Opposing fighters can also trigger traps when placed into the trap space by an effect.
-
-## Temporary undefeated off-board / dormancy
-
-Affected: Invisible Man — `Vanish`.
-
-Need undefeated `off_board` state, source-owned return timing and deterministic interaction between return hooks and dormant-player turn handling.
-
-## Conditional combat-card / attack mode
-
-Affected:
-- Little Red — `What Big Ears You Have`;
-- Deadpool — `Xavier Institute Faculty`.
-
-Need declarative play-mode/attack-mode permissions without mutating immutable printed metadata.
-
-## Blind BOOST result transformation
-
-Affected: Spike — `Always Surprising`.
-
-Need a transform hook over the resolved blind-BOOST amount before it is applied.
-
-## Movement-path capture/query
-
-Affected: Yennenga — `Stallion Charge`.
-
-Need an ordered traversed-space path for a specific movement resolution and selectors over fighters/spaces crossed by that move.
-
-## Partial pending-damage allocation
-
-Affected: Yennenga — `Shield of the Archers` fighter ability.
-
-Need allocation of one pending damage event among multiple recipients with per-recipient caps, residual damage on the original target, and preservation of original damage type/event identity.
-
-## Non-action component in an ordered card zone
-
-Affected: Little Red's Basket.
-
-Need a runtime component that:
-
-- is not counted as an action card;
-- can occupy the discard pile as a real ordered-zone object;
-- can be the current top discard object;
-- exposes its printed wild symbol to Basket resolution;
-- remains distinguishable from normal card instances for deck-count/exhaustion rules.
-
-# 3. Other blockers
-
-## Deadpool digital-adaptation policy
-
-Published Deadpool effects depend on external/physical facts such as player names, food, spoken/noise actions, set ownership, mirror presence, sleeve/card-writing state, clothing, wagers and subjective board colour.
-
-The project needs one central policy deciding whether each external predicate/action is:
-
-- automatically supported;
-- manually confirmed by players;
-- replaced with a documented digital equivalent; or
-- unsupported/disabled for online play.
-
-Only after that policy is chosen should the shared engine expose generic external-predicate/player-confirmation primitives.
-
-# Cross-cutting integration-contract gaps
-
-These are **not evidence gaps** and are intentionally not patched by Worker A because they belong in shared schema/mechanics files owned by the Phase 4B orchestrator.
-
-## Runtime identity / namespaces
-
-Definition IDs such as `feint`, state keys such as `form`, and fighter IDs such as `alice` are only locally unambiguous. Integration needs explicit scoping/runtime identity so mirror matches and different decks using the same local IDs cannot collide.
-
-At minimum distinguish:
-
-- fighter definition vs fighter instance;
-- card definition vs card instance;
-- owner/player scope;
-- fighter-local state/resource scope.
-
-## Typed selectors, expressions and result binding
-
-Worker manifests use operands such as:
-
-- `discarded_card_boost`;
-- `combat_damage_taken`;
-- `count_other_voyage_cards_in_discard`;
-- `chosen_draw_count`;
-- `cards_drawn_by_this_effect`;
-- `source_found_zone`.
-
-The shared model needs typed operation outputs, bindings, expressions and selectors instead of implementation-defined free-form strings.
-
-## Typed player relations
-
-The runtime must distinguish at least:
-
-- `combat_opponent` — the other player participating in the current combat;
-- `chosen_opponent` — any opponent selected by a Scheme/effect.
-
-These collapse to the same player in 1v1 but not in 3–4 player games.
-
-## Choice contract / hidden information
-
-Need a normative shape for chooser, choice domain, visibility, output binding, reconnect state and dependent consequences.
-
-Choice bundles also need central rules for:
-
-- precommitting selected options/parameters before resolution where required;
-- owner-selected resolution order where the published/ruling semantics grant it;
-- preserving private information until the correct reveal boundary.
-
-## Batch / multi-target ordering
-
-Operations such as `MOVE each_friendly_fighter` and damage to multiple fighters need shared rules for:
-
-- sequential vs simultaneous resolution;
-- controller-selected order where applicable;
-- transition/trigger generation between elements;
-- state re-evaluation after each resolved element.
-
-This becomes critical once traps, transformation-on-damage and other cross-fighter triggers compose.
-
-## Setup-selected active roster
-
-Buffy chooses exactly one sidekick. Generic selectors must not treat the unselected Giles/Xander definition as active, defeated or targetable for that match.
-
-## Deterministic randomness / replay
-
-Random discard and similar effects need server-authoritative random results recorded in match history so reconnect/replay never re-rolls a resolved event.
-
-## Effect defaults and control-flow vocabulary
-
-Shared schema should explicitly define defaults for omitted effect fields and either promote or replace manifest constructs such as:
-
-- `branches`;
-- `normalization_blocker`;
-- source-defined composites;
-- dynamic destination/result identifiers;
-- ordered optional clauses.
-
-# Cross-fighter deterministic fixtures required before developer-ready
-
-At minimum:
-
-- Muldoon trap × effect movement/placement;
-- Muldoon trap × Yennenga `Stallion Charge` path;
-- Fog movement adjacency × traps;
-- Yennenga partial allocation × multi-target/simultaneous damage;
-- Yennenga `Surprise Volley` combat-participant replacement × Momentous Shift/history-sensitive effects;
-- Invisible Man `Vanish` × dormant turn/return timing;
-- Little Red Basket × discard manipulation;
-- Little Red wild Basket × multi-branch card resolution;
-- Buffy selectable sidekick × generic fighter selectors;
-- Buffy `Slayer's Strength` × partial movement impossibility;
-- Beowulf `Ancient Heirloom` × value-set/BOOST ordering;
-- `Regroup` × near-empty deck/exhaustion;
-- mirror matches to prove ID/state isolation;
-- 3–4 player combat-opponent vs chosen-opponent isolation.
-
-# Files and scope
-
-Worker A owns exactly **35 files**:
-
-- 17 fighter manifests under `docs/fighters/phase-4b/`;
-- 17 deck manifests under `docs/cards/phase-4b/`;
-- this report.
-
-No shared schema, mechanics, rules, set registry, ambiguity register, research plan or README file is modified by this branch.
-
-# Worker 4B-A Handoff
+- Owned files: **35**
+- Shared schema/mechanics/rules/set files modified: **none**
+- Merge to `main`: **not performed**
+
+Reconciliation policy:
+
+- `verified` = published behavior is established and the manifest needs no Worker-A-specific shared extension or unresolved policy decision;
+- `partial` = deterministic behavior is established but a shared runtime capability is still required;
+- `blocked` = deterministic implementation still depends on unresolved evidence or project policy.
+
+## 2. Final status matrix
+
+| Fighter | Status | Evidence | Semantics | Integration | Policy | Requirements |
+| --- | --- | --- | --- | --- | --- | --- |
+| `alice` | verified | verified | verified | ready | not_applicable | — |
+| `king-arthur` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-006 |
+| `medusa` | verified | verified | verified | ready | not_applicable | — |
+| `sinbad` | verified | verified | verified | ready | not_applicable | — |
+| `robin-hood` | verified | verified | verified | ready | not_applicable | — |
+| `bigfoot` | verified | verified | verified | ready | not_applicable | — |
+| `robert-muldoon` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-003, A-REQ-004 |
+| `invisible-man` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-003, A-REQ-005 |
+| `jekyll-and-hyde` | verified | verified | verified | ready | not_applicable | — |
+| `buffy` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-014 |
+| `willow` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-006 |
+| `spike` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-003, A-REQ-007 |
+| `angel` | verified | verified | verified | ready | not_applicable | — |
+| `little-red-riding-hood` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-008, A-REQ-009 |
+| `beowulf` | verified | verified | verified | ready | not_applicable | — |
+| `deadpool` | blocked | qualified | verified | requires_shared_extension | blocked | A-REQ-008, A-REQ-015 |
+| `yennenga` | partial | verified | verified | requires_shared_extension | not_applicable | A-REQ-010, A-REQ-011 |
+
+Totals:
+
+- Verified: **8**
+- Partial: **8**
+- Blocked: **1**
+
+## 3. A-REQ integration requirements
+
+```yaml
+- id: A-REQ-003
+  family: battlefield_components_and_paths
+  severity: P0
+  affects:
+    - robert-muldoon/ingen-traps
+    - robert-muldoon/remote-detonation
+    - invisible-man/fog
+    - invisible-man/fog-dependent-cards
+    - spike/shadows
+    - spike/shadow-dependent-cards
+  established_rule: Traps, Fog and Shadows are persistent battlefield components with identity, ownership, position and source-specific lifecycle/occupancy rules.
+  missing_capability: Shared runtime does not yet define reusable positioned non-fighter component instances and generic placement/movement/query operations.
+  proposed_generic_contract: Component instances have instance_id, definition/type, owner/controller, lifecycle location, board space, occupancy/stacking policy and generic PLACE_COMPONENT/MOVE_COMPONENT/select/count semantics.
+  evidence_status: verified
+
+- id: A-REQ-004
+  family: movement_targeting_and_combat_legality
+  severity: P0
+  affects:
+    - robert-muldoon/ingen-traps
+  established_rule: An opposing fighter entering a trap space immediately stops that movement, takes 1 damage, and the trap goes to the box; source rulings also cover effect placement into a trap space.
+  missing_capability: Shared movement resolution has no generic protected mid-move/entry interruption contract tied to space-entry/placement events.
+  proposed_generic_contract: Emit entry events per resolved relocation step and allow protected source reactions to interrupt the active movement while preserving the reached space and subsequent ordered effects.
+  evidence_status: verified
+
+- id: A-REQ-005
+  family: fighter_presence_and_occupancy
+  severity: P0
+  affects:
+    - invisible-man/vanish
+  established_rule: Vanish removes an undefeated Invisible Man from the board until the start of his next turn, then returns him to a chosen space; Dormant Player rules apply while no fighter is on board.
+  missing_capability: Shared fighter presence model lacks temporary undefeated off-board state plus source-owned scheduled return integrated with dormant turn handling.
+  proposed_generic_contract: Fighter presence distinguishes on_board, defeated and off_board_undefeated; scheduled source hooks can restore presence before/within the correct turn-start lifecycle without treating the fighter as defeated.
+  evidence_status: verified
+
+- id: A-REQ-006
+  family: damage_and_health
+  severity: P0
+  affects:
+    - king-arthur/the-holy-grail
+    - willow/resurrect
+  established_rule: Holy Grail assigns Arthur's current health exactly to 8 when its condition is met; Resurrect returns a defeated fighter with exactly 3 health.
+  missing_capability: RECOVER is insufficient for exact assignment, and revive needs an atomic source-defined health result rather than an invalid intermediate health state.
+  proposed_generic_contract: Support exact SET_HEALTH for undefeated fighters and atomic RETURN_FIGHTER with an exact-health rule, preserving defeat/recovery trigger distinctions.
+  evidence_status: verified
+
+- id: A-REQ-007
+  family: boost_pipeline
+  severity: P1
+  affects:
+    - spike/always-surprising
+  established_rule: Always Surprising performs a blind BOOST and doubles the resolved BOOST amount when Drusilla is on a Shadow.
+  missing_capability: Shared BOOST pipeline cannot transform the resolved blind-BOOST amount between reveal/read and application.
+  proposed_generic_contract: BOOST exposes a resolved amount value and supports source-defined transforms before that amount is added to combat value.
+  evidence_status: verified
+
+- id: A-REQ-008
+  family: movement_targeting_and_combat_legality
+  severity: P0
+  affects:
+    - little-red-riding-hood/what-big-ears-you-have
+    - deadpool/xavier-institute-faculty
+  established_rule: Legal combat-card/attack mode can depend on source state or the card itself rather than immutable fighter/card printed type alone.
+  missing_capability: Shared legality model does not expose declarative conditional card modes or card-specific melee/ranged attack permissions.
+  proposed_generic_contract: Preserve immutable printed metadata while deriving legal play/attack modes from scoped declarative permissions evaluated at card commit.
+  evidence_status: verified
+
+- id: A-REQ-009
+  family: card_zones_and_auxiliary_systems
+  severity: P0
+  affects:
+    - little-red-riding-hood/basket-reference
+    - little-red-riding-hood/basket-dependent-cards
+  established_rule: Little Red's Basket is not one of the 30 action cards but is a real reference object placed in the ordered discard state and can be the current top object whose symbol determines Basket behavior; wild resolves as exactly one item for a source resolution.
+  missing_capability: Standard card-zone runtime assumes ordinary card instances and has no explicit non-action auxiliary object that participates in ordered-zone top-state without affecting deck/card counts.
+  proposed_generic_contract: Ordered zones may contain typed auxiliary objects distinct from action-card instances; top-object metadata is queryable and a wild-derived attribute can be bound once per source resolution.
+  evidence_status: verified
+
+- id: A-REQ-010
+  family: damage_and_health
+  severity: P0
+  affects:
+    - yennenga/shield-of-the-archers-ability
+  established_rule: Pending damage to Yennenga may be divided among eligible Archers in her zone, no Archer may receive more than remaining health, and all unallocated damage remains on Yennenga with the original damage identity/type.
+  missing_capability: REDIRECT_DAMAGE models recipient replacement, not partial allocation of one pending event across multiple recipients plus residual damage.
+  proposed_generic_contract: Pending damage supports an allocation stage with eligible recipients, per-recipient caps, residual original target and preserved source/type/event identity.
+  evidence_status: verified
+
+- id: A-REQ-011
+  family: battlefield_components_and_paths
+  severity: P0
+  affects:
+    - yennenga/stallion-charge
+  established_rule: Stallion Charge damages each opposing fighter whose space Yennenga moved through during that specific movement.
+  missing_capability: Shared MOVE result does not expose the ordered traversed-space path for later source stages.
+  proposed_generic_contract: MOVE may bind a resolution result containing origin, ordered traversed_spaces and destination; later selectors can query distinct fighter instances whose spaces occurred in that path.
+  evidence_status: verified
+
+- id: A-REQ-014
+  family: fighter_presence_and_occupancy
+  severity: P1
+  affects:
+    - buffy/setup-selected-sidekick
+  established_rule: Buffy chooses Giles or Xander before deck construction; only the chosen sidekick and matching five-card package participate in that match.
+  missing_capability: Shared setup/runtime contract does not explicitly guarantee that an unselected fighter definition is absent from active, defeated and targetable match rosters.
+  proposed_generic_contract: Match setup materializes an active fighter roster from canonical definitions; unselected definitions remain out_of_play and cannot satisfy fighter selectors or revival effects.
+  evidence_status: verified
+
+- id: A-REQ-015
+  family: digital_adaptation_policy
+  severity: P0
+  affects:
+    - deadpool/maximum-effort
+    - deadpool/physical-social-card-effects
+  established_rule: Published Deadpool behavior intentionally depends on external facts/actions including real names, food, noises, set ownership, mirrors, sleeves, writing on a physical card, clothing, wagers and subjective board colour.
+  missing_capability: No project policy defines which physical/social predicates are automatic, player-confirmed, digitally substituted or unsupported online.
+  proposed_generic_contract: First decide a central adaptation policy per external predicate/action class; only then expose generic EXTERNAL_PREDICATE/EXTERNAL_INSTRUCTION confirmation and persistence primitives.
+  evidence_status: verified
+```
+
+Requirements count: **11**.
+
+Mirror-safety is **not** a new Worker A requirement: shared `FIGHTER-SCHEMA-001` and `CARD-SCHEMA-001/002` already require definition/instance separation, stable fighter instance identity, immutable owner and runtime card instance identity. Reconciled local definition IDs are interpreted within their fighter/deck manifest scope; runtime references must resolve to player-owned instances under those existing invariants.
+
+## 4. Evidence uncertainties / project normalizations
+
+### Qualified evidence
+
+`deadpool` is the only qualified-evidence fighter:
+
+- first-party Mondo material establishes the official release;
+- published UmDb supplies the complete 30-card corpus used here;
+- a first-party online full card-text/component dump was not located.
+
+This is a provenance-quality limitation, not an unknown deterministic card fact. Deadpool is blocked by **policy**, not by this evidence limitation.
+
+### Interpretations / normalizations
+
+- `beowulf/the-ancient-heirloom`: `derived`, high confidence. Its two optional DURING COMBAT clauses are staged in printed order; either or both may resolve. The deck manifest carries the replacement condition if a future card-specific authoritative ruling states otherwise.
+- Mirror-safe scoping: `authoritative` project schema behavior. Definition IDs are manifest-local; gameplay targets/state use runtime fighter/card instances and owner scope required by the shared schema.
+- No fan balance patch, UnPatched record or `/decks/...` community deck is used as canonical evidence.
+
+## 5. Validation matrix
+
+| Fighter | Quantity | usable_by | references | source coverage | semantic structure | integration | fan content |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| alice | pass | pass | pass | pass | pass | pass | none |
+| king-arthur | pass | pass | pass | pass | pass | requires_extensions | none |
+| medusa | pass | pass | pass | pass | pass | pass | none |
+| sinbad | pass | pass | pass | pass | pass | pass | none |
+| robin-hood | pass | pass | pass | pass | pass | pass | none |
+| bigfoot | pass | pass | pass | pass | pass | pass | none |
+| robert-muldoon | pass | pass | pass | pass | pass | requires_extensions | none |
+| invisible-man | pass | pass | pass | pass | pass | requires_extensions | none |
+| jekyll-and-hyde | pass | pass | pass | pass | pass | pass | none |
+| buffy | pass | pass | pass | pass | pass | requires_extensions | none |
+| willow | pass | pass | pass | pass | pass | requires_extensions | none |
+| spike | pass | pass | pass | pass | pass | requires_extensions | none |
+| angel | pass | pass | pass | pass | pass | pass | none |
+| little-red-riding-hood | pass | pass | pass | pass | pass | requires_extensions | none |
+| beowulf | pass | pass | pass | pass | pass | pass | none |
+| deadpool | pass | pass | pass | qualified | pass | blocked | none |
+| yennenga | pass | pass | pass | pass | pass | requires_extensions | none |
+
+Quantity validation: **PASS (17/17)**.
+
+Reconciliation structural checks:
+
+- all 17 fighter manifests and all 17 deck manifests declare `status`, `verification`, structured `sources`, reconciliation `validation`, and `reconciliation_contract: phase-4b-v1`;
+- non-trivial reconciled effects use staged resolution with explicit controller/cancellation and structured choices;
+- ordinary procedural `REQUEST_CHOICE` / procedural `external_definitions` have been removed;
+- `external_definitions` remains only where it is a real gameplay definition (`yennenga/volley`);
+- standard `deck`, `hand`, `discard` are not redundantly declared as custom zones;
+- requirement-backed operations are tagged with their `A-REQ` instead of free-form per-card blocker prose.
+
+## 6. Source gaps
+
+Blocking source gaps: **0**.
+
+Qualified non-blocking source gap: **1** — Deadpool lacks a located first-party online full card-text/component dump; official release provenance plus published UmDb card corpus remain sufficient to reconstruct deterministic printed semantics.
+
+Unresolved policy items: **1** — `A-REQ-015` Deadpool digital adaptation policy.
+
+## 7. Files owned
+
+Worker A owns and reconciled exactly:
+
+- 17 files under `docs/fighters/phase-4b/` for the assigned IDs;
+- 17 files under `docs/cards/phase-4b/` for the assigned IDs;
+- `docs/phase-4b/worker-a-report.md`.
+
+Files changed by reconciliation: **35**.
+
+No shared schema, mechanics, rules, rulings, set registry, research-plan, README, or Phase 4A manifest was changed.
+
+## Worker 4B-A Reconciliation Handoff
 
 Branch: `phase-4b-worker-a-classics`  
-Authorized Base: `4d259bc02a28d764b23ee1e6c50ebbad4f947ba9`  
-Exact final Head: read after this final report write and supplied in the delivery response.  
-Assigned fighters: **17**  
-Verified: **9**  
-Blocked: **8**  
+Exact final Head: **supplied in the delivery response after this report write; a commit cannot self-embed its own resulting SHA**  
+Assigned count: **17**  
+Verified count: **8**  
+Partial count: **8**  
+Blocked count: **1**  
 Quantity validation: **PASS (17/17)**  
-Current UmDb structure/type validation: **PASS (17/17)**  
-Blocking evidence gaps: **0**  
-Engine blocker families: **9**  
-Other policy blockers: **1** — Deadpool digital adaptation  
-Cross-cutting integration-contract gaps: **documented above; shared files intentionally untouched**  
-Files in Worker A scope: **35**  
+Requirements count: **11**  
+Unresolved evidence items: **1 qualified, non-blocking provenance limitation (Deadpool); 0 blocking evidence gaps**  
+Unresolved policy items: **1 — Deadpool digital adaptation policy (`A-REQ-015`)**  
+Files changed: **35**  
 Merge to main: **not performed**
