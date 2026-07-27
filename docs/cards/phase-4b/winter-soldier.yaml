@@ -1,279 +1,266 @@
 schema_version: 1
 fighter_id: winter-soldier
 status: verified
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
 cards:
-- id: without-remorse
-  name: Without Remorse
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: attack
-  printed_value: 6
-  boost: 2
-  tags:
-  - brainwashed
-  effects:
-  - trigger: after_combat
-    controller: opponent
-    optional: true
-    condition:
-      ignore_brainwashed_effects: false
-    tags:
-    - brainwashed
-    operations:
-    - op: DRAW
-      controller: opponent
-      count: 1
-- id: programmed-to-kill
-  name: Programmed to Kill
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: attack
-  printed_value: 4
-  boost: 2
-  tags:
-  - brainwashed
-  effects:
-  - trigger: after_combat
-    condition:
-      all:
-      - combat_result: won
-      - ignore_brainwashed_effects: false
-    tags:
-    - brainwashed
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: winter-soldier
-      amount: 2
-- id: bionic-arm
-  name: Bionic Arm
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: attack
-  printed_value: 2
-  boost: 1
-  tags: []
-  effects:
-  - trigger: during_combat
-    condition:
-      winter_soldier_adjacent_to_opposing_fighter: true
-    operations:
-    - op: SET_VALUE
-      target: this_card
-      value: 6
-  - trigger: after_combat
-    controller: opponent
-    condition:
-      ignore_brainwashed_effects: false
-    tags:
-    - brainwashed
-    operations:
-    - op: MOVE
-      controller: opponent
-      target: each_opponent_fighter
-      max_distance: 5
-- id: marksman
-  name: Marksman
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: attack
-  printed_value: 1
-  boost: 1
-  tags: []
-  effects:
-  - trigger: during_combat
-    operations:
-    - op: ADD_VALUE
-      target: this_card
-      amount_rule: spaces_between_fighters_on_shortest_path
-- id: reflex-memories
-  name: Reflex Memories
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: versatile
-  printed_value: 5
-  boost: 2
-  tags:
-  - brainwashed
-  effects:
-  - trigger: after_combat
-    condition:
-      ignore_brainwashed_effects: false
-    tags:
-    - brainwashed
-    operations:
-    - op: DISCARD
-      from_zone: hand
-      selector: random
-      count: 2
-    - op: DRAW
-      count: 2
-- id: wily-fighting
-  name: Wily Fighting
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: versatile
-  printed_value: 3
-  boost: 1
-  tags: []
-  effects:
-  - trigger: after_combat
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: each_opposing_fighter_adjacent_to_own_combat_fighter
-      amount: 1
-- id: born-in-the-barracks
-  name: Born in the Barracks
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: versatile
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    condition:
-      combat_result: won
-    operations:
-    - op: RECOVER
-      target: winter-soldier
-      amount: 2
-- id: feint
-  name: Feint
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: versatile
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: immediately
-    operations:
-    - op: CANCEL_EFFECTS
-      target_scope: opposing_combat_card
-- id: reprogram
-  name: Reprogram
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: versatile
-  printed_value: 2
-  boost: 2
-  tags: []
-  effects:
-  - trigger: after_combat
-    choices:
-    - owner: controller
-      choose: up_to_3_cards_in_own_discard
-    operations:
-    - op: MOVE_CARD
-      from_zone: discard
-      to_zone: deck
-      selector: chosen_cards
-    - op: SHUFFLE
-      zone: deck
-- id: complete-the-mission
-  name: Complete the Mission
-  quantity: 3
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: defense
-  printed_value: 3
-  boost: 2
-  tags: []
-  effects:
-  - trigger: during_combat
-    optional: true
-    operations:
-    - op: BOOST
-      target: this_card
-      source: hand
-      count: 1
-  - trigger: after_combat
-    operations:
-    - op: DEAL_EFFECT_DAMAGE
-      target: opposing_combat_fighter
-      amount_rule: combat_damage_taken
-- id: a-boy-named-bucky
-  name: A Boy Named Bucky
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: scheme
-  printed_value: null
-  boost: 3
-  tags:
-  - brainwashed-control
-  effects:
-  - trigger: scheme
-    operations:
-    - op: SET_STATE
-      key: ignore_brainwashed_effects
-      value: true
-    - op: GAIN_ACTION
-      count: 1
-- id: manipulation
-  name: Manipulation
-  quantity: 2
-  inclusion: fixed
-  usable_by:
-  - winter-soldier
-  type: scheme
-  printed_value: null
-  boost: 3
-  tags: []
-  effects:
-  - trigger: scheme
-    operations:
-    - op: DRAW
-      count_rule: until_own_hand_size_5
-  - trigger: scheme
-    controller: each_opponent
-    optional: true
-    condition:
-      ignore_brainwashed_effects: false
-    tags:
-    - brainwashed
-    operations:
-    - op: DRAW
-      controller: controller
-      count_rule: until_controller_hand_size_5
+  - id: without-remorse
+    name: Without Remorse
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: attack
+    printed_value: 6
+    boost: 2
+    tags: [brainwashed]
+    effects:
+      - id: without-remorse-brainwashed
+        trigger: after_combat
+        controller: combat_opponent
+        cancellation: protected
+        tags: [brainwashed]
+        stages:
+          - id: choose
+            when: {ignore_brainwashed_effects: false}
+            choices:
+              - {id: opponent_draws, owner: combat_opponent, visibility: public, optional: true, domain: {kind: boolean}, bind: opponent_draws}
+            costs: []
+            operations: []
+          - {id: draw, when: {bound: opponent_draws, equals: true}, choices: [], costs: [], operations: [{op: DRAW, controller: combat_opponent, count: 1}]}
+  - id: programmed-to-kill
+    name: Programmed to Kill
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: [brainwashed]
+    effects:
+      - id: programmed-to-kill-brainwashed
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        tags: [brainwashed]
+        stages: [{id: self-damage, when: {combat_result: won, ignore_brainwashed_effects: false}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: winter-soldier, amount: 2}]}]
+  - id: bionic-arm
+    name: Bionic Arm
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: attack
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: bionic-arm-value
+        trigger: during_combat
+        controller: controller
+        cancellation: protected
+        stages: [{id: set-value, when: {winter_soldier_adjacent_to_opposing_fighter: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}]
+      - id: bionic-arm-brainwashed-move
+        trigger: after_combat
+        controller: combat_opponent
+        cancellation: protected
+        tags: [brainwashed]
+        stages: [{id: move, when: {ignore_brainwashed_effects: false}, choices: [], costs: [], operations: [{op: MOVE, controller: combat_opponent, target: each_combat_opponent_fighter, max_distance: 5}]}]
+  - id: marksman
+    name: Marksman
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: attack
+    printed_value: 1
+    boost: 1
+    tags: []
+    effects:
+      - id: marksman-value
+        trigger: during_combat
+        controller: controller
+        cancellation: protected
+        stages: [{id: add-value, when: always, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_ref: {combat: current, field: spaces_between_fighters_on_shortest_path}}]}]
+  - id: reflex-memories
+    name: Reflex Memories
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: versatile
+    printed_value: 5
+    boost: 2
+    tags: [brainwashed]
+    effects:
+      - id: reflex-memories-brainwashed
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        tags: [brainwashed]
+        stages:
+          - id: resolve
+            when: {ignore_brainwashed_effects: false}
+            choices: []
+            costs: []
+            operations:
+              - {op: DISCARD, from_zone: hand, selector: random, count: 2}
+              - {op: DRAW, count: 2}
+  - id: wily-fighting
+    name: Wily Fighting
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: wily-fighting-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        stages: [{id: damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]
+  - id: born-in-the-barracks
+    name: Born in the Barracks
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: born-in-barracks-recover
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        stages: [{id: recover, when: {combat_result: won}, choices: [], costs: [], operations: [{op: RECOVER, target: winter-soldier, amount: 2}]}]
+  - id: feint
+    name: Feint
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: protected
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+  - id: reprogram
+    name: Reprogram
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: reprogram-recycle
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        stages:
+          - id: choose-cards
+            when: always
+            choices:
+              - {id: recycle_cards, owner: controller, visibility: public, optional: false, domain: {kind: card_set, zone: own_discard}, min: 0, max: 3, distinct: true, order_matters: false, bind: recycle_cards}
+            costs: []
+            operations: []
+          - id: recycle
+            when: {bound: recycle_cards, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {bound: recycle_cards}}
+              - {op: SHUFFLE, zone: deck}
+  - id: complete-the-mission
+    name: Complete the Mission
+    quantity: 3
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: defense
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: complete-mission-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: protected
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: complete-mission-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        stages: [{id: damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_ref: {combat: current, field: combat_damage_taken}}]}]
+  - id: a-boy-named-bucky
+    name: A Boy Named Bucky
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: [brainwashed-control]
+    effects:
+      - id: boy-named-bucky-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: protected
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: SET_STATE, key: ignore_brainwashed_effects, value: true}
+              - {op: GAIN_ACTION, count: 1}
+  - id: manipulation
+    name: Manipulation
+    quantity: 2
+    inclusion: fixed
+    usable_by: [winter-soldier]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: manipulation-own-draw
+        trigger: scheme
+        controller: controller
+        cancellation: protected
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count_rule: until_own_hand_size_5}]}]
+      - id: manipulation-brainwashed-opponents
+        trigger: scheme
+        controller: each_opponent
+        cancellation: protected
+        tags: [brainwashed]
+        stages:
+          - id: choose
+            when: {ignore_brainwashed_effects: false}
+            choices:
+              - {id: opponent_draw_choices, owner: each_opponent, visibility: public, optional: true, domain: {kind: boolean}, bind: opponent_draw_choices}
+            costs: []
+            operations: []
+          - {id: draw, when: {bound: opponent_draw_choices, exists: true}, choices: [], costs: [], operations: [{op: DRAW, controller: each_opponent_with_bound_true, choice_ref: opponent_draw_choices, count_rule: until_controller_hand_size_5}]}
+
 external_definitions: []
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  known_quantity_sum: 30
-  quantity_reconciles: true
-  unique_card_definitions: 12
+interpretations: []
 sources:
-- https://unmatched.cards/umdb/decks/winter-soldier
-- https://www.unmatchedarena.com/heroes/winter-soldier
-- https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf
-- https://www.the-unmatched.club/heroes/winter-soldier
-normalization_notes:
-- BRAINWASHED/star clauses are tagged at the individual effect level so A Boy Named Bucky suppresses only the negative clause, not the ordinary portion of a card.
-- Audit correction: Bionic Arm's opponent-movement clause is BRAINWASHED; its DURING COMBAT value effect is not.
-- Audit correction: Manipulation's own draw is unconditional, while each opponent independently may resolve the BRAINWASHED draw-until-five clause unless A Boy Named Bucky is active.
-- Audit correction: Without Remorse gives the opponent a choice to draw; it is not a mandatory opponent draw.
+  - {id: winter-soldier-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2023/04/UM-KingandCountry_Rules_Pages-sm.pdf, checked_at: 2026-07-27, supports: [brainwashed_rules]}
+  - {id: winter-soldier-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/winter-soldier, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: winter-soldier-rulings-index, authority: secondary_cross_check, url: https://www.the-unmatched.club/heroes/winter-soldier, checked_at: 2026-07-27, supports: [brainwashed_cross_check]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
