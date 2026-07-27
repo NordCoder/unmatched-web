@@ -51,7 +51,7 @@ cards:
               - {op: ADD_VALUE, target: this_card, amount: {ref: revealed_bottom.boost_or_0}}
           - id: choose-destination
             choices:
-              - {id: destination, owner: controller, visibility: private, optional: false, domain: [deck_top, deck_bottom], bind: destination}
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: [deck_top, deck_bottom], bind: destination}
           - id: replace-card
             operations:
               - {op: MOVE_CARD, from_zone: revealed, to_zone: {ref: destination}, selector: {ref: revealed_bottom}}
@@ -88,7 +88,32 @@ cards:
   - {id: slick-talker, name: Slick Talker, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, tags: [], effects: [{id: slick-talker-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: optional-swap, choices: [{id: swap-choice, owner: controller, visibility: public, optional: true, domain: [swap, decline], bind: swap_choice}], operations: [{op: SWAP, a: annie-christmas, b: charlie, when: {ref: swap_choice, equals: swap}, bind_result: swap_result}]}, {id: replace-defender, when: {ref: swap_result.succeeded, equals: true}, operations: [{op: SET_STATE, key: combat_defender, value: other_fighter}]}]}]}
   - {id: mississippi-queen, name: Mississippi Queen, quantity: 3, usable_by: [annie-christmas], type: defense, printed_value: 2, boost: 3, tags: [health_floor], effects: [{id: mississippi-queen-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: apply-floor, operations: [{op: TRIGGER_COMPOSITE, kind: damage_health_floor, target: annie-christmas, minimum_health: 1, preserves_damage_dealt: true, source_lifetime: turn_end}]}]}]}
   - {id: a-few-more-pearls, name: A Few More Pearls, quantity: 3, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: pearls-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_annie, amount: 2}]}]}]}
-  - {id: captains-orders, name: "Captain's Orders", quantity: 2, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: captains-orders-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: PLACE, target: annie-christmas, destination: any_space_in_annie_zone}, {op: PLACE, target: another_friendly_fighter, destination: any_space_in_annie_zone}, {op: GAIN_ACTION, count: 1}]}]}]}
+  - id: captains-orders
+    name: "Captain's Orders"
+    quantity: 2
+    usable_by: [annie-christmas]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: captains-orders-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-annie-destination
+            choices:
+              - {id: annie-destination, owner: controller, visibility: public, optional: false, domain: {kind: space, empty: true, in_zone_of: annie-christmas}, bind: annie_destination}
+          - id: place-annie
+            operations: [{op: PLACE, target: annie-christmas, destination: {ref: annie_destination}}]
+          - id: choose-friendly-destination
+            choices:
+              - {id: friendly-destination, owner: controller, visibility: public, optional: false, domain: {kind: space, empty: true, in_zone_of: annie-christmas}, bind: friendly_destination}
+          - id: place-friendly
+            operations: [{op: PLACE, target: another_friendly_fighter, destination: {ref: friendly_destination}}]
+          - id: gain-action
+            operations: [{op: GAIN_ACTION, count: 1}]
 
 external_definitions: []
 
@@ -108,4 +133,5 @@ validation:
 
 normalization_notes:
   - Bottom Dealing is staged because the destination choice occurs after the revealed card is known.
+  - Captain's Orders resolves the two empty-space placements in printed order, so the second destination is evaluated after Annie's placement.
   - Mississippi Queen uses C-REQ-012; damage remains dealt while resulting health is floored at 1.
