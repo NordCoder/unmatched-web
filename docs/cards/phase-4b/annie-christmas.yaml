@@ -13,7 +13,7 @@ cards:
   - {id: the-turn-and-the-river, name: The Turn and the River, quantity: 2, usable_by: [charlie], type: versatile, printed_value: 2, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DRAW, count: 2}]}]}
   - {id: striking-beauty, name: Striking Beauty, quantity: 2, usable_by: [annie-christmas], type: versatile, printed_value: 1, boost: 3, tags: [], effects: [{trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_rule: 2_if_won_else_1}]}]}
   - {id: slick-talker, name: Slick Talker, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, tags: [], effects: [{trigger: immediately, optional: true, operations: [{op: SWAP, a: annie-christmas, b: charlie, if_both_on_board: true}, {op: SET_STATE, key: combat_defender, value: other_fighter, condition: {swap_completed: true}}]}]}
-  - {id: mississippi-queen, name: Mississippi Queen, quantity: 3, usable_by: [annie-christmas], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{trigger: immediately, continuous_until: turn_end, operations: [{op: PREVENT_DAMAGE, target: annie-christmas, scope: amount_that_would_reduce_health_below_1}]}]}
+  - {id: mississippi-queen, name: Mississippi Queen, quantity: 3, usable_by: [annie-christmas], type: defense, printed_value: 2, boost: 3, tags: [health_floor], effects: [{trigger: immediately, continuous_until: turn_end, operations: [{op: TRIGGER_COMPOSITE, kind: damage_health_floor, target: annie-christmas, minimum_health: 1, preserves_damage_dealt: true, source_lifetime: turn_end}]}]}
   - {id: a-few-more-pearls, name: A Few More Pearls, quantity: 3, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_annie, amount: 2}]}]}
   - {id: captains-orders, name: "Captain's Orders", quantity: 2, usable_by: [annie-christmas], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, operations: [{op: PLACE, target: annie-christmas, destination: any_space_in_annie_zone}, {op: PLACE, target: another_friendly_fighter, destination: any_space_in_annie_zone}, {op: GAIN_ACTION, count: 1}]}]}
 
@@ -22,6 +22,7 @@ validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, un
 sources:
   - https://unmatched.cards/umdb/decks/annie-christmas
   - https://www.the-unmatched.club/heroes/annie-christmas
+  - https://www.the-unmatched.club/tools/disputes/b8f0f25e-e75c-4edd-a6dd-17706ddc6d01
 normalization_notes:
   - Lagniappe self-damage resolves before the draws; Annie's static ability observes health when combat values are evaluated.
-  - Mississippi Queen is damage prevention with a health floor, not post-damage healing.
+  - Mississippi Queen is not damage prevention. Damage is still dealt for combat/result/trigger semantics; only the resulting health reduction is clamped so Annie cannot go below 1 this turn. This uses C-EXT-012.
