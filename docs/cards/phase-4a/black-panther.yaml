@@ -199,6 +199,6 @@ sources:
 normalization_notes:
   - REVEAL/MOVE_CARD from an empty or undersized opponent deck does not invoke exhaustion because these are not DRAW operations.
   - Stored cards preserve `owner_player`; Vibranium Suit changes current zone and use authority, not ownership.
-  - `eligible_black_panther_boost_source` includes a legal card from hand or a stored opponent card with a BOOST value.
+  - "`eligible_black_panther_boost_source` includes a legal card from hand or a stored opponent card with a BOOST value."
   - When a stored card is used to BOOST, resolve its BOOST effect as applicable and move that card to its owner's discard pile.
   - Black Panther's ability draw is interleaved immediately after each BOOST value, so a repeated BOOST sequence cannot lock both BOOST choices in advance.
