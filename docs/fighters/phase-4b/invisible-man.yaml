@@ -17,7 +17,7 @@ setup:
     - stage: POST_PLACEMENT_CONFIGURATION
       requires: [A-REQ-003]
       choices:
-        - {id: place-fog-1, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [previous_fog_spaces]}, bind: fog_space_1}
+        - {id: place-fog-1, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man}, bind: fog_space_1}
         - {id: place-fog-2, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}]}, bind: fog_space_2}
         - {id: place-fog-3, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}, {ref: choice.fog_space_2}]}, bind: fog_space_3}
       operations:
@@ -39,7 +39,7 @@ ability:
           when: {combat: {defender: invisible-man}, position: {fighter: invisible-man, on_component_type: fog}}
           choices: []
           costs: []
-          operations: [{op: ADD_VALUE, target: invisible_man_defense, amount: 1}]
+          operations: [{op: ADD_VALUE, target: {selector: {kind: combat_card, owner: self, role: defense, fighter: invisible-man}}, amount: 1}]
     - id: fog-step
       trigger: movement_adjacency
       controller: owner
