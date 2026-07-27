@@ -14,7 +14,7 @@ cards:
     name: Analyze and Adjust
     quantity: 3
     usable_by: any
-    type: versatile
+    type: attack
     printed_value: 3
     boost: 3
     effects:
@@ -27,7 +27,7 @@ cards:
     name: Ancestral Insight
     quantity: 3
     usable_by: [black-panther]
-    type: attack
+    type: versatile
     printed_value: 4
     boost: 1
     effects:
@@ -41,7 +41,7 @@ cards:
     name: Anti-Metal Claws
     quantity: 2
     usable_by: [black-panther]
-    type: attack
+    type: versatile
     printed_value: 1
     boost: 2
     effects:
@@ -68,7 +68,7 @@ cards:
     name: Evade
     quantity: 2
     usable_by: any
-    type: versatile
+    type: defense
     printed_value: 3
     boost: 2
     effects:
@@ -90,7 +90,7 @@ cards:
     name: Nanotriage Processor
     quantity: 2
     usable_by: [shuri]
-    type: defense
+    type: versatile
     printed_value: 2
     boost: 2
     effects:
@@ -162,7 +162,7 @@ cards:
     name: Vibranium Shockwave
     quantity: 2
     usable_by: [black-panther]
-    type: versatile
+    type: attack
     printed_value: 2
     boost: 2
     effects:
