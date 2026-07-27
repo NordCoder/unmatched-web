@@ -4,7 +4,7 @@ display_name: Loki
 set_ids:
 - battle-of-legends-vol-3
 status: partial
-reason: multiplayer_noncombat_trick_recipient_unresolved
+reason: multiplayer_noncombat_trick_recipient_uses_uncertain_project_normalization
 movement: 2
 topology:
   type: single_hero
@@ -30,7 +30,12 @@ ability:
     condition: {played_card_tag: trick, card_owner: loki}
     branches:
     - condition: {played_card_controller: loki}
-      operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: opponent_hand, selector: played_card}]
+      choices:
+      - owner: controller
+        choose: eligible_opponent_for_trick_destination
+        evidence_status: uncertain_project_normalization
+        normalization_rule: Loki's controller chooses which eligible opponent receives the TRICK when more than one opponent is eligible.
+      operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: chosen_opponent_hand, selector: played_card}]
     - condition: {played_card_controller_not: loki}
       operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: owner_discard, selector: played_card}]
   - id: trick-opponent-discard-recovery
@@ -64,6 +69,10 @@ rulings:
 - id: loki-end-turn-cleanup
   summary: Loki-owned TRICK cards still use their special cleanup destination when a card effect ends the turn; END_TURN jumps to Cleanup rather than bypassing it.
   source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+- id: loki-multiplayer-trick-recipient-provisional
+  status: uncertain_project_normalization
+  summary: In multiplayer, when Loki plays a non-combat TRICK and more than one opponent is eligible, the project provisionally lets Loki's controller choose the receiving opponent. No authoritative ruling confirming this chooser was found in the targeted evidence pass.
+  source: project_owner_decision_2026-07-27
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
 - authority: official_set
@@ -90,7 +99,8 @@ sources:
 normalization_notes:
 - Opponent-held TRICK cards preserve owner_player=Loki while current_zone and zone controller change.
 - Cleanup disposition depends on who played the Loki-owned TRICK; ownership alone is not sufficient to select the destination.
-- A targeted web search across current Club rulings, current Reference, official Core Rules, indexed BGG material and other current transcriptions found no authoritative rule naming the recipient of a Loki-played non-combat TRICK in 2v2/FFA when multiple opponents are eligible. Svadilfari's Lure is the concrete unresolved case; this narrow multiplayer evidence gap is why Loki remains partial.
-- The official FFA combat-card rule does not close that scheme/hero-ability gap because it is explicitly scoped to effects on combat cards.
+- A targeted web search across current Club rulings, current Reference, official Core Rules, indexed BGG material and other current transcriptions found no authoritative rule naming the recipient of a Loki-played non-combat TRICK in 2v2/FFA when multiple opponents are eligible. Svadilfari's Lure is the concrete unresolved evidence case.
+- Project normalization for implementation is explicit but uncertain: Loki's controller chooses the receiving opponent among currently eligible opponents. This rule must be replaceable if a later authoritative ruling specifies a different chooser.
+- The official FFA combat-card rule does not establish this chooser because it is explicitly scoped to effects on combat cards.
 - END_TURN interaction is no longer an evidence gap: current Reference states that Loki's TRICK still reaches the opponent hand during Cleanup even when the turn was ended.
 - The movement-value bonus is a proposed generic extension; corpus verification does not require modifying the shared model on this worker branch.
