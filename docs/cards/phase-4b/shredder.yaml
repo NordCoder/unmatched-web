@@ -92,7 +92,10 @@ cards:
   - id: back-to-work
     trigger: scheme
     branches:
-    - {condition: {fighter: bebop-and-rocksteady, defeated: false}, operations: [{op: RECOVER, target: bebop-and-rocksteady, amount: 3}]}
+    - condition: {fighter: bebop-and-rocksteady, defeated: false}
+      operations:
+      - {op: RECOVER, target: bebop-and-rocksteady, amount: 3}
+      - {op: PLACE, target: bebop-and-rocksteady, destination_rule: closest_legal_space_to_shredder}
     - condition: {fighter: bebop-and-rocksteady, defeated: true}
       operations: [{op: RETURN_FIGHTER, fighter: bebop-and-rocksteady, health: 3, destination_rule: closest_legal_space_to_shredder}]
 external_definitions: []
@@ -112,5 +115,5 @@ normalization_notes:
 - All 13 competitive Hero Deck definitions reconcile to 30 cards.
 - Gruff Escort uses explicit path choices and resource transitions under D-REQ-007; dormant Foot Soldiers are excluded from adjacency counts but remain deployed for Perplexing Tactics.
 - All According to Plan creates a persisted cross-player obligation under D-REQ-015.
-- Disrupting Strike uses generic locked SET_VALUE; Back to Work uses RECOVER/RETURN_FIGHTER branches.
+- Disrupting Strike uses generic locked SET_VALUE; Back to Work preserves closest-to-Shredder placement in both undefeated and defeated branches.
 - No Adventures villain/scenario behavior or source_defined constructs remain.
