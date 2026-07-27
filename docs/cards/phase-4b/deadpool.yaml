@@ -73,7 +73,16 @@ cards:
           - id: choose-discard-cards
             when: always
             choices:
-              - {id: choose-five-cards, owner: controller, visibility: public, optional: false, domain: {zone: discard, owner: self}, bind: chosen_cards, min: 0, max: 5, distinct: true, order_matters: false}
+              - id: choose-five-cards
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {zone: discard, owner: self}
+                bind: chosen_cards
+                min: {expr: min, values: [5, {expr: count, selector: {zone: discard, owner: self}}]}
+                max: {expr: min, values: [5, {expr: count, selector: {zone: discard, owner: self}}]}
+                distinct: true
+                order_matters: false
             costs: []
             operations:
               - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {ref: choice.chosen_cards}}
@@ -141,8 +150,8 @@ cards:
               - {id: choose-spaces, owner: controller, visibility: public, optional: false, domain: {kind: space, external_predicate: subjectively_yellowish_zone, requires: A-REQ-015}, bind: chosen_spaces, min: 2, max: 2, distinct: true, order_matters: true}
             costs: []
             operations: []
-          - {id: first-place, when: always, choices: [], costs: [], operations: [{op: PLACE, target: deadpool, destination: {ref: choice.chosen_spaces[0]}}]}
-          - {id: second-place, when: always, choices: [], costs: [], operations: [{op: PLACE, target: deadpool, destination: {ref: choice.chosen_spaces[1]}}]}
+          - {id: first-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: choice.chosen_spaces[0]}}]}
+          - {id: second-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: choice.chosen_spaces[1]}}]}
   - id: wanna-bet
     name: Wanna bet?
     quantity: 1
@@ -232,7 +241,7 @@ cards:
     usable_by: [deadpool]
     type: attack
     printed_value: 2
-    boost: 1
+    boost: 4
     requires: [A-REQ-015]
     effects:
       - id: gaze-of-stone-effect
@@ -275,7 +284,7 @@ cards:
     printed_value: 2
     boost: 1
     effects:
-      - id: transit-place
+      - id: transit-move
         trigger: after_combat
         controller: owner
         cancellation: cancelable
@@ -285,7 +294,7 @@ cards:
             choices:
               - {id: choose-zone-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: deadpool}, bind: destination}
             costs: []
-            operations: [{op: PLACE, target: deadpool, destination: {ref: choice.destination}}]
+            operations: [{op: MOVE, target: deadpool, destination: {ref: choice.destination}}]
   - id: faint
     name: Faint
     quantity: 1
