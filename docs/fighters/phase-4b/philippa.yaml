@@ -2,7 +2,13 @@ schema_version: 1
 id: philippa
 display_name: Philippa
 set_ids: [witcher-realms-fall]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-008, C-REQ-011, C-REQ-013]
 movement: 2
 
 topology:
@@ -25,7 +31,10 @@ ability:
       trigger: turn_end
       optional: true
       condition: {hand_size: {lt: 4}}
-      operations: [{op: DRAW, count_rule: four_minus_current_hand_size}]
+      operations:
+        - op: DRAW
+          count:
+            expr: {op: subtract, left: 4, right: {ref: controller.hand_size}}
 
 resources: []
 persistent_state:
@@ -37,14 +46,35 @@ deck:
 
 rulings:
   - id: ability-not-usable-at-four-plus
-    summary: Philippa's end-turn ability is available only when her hand contains fewer than four cards; it never discards down to four.
-    source: https://www.the-unmatched.club/rules/philippa
+    summary: Two Steps Ahead is available only when Philippa's controller has fewer than four cards; it never discards down to four.
+    source_refs: [philippa-rulings]
 
 sources:
-  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/philippa}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/rules/philippa}
+  - id: witcher-rf-rules-philippa
+    authority: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
+    checked_at: 2026-07-27
+    supports: [Philippa fighter rules, Witcher ongoing schemes]
+  - id: philippa-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/philippa
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: philippa-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/rules/philippa
+    checked_at: 2026-07-27
+    supports: [Two Steps Ahead and Philippa ruling index]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
   - The canonical published ability name is TWO STEPS AHEAD.
-  - Backup Plan can set Philippa's health to exactly 5, including lowering it from above 5; the generic exact-health-assignment proposal is recorded in the Worker C report.
+  - Backup Plan requires exact health assignment; Polymorphy requires source-lifetime movement override.
