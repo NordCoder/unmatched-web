@@ -1,33 +1,162 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: robert-muldoon
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: remote-detonation, name: Remote Detonation, quantity: 3, usable_by: any, type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: own_trap_in_same_zone_as_any_ingen_worker}], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_chosen_trap, amount: 1}]}], normalization_blocker: return_chosen_positioned_trap_to_box_then_resolve_draw_on_trap_return}
-  - {id: they-should-all-be-destroyed, name: They Should All Be Destroyed, quantity: 3, usable_by: [robert-muldoon], type: attack, printed_value: 4, boost: 3, effects: [{trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount: count_own_traps_adjacent_to_opposing_combat_fighter}]}]}
-  - {id: shoot-her, name: Shoot Her!, quantity: 2, usable_by: [robert-muldoon], type: attack, printed_value: 3, boost: 1, effects: [{trigger: during_combat, condition: {action_ordinal: 1}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
-  - {id: ive-hunted-most-things-that-can-hunt-you, name: "I've Hunted Most Things That Can Hunt You", quantity: 2, usable_by: [robert-muldoon], type: defense, printed_value: 4, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}
-  - {id: second-shot, name: Second Shot, quantity: 2, usable_by: any, type: attack, printed_value: 2, boost: 3, effects: [{trigger: during_combat, optional: true, operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]}]}
-  - {id: call-for-backup, name: Call for Backup, quantity: 2, usable_by: [robert-muldoon], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, choices: [{choose_different: 2, from: [place_up_to_3_traps, return_all_defeated_workers, draw_2]}], operations: [{op: REQUEST_CHOICE, definition: call_for_backup_two_different}]}]}
-  - {id: tactical-advance, name: Tactical Advance, quantity: 3, usable_by: [ingen-worker], type: versatile, printed_value: 3, boost: 3, effects: [{trigger: after_combat, operations: [{op: MOVE, target: each_ingen_worker, max_distance: 2}]}]}
-  - {id: rending-shot, name: Rending Shot, quantity: 4, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3, controller: owner}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {trigger: after_combat, condition: {combat_result: not_won}, operations: [{op: DRAW, count: 1}]}]}
-  - {id: leap-away, name: Leap Away, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 4}]}]}
+  - id: remote-detonation
+    name: Remote Detonation
+    quantity: 3
+    usable_by: any
+    type: scheme
+    printed_value: null
+    boost: 2
+    requires: [A-REQ-003]
+    effects:
+      - id: remote-detonation-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-trap
+            when: always
+            choices:
+              - {id: choose-trap, owner: controller, visibility: public, optional: false, domain: {kind: component, type: trap, owner: self, zone_relation: same_zone_as_any_own_ingen_worker}, bind: chosen_trap}
+            costs: []
+            operations: []
+          - id: damage-adjacent-opponents
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, adjacent_to_component: {ref: choice.chosen_trap}}}, amount: 1}]
+          - id: return-trap
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: MOVE_COMPONENT, target: {ref: choice.chosen_trap}, destination: box, requires: A-REQ-003}]
+          - id: draw-on-return
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: DRAW, count: 1}]
+  - id: they-should-all-be-destroyed
+    name: They Should All Be Destroyed
+    quantity: 3
+    usable_by: [robert-muldoon]
+    type: attack
+    printed_value: 4
+    boost: 3
+    requires: [A-REQ-003]
+    effects:
+      - id: destroy-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: add-trap-count
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {kind: component, type: trap, owner: self, adjacent_to: {ref: combat.opposing_fighter}}
+  - {id: shoot-her, name: Shoot Her!, quantity: 2, usable_by: [robert-muldoon], type: attack, printed_value: 3, boost: 1, effects: [{id: shoot-her-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {turn: {action_ordinal: 1}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - {id: ive-hunted-most-things-that-can-hunt-you, name: "I've Hunted Most Things That Can Hunt You", quantity: 2, usable_by: [robert-muldoon], type: defense, printed_value: 4, boost: 1, effects: [{id: hunted-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-friendly, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self}}, max_distance: 5, overrides: [may_move_through_opposing_fighters]}]}]}]}
+  - id: second-shot
+    name: Second Shot
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 3
+    effects:
+      - id: second-shot-boost
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-boost
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: {ref: choice.boost_card}}]
+  - id: call-for-backup
+    name: Call for Backup
+    quantity: 2
+    usable_by: [robert-muldoon]
+    type: scheme
+    printed_value: null
+    boost: 3
+    requires: [A-REQ-003]
+    effects:
+      - id: call-for-backup-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-003]
+        stages:
+          - id: choose-two-options
+            when: always
+            choices:
+              - {id: choose-options, owner: controller, visibility: public, optional: false, domain: [place_up_to_3_traps, return_all_defeated_workers, draw_2], bind: selected_options, min: 2, max: 2, distinct: true, order_matters: true}
+            costs: []
+            operations: []
+          - id: choose-trap-spaces
+            when: {choice_contains: {ref: choice.selected_options}, value: place_up_to_3_traps}
+            choices:
+              - {id: choose-trap-spaces, owner: controller, visibility: public, optional: true, domain: {kind: space, legal_for_component: trap}, bind: trap_spaces, min: 0, max: 3, distinct: true, order_matters: false}
+            costs: []
+            operations: []
+          - {id: first-place, when: {choice_item: {ref: choice.selected_options[0]}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
+          - {id: first-return, when: {choice_item: {ref: choice.selected_options[0]}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: legal_source_spaces, health_rule: full_sidekick_health}]}
+          - {id: first-draw, when: {choice_item: {ref: choice.selected_options[0]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: second-place, when: {choice_item: {ref: choice.selected_options[1]}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
+          - {id: second-return, when: {choice_item: {ref: choice.selected_options[1]}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: legal_source_spaces, health_rule: full_sidekick_health}]}
+          - {id: second-draw, when: {choice_item: {ref: choice.selected_options[1]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+  - {id: tactical-advance, name: Tactical Advance, quantity: 3, usable_by: [ingen-worker], type: versatile, printed_value: 3, boost: 3, effects: [{id: tactical-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-workers, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker}}, max_distance: 2}]}]}]}
+  - {id: rending-shot, name: Rending Shot, quantity: 4, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{id: rending-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-opponent, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.opposing_fighter}, max_distance: 3, controller: owner}]}]}]}
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 1, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: leap-away
+    name: Leap Away
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 2
+    effects:
+      - id: leap-away-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 4}]
 
-external_definitions:
-  - {id: call-for-backup-two-different, kind: choice_bundle, choose: 2, distinct: true, options: [place_up_to_3_traps, return_all_defeated_workers, draw_2]}
-  - {id: positioned-trap-component, kind: proposed_generic_component_semantics, lifecycle: [available, board, box], reusable_from_box: false, operations_needed: [place_token, return_token_to_box, trigger_on_entry, stop_current_movement]}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
+external_definitions: []
+interpretations: []
 sources:
-  - https://unmatched.cards/umdb/decks/ingen
-  - https://unmatched.cards/umdb/decks/stats
-  - https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - Trap positions and trap return-to-box are preserved as source semantics but are not represented with invented fighter-specific operations.
-  - Remote Detonation returns the chosen trap to the box, never to an available supply; the return also participates in Muldoon's draw-on-trap-return ability.
-  - Regroup uses mutually exclusive won/not-won branches so its published "draw 2 instead" replacement is not represented as two independent draw effects.
-  - Current UmDb recheck confirms 30 cards, 11 unique definitions, and the published quantities/users/value/BOOST metadata used here.
+  - {id: ingen-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ingen, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: ingen-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf, checked_at: 2026-07-27, supports: [trap_lifecycle, trap_cards]}
+  - {id: ingen-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [entry_trigger, placement_trigger]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
