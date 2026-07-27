@@ -18,9 +18,9 @@ ability:
   controller: owner
   effects:
     - id: damage-hero-leaving-zone
-      trigger: fighter_leaves_zone
+      trigger: left_zone
       condition: {fighter: opposing_hero, zone_owner: tomoe-gozen}
-      operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_hero, amount: 1}]
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_fighter, amount: 1}]
 
 resources: []
 persistent_state: []
@@ -41,5 +41,5 @@ sources:
   - {type: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen}
 
 normalization_notes:
-  - Attack of Opportunity consumes the existing relocation transition facts required by `docs/mechanics/movement-and-placement.md` (`left_zone` / `removed_from_board`); Tomoe does not require a second parallel zone-event primitive.
+  - Attack of Opportunity consumes the existing `left_zone` relocation transition fact required by `docs/mechanics/movement-and-placement.md`; Tomoe does not require a second parallel zone-event primitive.
   - Witness My Last Battle has declaration-time target and face-up-play rules. These use the reusable combat-play-mode proposal in the Worker C report rather than a Tomoe-only engine branch.
