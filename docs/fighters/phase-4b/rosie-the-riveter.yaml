@@ -2,8 +2,7 @@ schema_version: 1
 id: rosie-the-riveter
 display_name: Rosie the Riveter
 set_ids: [stars-and-stripes]
-status: partial
-reason: three_upgrade_token_effect_mappings_not_directly_transcribed
+status: verified
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -31,6 +30,21 @@ ability:
     optional: true
     condition: {upgrade_token_active: merlin-engine, mover: rosie-the-riveter}
     operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_additional_maneuver_space, target: rosie-the-riveter, amount: 1}]
+  - id: cavity-magnetron-draw
+    trigger: after_attack
+    optional: true
+    condition: {upgrade_token_active: cavity-magnetron, attacker: rosie-the-riveter}
+    operations: [{op: DRAW, count: 1}]
+  - id: sedgley-fist-gun-attack
+    trigger: static
+    continuous: true
+    condition: {upgrade_token_active: sedgley-fist-gun, attacker: rosie-the-riveter}
+    operations: [{op: ADD_VALUE, target: rosie_attack, amount: 1}]
+  - id: whizbang-ranged
+    trigger: static
+    continuous: true
+    condition: {upgrade_token_active: whizbang}
+    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_attack_type_modifier, target: rosie-the-riveter, attack_type: ranged}]
 resources:
 - id: upgrade-tokens
   kind: token_pool
@@ -51,20 +65,18 @@ resources:
   - id: cavity-magnetron
     printed_name: Cavity Magnetron
     printed_order: 2
-    evidence_status: printed_identity_and_order_verified_effect_mapping_unresolved
+    evidence_status: verified_physical_component_transcription
+    active_effect: After Rosie attacks, she may draw 1 card.
   - id: sedgley-fist-gun
     printed_name: Sedgley Fist Gun
     printed_order: 3
-    evidence_status: printed_identity_and_order_verified_effect_mapping_unresolved
+    evidence_status: verified_physical_component_transcription
+    active_effect: Rosie's attacks get +1 value.
   - id: whizbang
     printed_name: Whizbang
     printed_order: 4
-    evidence_status: printed_identity_and_order_verified_effect_mapping_unresolved
-  unresolved_semantic_effects:
-  - Rosie becomes a ranged fighter.
-  - Rosie's attacks get +1 value.
-  - After Rosie attacks, she may draw 1 card.
-  unresolved_mapping_rule: The three semantic effects above are known, but current first-party text evidence checked by Worker D does not identify which of Cavity Magnetron, Sedgley Fist Gun, or Whizbang grants which effect.
+    evidence_status: verified_physical_component_transcription
+    active_effect: Rosie is a ranged fighter.
 persistent_state:
 - {key: active_upgrade_count, type: integer, reset: never}
 deck:
@@ -81,10 +93,10 @@ sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
 - {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', note: Establishes the exact initial token order, ordered-row procedure, all-inactive setup and Merlin Engine text.}
 - {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms four upgrades, inactive-at-start behavior and additional active abilities.}
-- {authority: official_component, url: https://restorationgames.com/wp-content/uploads/2026/05/Rosie-Upgrades-1024x354.png, checked_at: '2026-07-27', note: First-party visual reference exists, but its remaining token-effect text could not be directly retrieved/transcribed in the current evidence pass.}
+- {authority: official_component, url: https://restorationgames.com/wp-content/uploads/2026/05/Rosie-Upgrades-1024x354.png, checked_at: '2026-07-27', note: First-party visual reference for the four physical upgrade components.}
 - {authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', note: Fighter ability and current rules index.}
 normalization_notes:
-- The official rulebook closes the earlier identity/order gap: the initial row is Merlin Engine, Cavity Magnetron, Sedgley Fist Gun, Whizbang.
+- The official rulebook establishes the initial row Merlin Engine, Cavity Magnetron, Sedgley Fist Gun, Whizbang.
 - Merlin Engine is not a static movement value of 3. It is an optional +1 space specifically when Rosie maneuvers, so forced/effect movement does not inherit it.
-- Three other gameplay semantics are known: ranged attack type, +1 to Rosie's attacks, and optional draw 1 after Rosie attacks. Their exact mapping to Cavity Magnetron, Sedgley Fist Gun and Whizbang remains unverified and is the reason this fighter remains partial.
+- The project owner directly transcribed the remaining physical upgrade cards from a component photograph during the evidence audit: Cavity Magnetron is the optional post-Rosie-attack draw, Sedgley Fist Gun gives Rosie's attacks +1 value, and Whizbang makes Rosie ranged. Durable artifact capture is intentionally deferred to a later evidence stage.
 - active_upgrade_count is retained for count-based card conditions; the ordered token row separately determines which printed upgrades are active.
