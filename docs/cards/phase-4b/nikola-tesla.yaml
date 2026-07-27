@@ -1,31 +1,206 @@
 schema_version: 1
 fighter_id: nikola-tesla
-status: verified
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-004, C-REQ-013]
+interpretation_refs: [tesla-underfunded-two-coil-resource-transition]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: seven-hertz, name: 7 Hertz, quantity: 3, usable_by: [nikola-tesla], type: attack, printed_value: 4, boost: 3, tags: [coil_discharge], effects: [{trigger: after_combat, optional: true, operations: [{op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, tiers: [{declared: 1, effects: [{op: GAIN_ACTION, count: 1}]}, {declared: 2, effects: [{op: GAIN_ACTION, count: 1}, {op: DRAW, count: 1}]}]}]}]}
-  - {id: the-alternating-current, name: The Alternating Current, quantity: 2, usable_by: [nikola-tesla], type: attack, printed_value: 5, boost: 3, tags: [coil_discharge], effects: [{trigger: after_combat, choices: [{owner: controller, choose: branch, options: [charge_both, discharge_both]}], branches: [{condition: {chosen_branch: charge_both}, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2}]}, {condition: {chosen_branch: discharge_both}, operations: [{op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: 2, consume_available: true, dependent_requires_full_declared: true, dependent_effects: [{op: RECOVER, target: nikola-tesla, amount: 2}]}]}]}]}
-  - {id: death-ray, name: Death Ray, quantity: 3, usable_by: [nikola-tesla], type: attack, printed_value: 3, boost: 4, tags: [coil_discharge], effects: [{trigger: during_combat, optional: true, operations: [{op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, tiers: [{declared: 1, effects: [{op: SET_VALUE, target: this_card, value: 5}]}, {declared: 2, effects: [{op: SET_VALUE, target: this_card, value: 7}]}]}]}]}
-  - {id: fully-charged, name: Fully Charged, quantity: 2, usable_by: [nikola-tesla], type: scheme, printed_value: null, boost: 1, tags: [coil], effects: [{trigger: scheme, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2}, {op: GAIN_ACTION, count: 1}]}]}
-  - {id: intense-experimentation, name: Intense Experimentation, quantity: 3, usable_by: [nikola-tesla], type: defense, printed_value: 3, boost: 2, tags: [coil_discharge], effects: [{trigger: after_combat, operations: [{op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge_with_default, resource: charged-coils, default_effects: [{op: DRAW, count: 1}], tiers: [{declared: 1, effects: [{op: DRAW, count: 2}]}, {declared: 2, effects: [{op: DRAW, count: 3}, {op: RECOVER, target: nikola-tesla, amount: 1}]}]}]}]}
-  - {id: kinetic-induction, name: Kinetic Induction, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 2, boost: 1, tags: [coil], effects: [{trigger: after_combat, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount: 1, cap: 2}, {op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2, condition: {combat_result: won}}]}]}
-  - {id: lightning-storm, name: Lightning Storm, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 3, boost: 1, tags: [coil_discharge], effects: [{trigger: after_combat, optional: true, operations: [{op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, tiers: [{declared: 1, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_tesla_zone, amount: 1}]}, {declared: 2, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_tesla_zone, amount: 2}]}]}]}]}
-  - {id: polyphase-coils, name: Polyphase Coils, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 3, boost: 1, tags: [coil_discharge], effects: [{trigger: immediately, optional: true, operations: [{op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, tiers: [{declared: 1, effects: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {declared: 2, effects: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]}]}]}]}
-  - {id: remote-control, name: Remote Control, quantity: 2, usable_by: [nikola-tesla], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{trigger: scheme, operations: [{op: MOVE, target: all_opposing_fighters, max_distance: 2}, {op: GAIN_ACTION, count: 1}]}]}
-  - {id: repulsion-blast, name: Repulsion Blast, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 2, boost: 2, tags: [coil_discharge], effects: [{trigger: after_combat, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 2}, {op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, optional: true, tiers: [{declared: 1, effects: [{op: MOVE, target: nikola-tesla, max_distance: 2}]}, {declared: 2, effects: [{op: MOVE, target: nikola-tesla, max_distance: 2}, {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}]}]}
-  - {id: x-ray-radiation, name: X-Ray Radiation, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 4, boost: 1, tags: [coil_discharge], effects: [{trigger: during_combat, operations: [{op: REVEAL, source: opponent.deck_top, selector: 1, capture: revealed}, {op: TRIGGER_COMPOSITE, kind: tiered_resource_discharge, resource: charged-coils, optional: true, tiers: [{declared: 1, effects: [{op: DISCARD, controller: opponent, from: deck_top, selector: captured.revealed, count: 1}]}, {declared: 2, effects: [{op: DISCARD, controller: opponent, from: deck_top, selector: captured.revealed, count: 1}, {op: ADD_VALUE, target: this_card, amount: captured.revealed.boost_or_0}]}]}]}]}
+  - id: seven-hertz
+    name: 7 Hertz
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: [coil_discharge]
+    effects:
+      - id: seven-hertz-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discharge
+            choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: declared_resource_discharge
+                resource: charged-coils
+                declared: {ref: declared_coils}
+                consume_available: true
+                outcomes:
+                  - {when: {ref: declared_coils, equals: 1}, effects: [{op: GAIN_ACTION, count: 1}]}
+                  - {when: {ref: declared_coils, equals: 2}, effects: [{op: GAIN_ACTION, count: 1}, {op: DRAW, count: 1}]}
+  - id: the-alternating-current
+    name: The Alternating Current
+    quantity: 2
+    usable_by: [nikola-tesla]
+    type: attack
+    printed_value: 5
+    boost: 3
+    tags: [coil_discharge]
+    effects:
+      - id: alternating-current-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [charge_both, discharge_both], bind: mode}]
+          - {id: charge, when: {ref: mode, equals: charge_both}, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2}]}
+          - id: discharge
+            when: {ref: mode, equals: discharge_both}
+            operations:
+              - {op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: 2, consume_available: true, dependent_requires_full_declared: true, dependent_effects: [{op: RECOVER, target: nikola-tesla, amount: 2}]}
+  - id: death-ray
+    name: Death Ray
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: attack
+    printed_value: 3
+    boost: 4
+    tags: [coil_discharge]
+    effects:
+      - id: death-ray-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-discharge
+            choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations:
+              - {op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: {ref: declared_coils}, consume_available: true, outcomes: [{when: {ref: declared_coils, equals: 1}, effects: [{op: SET_VALUE, target: this_card, value: 5}]}, {when: {ref: declared_coils, equals: 2}, effects: [{op: SET_VALUE, target: this_card, value: 7}]}]}
+  - {id: fully-charged, name: Fully Charged, quantity: 2, usable_by: [nikola-tesla], type: scheme, printed_value: null, boost: 1, tags: [coil], effects: [{id: fully-charged-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2}, {op: GAIN_ACTION, count: 1}]}]}]}
+  - id: intense-experimentation
+    name: Intense Experimentation
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: defense
+    printed_value: 3
+    boost: 2
+    tags: [coil_discharge, staged_resolution]
+    effects:
+      - id: intense-experimentation-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: base-draw
+            operations: [{op: DRAW, count: 1}]
+          - id: choose-discharge
+            choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]
+          - id: apply-discharge
+            when: {ref: declared_coils, exists: true}
+            operations:
+              - op: TRIGGER_COMPOSITE
+                kind: declared_resource_discharge
+                resource: charged-coils
+                declared: {ref: declared_coils}
+                consume_available: true
+                outcomes:
+                  - {when: {ref: declared_coils, equals: 1}, effects: [{op: DRAW, count: 1}]}
+                  - {when: {ref: declared_coils, equals: 2}, effects: [{op: DRAW, count: 2}, {op: RECOVER, target: nikola-tesla, amount: 1}]}
+  - {id: kinetic-induction, name: Kinetic Induction, quantity: 3, usable_by: [nikola-tesla], type: versatile, printed_value: 2, boost: 1, tags: [coil], effects: [{id: kinetic-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: charge-one, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount: 1, cap: 2}]}, {id: charge-both-if-won, when: {combat_result: won}, operations: [{op: GAIN_RESOURCE, resource: charged-coils, amount_rule: fill_to_2}]}]}]}
+  - id: lightning-storm
+    name: Lightning Storm
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: [coil_discharge]
+    effects:
+      - id: lightning-storm-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: choose-discharge, choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]}
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations: [{op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: {ref: declared_coils}, consume_available: true, outcomes: [{when: {ref: declared_coils, equals: 1}, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_tesla_zone, amount: 1}]}, {when: {ref: declared_coils, equals: 2}, effects: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_tesla_zone, amount: 2}]}]}]
+  - id: polyphase-coils
+    name: Polyphase Coils
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: [coil_discharge]
+    effects:
+      - id: polyphase-immediately
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: choose-discharge, choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]}
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations: [{op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: {ref: declared_coils}, consume_available: true, outcomes: [{when: {ref: declared_coils, equals: 1}, effects: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {when: {ref: declared_coils, equals: 2}, effects: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]}]}]
+  - {id: remote-control, name: Remote Control, quantity: 2, usable_by: [nikola-tesla], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{id: remote-scheme, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: all_opposing_fighters, max_distance: 2}, {op: GAIN_ACTION, count: 1}]}]}]}
+  - id: repulsion-blast
+    name: Repulsion Blast
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: [coil_discharge, staged_resolution]
+    effects:
+      - id: repulsion-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-opponent, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 2}]}
+          - {id: choose-discharge, choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]}
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations: [{op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: {ref: declared_coils}, consume_available: true, outcomes: [{when: {ref: declared_coils, equals: 1}, effects: [{op: MOVE, target: nikola-tesla, max_distance: 2}]}, {when: {ref: declared_coils, equals: 2}, effects: [{op: MOVE, target: nikola-tesla, max_distance: 2}, {op: DISCARD, controller: opponent, from: hand, selector: random, count: 1}]}]}]
+  - id: x-ray-radiation
+    name: X-Ray Radiation
+    quantity: 3
+    usable_by: [nikola-tesla]
+    type: versatile
+    printed_value: 4
+    boost: 1
+    tags: [coil_discharge, staged_resolution]
+    effects:
+      - id: xray-during
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: reveal, operations: [{op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed_card}]}
+          - {id: choose-discharge, choices: [{id: coils, owner: controller, visibility: public, optional: true, domain: [1, 2], bind: declared_coils}]}
+          - id: apply
+            when: {ref: declared_coils, exists: true}
+            operations: [{op: TRIGGER_COMPOSITE, kind: declared_resource_discharge, resource: charged-coils, declared: {ref: declared_coils}, consume_available: true, outcomes: [{when: {ref: declared_coils, equals: 1}, effects: [{op: DISCARD, controller: opponent, from: deck_top, selector: {ref: revealed_card}, count: 1}]}, {when: {ref: declared_coils, equals: 2}, effects: [{op: DISCARD, controller: opponent, from: deck_top, selector: {ref: revealed_card}, count: 1}, {op: ADD_VALUE, target: this_card, amount: {ref: revealed_card.boost_or_0}}]}]}]
 
 external_definitions: []
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 11}
 sources:
-  - https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
-  - https://unmatched.cards/umdb/decks/nikola-tesla
-  - https://www.the-unmatched.club/heroes/nikola-tesla
-  - https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+  - {id: tta-set-rules-tesla, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf, checked_at: 2026-07-27, supports: [coil semantics]}
+  - {id: tesla-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/nikola-tesla, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+  - {id: tesla-underfunded-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/a1c7dc96-d154-4253-80f1-d86015292f9e, checked_at: 2026-07-27, supports: [underfunded discharge declaration and fizzle]}
+  - {id: tesla-intense-ruling, authority: official_ruling, url: https://www.the-unmatched.club/tools/disputes/85231bd9-8d62-41b3-ab4c-b821d63e72cc, checked_at: 2026-07-27, supports: [Intense Experimentation information order]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 normalization_notes:
-  - Fully funded discharge tiers and the published 30-card corpus are verified.
-  - C-EXT-004 covers both tiered coil effects and fixed declared discharges such as The Alternating Current; underfunded declaration does not fall back to a lower tier/branch.
-  - "Recommended integration behavior (high confidence): discharge available charged coils up to the declared amount; therefore 1 charged + declare 2 -> 0 charged. If the dependent effect requires the full declared discharge, it may fizzle. No exact-case publisher ruling for this transition was found."
-  - tiered_resource_discharge and declared_resource_discharge remain proposed generic composites, not Tesla-only code.
+  - Coil choices use one declared amount; underfunded declaration never falls back to a lower branch.
+  - Intense Experimentation resolves the printed base draw before the single discharge choice; a declared one/two-coil result then supplies the additional draw needed to reach the printed total.
+  - X-Ray Radiation reveals before the discharge choice; Repulsion Blast moves the opposing fighter before that choice.
