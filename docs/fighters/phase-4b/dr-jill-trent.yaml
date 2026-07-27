@@ -29,18 +29,32 @@ ability:
   effects:
     - id: choose-active-gadget
       trigger: turn_start
-      choices: [{id: gadget, owner: controller, visibility: public, optional: false, domain: [hypnoray-blaster, ultrabiotic-tonic], bind: active_gadget_choice}]
-      operations: [{op: SET_STATE, key: active_gadget, value: {ref: active_gadget_choice}}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose
+          choices: [{id: gadget, owner: controller, visibility: public, optional: false, domain: [hypnoray-blaster, ultrabiotic-tonic], bind: active_gadget_choice}]
+        - id: set
+          operations: [{op: SET_STATE, key: active_gadget, value: {ref: active_gadget_choice}}]
     - id: hypnoray-blaster
       trigger: during_combat
-      condition: {attacker: dr-jill-trent, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
-      operations:
-        - {op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed_card}
-        - {op: ADD_VALUE, target: own_attack_card, amount: {ref: revealed_card.boost_or_0}}
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: reveal
+          when: {attacker: dr-jill-trent, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
+          operations: [{op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed_card}]
+        - id: add
+          when: {ref: revealed_card, exists: true}
+          operations: [{op: ADD_VALUE, target: own_attack_card, amount: {ref: revealed_card.boost_or_0}}]
     - id: ultrabiotic-tonic
       trigger: after_combat
-      condition: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
-      operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: recover
+          when: {attacker: dr-jill-trent, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
+          operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
 
 resources: []
 persistent_state:
@@ -59,21 +73,9 @@ rulings:
     source_refs: [jill-rulings]
 
 sources:
-  - id: tta-set-rules-jill
-    authority: official_set_rules
-    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
-    checked_at: 2026-07-27
-    supports: [competitive hero setup and gadget component context]
-  - id: jill-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/dr-jill-trent
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: jill-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/rules/dr-jill-trent
-    checked_at: 2026-07-27
-    supports: [gadget timing and printed-value rulings]
+  - {id: tta-set-rules-jill, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf, checked_at: 2026-07-27, supports: [competitive hero setup and gadget component context]}
+  - {id: jill-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/dr-jill-trent, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: jill-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/dr-jill-trent, checked_at: 2026-07-27, supports: [gadget timing and printed-value rulings]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
