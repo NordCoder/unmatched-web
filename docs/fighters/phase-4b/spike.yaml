@@ -1,10 +1,12 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: spike
 display_name: Spike
 set_ids: [buffy-the-vampire-slayer]
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-007]
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,22 +20,36 @@ ability:
   effects:
     - id: start-turn-shadow
       trigger: turn_start
-      optional: true
-      note: Place an available Shadow token in a space adjacent to Spike or Drusilla. If all three Shadows are already on the board, move one Shadow token to a legal adjacent space instead.
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: choose-shadow-action
+          when: always
+          choices:
+            - id: choose-shadow-destination
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: space, adjacent_to_any: [spike, drusilla], occupancy: source_legal}
+              bind: shadow_destination
+          costs: []
+          operations:
+            - {op: PLACE_OR_MOVE_COMPONENT, component_pool: shadows, destination: {ref: choice.shadow_destination}, reuse_if_all_on_board: true, requires: A-REQ-003}
 resources:
-  - {id: shadows, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true, lifecycle: [available, board]}
+  - {id: shadows, kind: component_pool, visibility: public, initial: 3, max: 3, lifecycle: [available, board]}
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/spike.yaml, construction: fixed}
-rulings:
-  - id: shadow-token-placement-and-reuse
-    summary: Spike has three Shadow tokens. His start-of-turn ability may place an unused Shadow adjacent to Spike or Drusilla; when all three are already on the board it may move one instead. Shadows may share a space with a fighter or another token type; card effects supply their gameplay consequences.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/spike}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
-blocker:
-  reason: positioned_special_tokens_and_blind_boost_value_transform_not_in_shared_effect_model
-  note: Shadow availability is derived from the token-instance lifecycle rather than a duplicate shadows_available integer.
-  report: ../../phase-4b/worker-a-report.md
+  - {id: spike-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Buffy_the_Vampire_Slayer-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, shadows]}
+  - {id: spike-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/spike, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, shadow_cards]}
+  - {id: spike-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [shadow_placement, shadow_reuse, blind_boost]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
