@@ -33,7 +33,7 @@ resources:
     kind: external_definition_pool
     visibility: public
     initial: six_glamour_definitions
-  - {id: glamour-deck, kind: card_zone, visibility: private, initial: six_shuffled_glamour_instances}
+  - {id: glamour-deck, kind: card_zone, visibility: private, initial: six_glamour_instances}
   - {id: active-glamour, kind: card_zone, visibility: public, initial: empty}
   - {id: glamour-discard, kind: card_zone, visibility: public, initial: empty}
 
@@ -58,3 +58,4 @@ sources:
 
 normalization_notes:
   - Glamours are runtime card instances in a shuffled auxiliary deck, not six always-available spell definitions. The reusable auxiliary-deck extension is proposed in the Worker C report.
+  - The auxiliary zone starts with six unshuffled instances and the setup SHUFFLE hook is the single authoritative randomization step.
