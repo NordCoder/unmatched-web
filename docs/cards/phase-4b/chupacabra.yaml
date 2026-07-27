@@ -84,7 +84,7 @@ cards:
       operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.targets, amount: 1, bind: actually_damaged_targets}]
     - id: recover
       operations: [{op: RECOVER, target: chupacabra, amount_rule: count_bound_actually_damaged_targets}]
-- {id: natural-toughness, name: Natural Toughness, quantity: 2, inclusion: fixed, usable_by: [chupacabra], type: defense, printed_value: 3, boost: 3, tags: [], effects: [{id: toughness-return, trigger: cleanup_replacement, condition: {combat_result: lost}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}]}
+- {id: natural-toughness, name: Natural Toughness, quantity: 2, inclusion: fixed, usable_by: [chupacabra], type: defense, printed_value: 3, boost: 3, tags: [], effects: [{id: toughness-return, trigger: after_combat, condition: {combat_result: lost}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}]}
 - {id: traveler-of-the-night, name: Traveler of the Night, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{id: traveler, trigger: scheme, operations: [{op: MOVE, target: chupacabra, max_distance: 4, overrides: [may_move_through_opposing_fighters]}, {op: GAIN_ACTION, count: 1}]}]}
 - id: unsettle
   name: Unsettle
@@ -127,4 +127,5 @@ sources:
 normalization_notes:
 - All 11 definitions reconcile to 30 cards.
 - Tooth and Tail uses explicit choose-distinct and operation-result bindings under D-REQ-001.
+- Natural Toughness returns during the printed AFTER COMBAT window when Chupacabra lost the combat.
 - Unsettle is staged so the target player and amplification choice are bound before discard count resolves.
