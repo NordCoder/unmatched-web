@@ -73,7 +73,7 @@ cards:
           - id: choose-outlaw
             when: {selector_nonempty: {kind: fighter, owner: self, fighter_id: outlaw, state: defeated}}
             choices:
-              - {id: choose-defeated-outlaw, owner: controller, visibility: public, optional: true, domain: {kind: fighter, owner: self, fighter_id: outlaw, state: defeated}, bind: returned_outlaw}
+              - {id: choose-defeated-outlaw, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: outlaw, state: defeated}, bind: returned_outlaw}
               - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: robin-hood}, bind: return_space}
             costs: []
             operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_outlaw}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}]
