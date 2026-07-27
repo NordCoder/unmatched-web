@@ -25,7 +25,18 @@ cards:
           - id: choose-trap
             when: always
             choices:
-              - {id: choose-trap, owner: controller, visibility: public, optional: false, domain: {kind: component, type: trap, owner: self, zone_relation: same_zone_as_any_own_ingen_worker}, bind: chosen_trap}
+              - id: choose-trap
+                owner: controller
+                visibility: public
+                optional: false
+                domain:
+                  kind: component
+                  type: trap
+                  owner: self
+                  relation:
+                    same_zone_as_any:
+                      selector: {kind: fighter, owner: self, fighter_id: ingen-worker}
+                bind: chosen_trap
             costs: []
             operations: []
           - id: damage-adjacent-opponents
@@ -116,12 +127,12 @@ cards:
               - {id: choose-trap-spaces, owner: controller, visibility: public, optional: true, domain: {kind: space, legal_for_component: trap}, bind: trap_spaces, min: 0, max: 3, distinct: true, order_matters: false}
             costs: []
             operations: []
-          - {id: first-place, when: {choice_item: {ref: choice.selected_options[0]}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
-          - {id: first-return, when: {choice_item: {ref: choice.selected_options[0]}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: legal_source_spaces, health_rule: full_sidekick_health}]}
-          - {id: first-draw, when: {choice_item: {ref: choice.selected_options[0]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
-          - {id: second-place, when: {choice_item: {ref: choice.selected_options[1]}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
-          - {id: second-return, when: {choice_item: {ref: choice.selected_options[1]}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: legal_source_spaces, health_rule: full_sidekick_health}]}
-          - {id: second-draw, when: {choice_item: {ref: choice.selected_options[1]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: first-place, when: {choice_item: {ref: choice.selected_options, index: 0}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
+          - {id: first-return, when: {choice_item: {ref: choice.selected_options, index: 0}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: {kind: legal_return_space, in_zone_of: robert-muldoon}, health_rule: {kind: starting_health}}]}
+          - {id: first-draw, when: {choice_item: {ref: choice.selected_options, index: 0}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: second-place, when: {choice_item: {ref: choice.selected_options, index: 1}, equals: place_up_to_3_traps}, choices: [], costs: [], operations: [{op: PLACE_COMPONENTS, component_pool: traps, destinations: {ref: choice.trap_spaces}, requires: A-REQ-003}]}
+          - {id: second-return, when: {choice_item: {ref: choice.selected_options, index: 1}, equals: return_all_defeated_workers}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker, state: defeated}}, destination_rule: {kind: legal_return_space, in_zone_of: robert-muldoon}, health_rule: {kind: starting_health}}]}
+          - {id: second-draw, when: {choice_item: {ref: choice.selected_options, index: 1}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
   - {id: tactical-advance, name: Tactical Advance, quantity: 3, usable_by: [ingen-worker], type: versatile, printed_value: 3, boost: 3, effects: [{id: tactical-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-workers, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self, fighter_id: ingen-worker}}, max_distance: 2}]}]}]}
   - {id: rending-shot, name: Rending Shot, quantity: 4, usable_by: any, type: attack, printed_value: 3, boost: 1, effects: [{id: rending-move, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: move-opponent, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.opposing_fighter}, max_distance: 3, controller: owner}]}]}]}
   - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
