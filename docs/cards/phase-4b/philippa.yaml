@@ -15,10 +15,48 @@ cards:
   - {id: redanian-plot, name: Redanian Plot, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{trigger: immediately, controller: opponent, optional: true, costs: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_card, count: 1}], if_declined: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
   - {id: spellbreaker, name: Spellbreaker, quantity: 3, usable_by: [philippa], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {trigger: after_combat, operations: [{op: END_TURN}]}]}
   - {id: paralyzing-fetters, name: Paralyzing Fetters, quantity: 2, usable_by: [philippa], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value_from: opposing_combat_card.printed_value, lock: true, scope: current_combat}]}]}
-  - {id: do-my-bidding, name: Do My Bidding, quantity: 2, usable_by: any, type: defense, printed_value: 3, boost: 3, tags: [], effects: [{trigger: immediately, operations: [{op: MOVE_CARD, from_zone: resolving_opposing_attack_card, to_zone: owner_hand, selector: opposing_attack_card}, {op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller}], choices: [{owner: controller, choose: opponent_attack_or_versatile_card}], followup: [{op: REPLACE_COMBAT_CARD, side: attacker, card: chosen_card, rule: same_combat}]}]}
+  - id: do-my-bidding
+    name: Do My Bidding
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - trigger: immediately
+        operations:
+          - {op: MOVE_CARD, from_zone: resolving_opposing_attack_card, to_zone: owner_hand, selector: opposing_attack_card}
+          - {op: LOOK_AT, source: opponent.hand, selector: all, viewer: controller, capture: viewed_hand}
+        nested_choice:
+          owner: controller
+          choose: attack_or_versatile_card_from_captured_opponent_hand
+          capture: replacement_attack_card
+          then:
+            - {op: REPLACE_COMBAT_CARD, side: attacker, card: captured.replacement_attack_card, controller: opponent, resolution_rule: source_defined_replacement_card_enters_current_combat_and_resolves_eligible_effects}
   - {id: blinding-dust, name: Blinding Dust, quantity: 2, usable_by: [philippa], type: defense, printed_value: 2, boost: 2, tags: [], effects: [{trigger: after_combat, optional: true, costs: [{op: DISCARD, controller: controller, from: hand, selector: chosen_card, count: 1, capture: discarded_card}], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: captured.discarded_card.boost_or_0}]}]}
   - {id: backup-plan, name: Backup Plan, quantity: 2, usable_by: [philippa], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: branch, options: [set_health_to_five, draw_three]}], branches: [{condition: {chosen_branch: set_health_to_five}, operations: [{op: TRIGGER_COMPOSITE, kind: set_health_exact, target: philippa, value: 5}]}, {condition: {chosen_branch: draw_three}, operations: [{op: DRAW, count: 3}]}]}]}
-  - {id: spymasters-ruse, name: "Spymaster's Ruse", quantity: 2, usable_by: [dijkstra], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{trigger: scheme, choices: [{owner: controller, choose: opponent}], operations: [{op: REVEAL, source: chosen_opponent.hand, selector: up_to_4, capture: revealed_cards}], choices_after: [{owner: controller, choose: up_to_2_revealed_cards_for_discard}], followup: [{op: DISCARD, controller: chosen_opponent, from: hand, selector: chosen_cards, count: all_chosen}, {op: DRAW, controller: chosen_opponent, count: 2}]}]}
+  - id: spymasters-ruse
+    name: "Spymaster's Ruse"
+    quantity: 2
+    usable_by: [dijkstra]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [ordered_effect_stages]
+    effects:
+      - trigger: scheme
+        operations:
+          - op: TRIGGER_COMPOSITE
+            kind: ordered_effect_stages
+            stages:
+              - choices: [{owner: controller, choose: opponent, capture: chosen_opponent}]
+              - choices: [{owner: captured.chosen_opponent, choose: cards_from_own_hand, count_rule: min_4_current_hand_size, capture: cards_to_reveal}]
+                operations: [{op: REVEAL, source: captured.chosen_opponent.hand, selector: captured.cards_to_reveal, capture: revealed_cards}]
+              - choices: [{owner: controller, choose: cards_from_captured_revealed_cards, count_rule: min_2_captured_revealed_count, capture: cards_to_discard}]
+                operations:
+                  - {op: DISCARD, controller: captured.chosen_opponent, from: hand, selector: captured.cards_to_discard, count: all_chosen}
+                  - {op: DRAW, controller: captured.chosen_opponent, count: 2}
   - {id: polymorphy, name: Polymorphy, quantity: 2, usable_by: [philippa], type: scheme, printed_value: null, boost: 3, tags: [ongoing_scheme], effects: [{trigger: scheme, operations: [{op: PLACE, target: philippa, destination: any_space}, {op: MOVE_CARD, from_zone: resolving_scheme, to_zone: ongoing-schemes, selector: this_card}]}, {trigger: static, continuous: true, while_in_zone: ongoing-schemes, operations: [{op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: philippa, attribute: move_value, set_value: 5, source_lifetime: while_source_in_zone}]}, {trigger: turn_end, while_in_zone: ongoing-schemes, condition: {philippa_shares_no_zone_with_opposing_fighter: true}, operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]}]}
 
 external_definitions: []
@@ -29,5 +67,6 @@ sources:
   - https://www.the-unmatched.club/rules/philippa
 normalization_notes:
   - Backup Plan's health branch is exact assignment, not RECOVER; set_health_exact is proposed as a generic composite in the Worker C report.
-  - Do My Bidding maps to the Phase 4A REPLACE_COMBAT_CARD composite and resumes the same combat.
+  - Do My Bidding now follows the established Phase 4A Dracula replacement-combat pattern: return the attack, inspect the resulting hand, then choose and replace inside the same combat.
+  - Spymaster's Ruse requires ordered dependent choices: the chosen opponent selects the 4 cards they reveal (or all if fewer), then Philippa's controller selects exactly 2 of the revealed cards when possible, then the opponent draws 2. This uses C-EXT-013.
   - Polymorphy's move value 5 is a continuous source-lifetime modifier and must disappear when the ongoing scheme leaves play; it uses C-EXT-011 rather than permanent SET_STATE mutation.
