@@ -1,10 +1,12 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: robert-muldoon
 display_name: Robert Muldoon
 set_ids: [jurassic-park-ingen-vs-raptors]
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-004]
 movement: 3
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -18,24 +20,51 @@ ability:
   effects:
     - id: place-trap
       trigger: turn_start
-      optional: true
-      note: Place one not-yet-used trap in an unoccupied fighter/token-free space in Muldoon's zone.
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: choose-trap-placement
+          when: {resource_available: traps}
+          choices:
+            - id: choose-trap-space
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: space, in_zone_of: robert-muldoon, occupancy: no_fighter_or_token}
+              bind: trap_space
+          costs: []
+          operations:
+            - {op: PLACE_COMPONENT, component_pool: traps, destination: {ref: choice.trap_space}, requires: A-REQ-003}
     - id: trigger-trap
       trigger: opposing_fighter_enters_trap_space
-      note: Stop that movement immediately, deal 1 damage, move the triggered trap permanently to the box, then resolve Muldoon's draw-on-return ability.
+      controller: owner
+      cancellation: protected
+      requires: [A-REQ-003, A-REQ-004]
+      stages:
+        - id: interrupt-entry
+          when: {entered_component_type: trap, entering_fighter_relation: opposing}
+          choices: []
+          costs: []
+          operations:
+            - {op: INTERRUPT_MOVEMENT, target: {ref: event.entering_fighter}, requires: A-REQ-004}
+            - {op: DEAL_EFFECT_DAMAGE, target: {ref: event.entering_fighter}, amount: 1}
+            - {op: MOVE_COMPONENT, target: {ref: event.trap_instance}, destination: box, requires: A-REQ-003}
+            - {op: DRAW, count: 1}
 resources:
-  - {id: traps, kind: token_pool, visibility: public, initial: 8, max: 8, position_sensitive: true, lifecycle: [available, board, box], reusable_from_box: false}
+  - {id: traps, kind: component_pool, visibility: public, initial: 8, max: 8, lifecycle: [available, board, box], reusable_from_box: false}
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/robert-muldoon.yaml, construction: fixed}
-rulings:
-  - id: traps-do-not-trigger-friendly
-    summary: Muldoon's own fighters may enter or pass through trap spaces without triggering them; opposing fighters trigger upon entering.
-    source: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/jurassic-park-ingen-vs-raptors-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/ingen}
-blocker:
-  reason: positioned_special_tokens_and_movement_interrupt_not_in_shared_effect_model
-  note: Trap availability must be derived from token-instance lifecycle rather than a duplicate traps_available integer. A triggered/removed trap goes to the box permanently and is not reusable.
-  report: ../../phase-4b/worker-a-report.md
+  - {id: ingen-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-JP-Ingen_v_Raptors-rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, traps, trap_lifecycle, entry_trigger]}
+  - {id: ingen-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/ingen, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, trap_cards]}
+  - {id: ingen-current-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [entry_and_placement_interaction]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
