@@ -195,7 +195,7 @@ cards:
                 target: this_card
                 amount:
                   expr: count
-                  selector: {fighters: friendly_fighters, adjacent_to: opposing_combat_fighter}
+                  selector: {fighters: controller_fighters, adjacent_to: opposing_combat_fighter}
     completion_effects:
       - id: brute-completion
         trigger: line_completion
@@ -208,9 +208,9 @@ cards:
                 owner: controller
                 visibility: public
                 optional: false
-                domain: {mapping: {keys: {selector: {fighters: friendly_fighters}}, values: {selector: {spaces: any}}}}
+                domain: {mapping: {keys: {selector: {fighters: controller_fighters}}, values: {selector: {spaces: any}}}}
                 bind: fighter_destinations
-          - {id: place, operations: [{op: PLACE, target: {selector: {fighters: friendly_fighters}}, destination_rule: {ref: fighter_destinations}}]}
+          - {id: place, operations: [{op: PLACE, target: {selector: {fighters: controller_fighters}}, destination_rule: {ref: fighter_destinations}}]}
   - id: revise
     name: Revise
     quantity: 2
