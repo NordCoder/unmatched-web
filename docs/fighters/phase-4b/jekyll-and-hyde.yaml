@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: jekyll-and-hyde
 display_name: Jekyll & Hyde
 set_ids: [cobble-and-fog]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 2
-
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
@@ -19,26 +20,40 @@ ability:
   effects:
     - id: choose-form
       trigger: turn_start
-      optional: true
-      choices: [{owner: controller, choose: [jekyll, hyde]}]
-      operations: [{op: SET_STATE, key: form, value: chosen_value}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose-form-stage
+          when: always
+          choices:
+            - {id: choose-form, owner: controller, visibility: public, optional: true, domain: [jekyll, hyde], bind: chosen_form}
+          costs: []
+          operations:
+            - {op: SET_STATE, key: form, value: {ref: choice.chosen_form}}
     - id: hyde-maneuver-damage
       trigger: after_maneuver
-      condition: {state: form, equals: hyde}
-      optional: false
-      operations: [{op: DEAL_EFFECT_DAMAGE, target: jekyll-and-hyde, amount: 1}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: damage-hyde
+          when: {state: {key: form, equals: hyde}}
+          choices: []
+          costs: []
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: jekyll-and-hyde, amount: 1}]
 resources: []
 persistent_state:
   - {key: form, type: enum, values: [jekyll, hyde], reset: never, visibility: public}
 deck: {manifest: ../../cards/phase-4b/jekyll-and-hyde.yaml, construction: fixed}
-rulings:
-  - id: form-card-legality
-    summary: Jekyll-only and Hyde-only cards are playable only while the corresponding form is current; ANY cards remain legal in either form.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
-  - {type: official_edition_note, url: https://restorationgames.com/the-unmatched-vault-cobble-fog/}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/jekyll-hyde}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
+  - {id: jekyll-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, form_ability]}
+  - {id: jekyll-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/jekyll-hyde, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, form_card_legality]}
+  - {id: jekyll-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [form_card_legality]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
