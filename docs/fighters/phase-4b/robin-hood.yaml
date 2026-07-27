@@ -1,10 +1,11 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: robin-hood
 display_name: Robin Hood
 set_ids: [robin-hood-vs-bigfoot]
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 movement: 2
-
 topology:
   type: hero_with_sidekicks
   loss_rule: primary_hero_defeated
@@ -16,12 +17,31 @@ ability:
   id: outlaw-mobility
   controller: owner
   effects:
-    - {id: post-attack-retreat, trigger: after_attacking, optional: true, operations: [{op: MOVE, target: attacking_fighter, max_distance: 2}]}
+    - id: post-attack-retreat
+      trigger: after_attacking
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: retreat
+          when: always
+          choices:
+            - {id: use-retreat, owner: controller, visibility: public, optional: true, domain: [move_attacking_fighter], bind: use_retreat}
+          costs: []
+          operations:
+            - {op: MOVE, target: {ref: combat.attacking_fighter}, max_distance: 2, when: {ref: choice.use_retreat}}
 resources: []
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/robin-hood.yaml, construction: fixed}
-rulings: []
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/robin-hood}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
+  - {id: robin-product-rules, authority: official_set_rules, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: robin-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/robin-hood, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: robin-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [movement_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
