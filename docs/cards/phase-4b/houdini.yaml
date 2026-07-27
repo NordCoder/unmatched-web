@@ -1,11 +1,9 @@
 schema_version: 1
 fighter_id: houdini
-status: blocked
-
-construction:
-  kind: fixed
-  available_pool_count: 30
-  game_deck_count: 30
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-004, B-REQ-007, B-REQ-010]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
   - id: a-magician-never-reveals-his-secrets
@@ -18,16 +16,36 @@ cards:
     boost: 4
     tags: []
     effects:
-      - trigger: scheme
-        operations:
-          - {op: DRAW, count: 2}
-          - {op: GAIN_ACTION, count: 1}
-      - trigger: opponent_would_look_at_hand
-        optional: true
-        operations:
-          - {op: REVEAL, source: hand, selector: this_card}
-          - {op: PREVENT_OPERATION, target_operation: {op: LOOK_AT, source: own_hand, scope: current_effect}}
-
+      - id: magician-scheme
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 2}
+              - {op: GAIN_ACTION, count: 1}
+      - id: magician-protect-hand
+        trigger: opponent_effect_would_look_at_own_hand
+        controller: controller
+        cancellation: protected
+        stages:
+          - id: decide
+            when: {card_zone: hand}
+            choices:
+              - {id: reveal_magician, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: reveal_magician}
+            costs: []
+            operations: []
+          - id: reveal-and-cancel
+            when: {bound: reveal_magician, equals: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: REVEAL, source: hand, selector: this_card}
+              - {op: CANCEL_EFFECT_INSTANCE, requirement: B-REQ-010, target: triggering_opponent_effect}
   - id: all-part-of-the-show
     name: All Part of the Show
     quantity: 2
@@ -36,17 +54,26 @@ cards:
     type: defense
     printed_value: 2
     boost: 2
-    tags: [boosted-with]
-    cancellation: protected
+    tags: [boosted-with, effects-cannot-be-canceled]
     effects:
-      - trigger: after_combat
-        condition: {own_combat_fighter_would_be_defeated: true}
-        operations: [{op: RETURN_FIGHTER, target: own_combat_fighter, destination: any_space, health_rule: set_to_4}]
-      - trigger: card_used_as_boost_source
-        condition: {source_card: this_card}
-        operations: [{op: RECOVER, target: houdini, amount: 2}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: all-part-save-fighter
+        trigger: after_combat
+        controller: controller
+        cancellation: protected
+        stages:
+          - id: return
+            when: {own_combat_fighter_would_be_defeated: true}
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_return}, bind: destination}
+            costs: []
+            operations: []
+          - {id: resolve-return, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: RETURN_FIGHTER, target: own_combat_fighter, destination: {bound: destination}, health_rule: set_to_4}]}
+      - id: all-part-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: protected
+        stages:
+          - {id: recover, when: {requirement: B-REQ-004, source_card: this_card}, choices: [], costs: [], operations: [{op: RECOVER, target: houdini, amount: 2}]}
   - id: an-illusion-of-my-own-design
     name: An Illusion of My Own Design
     quantity: 2
@@ -57,14 +84,20 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: immediately
+      - id: illusion-opponent-boost
+        trigger: immediately
         controller: opponent
-        optional: true
-        operations: [{op: BOOST, target: opposing_combat_card, source: opponent_hand, count: 1}]
-      - trigger: during_combat
-        optional: true
-        operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
-
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: combat_opponent, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: opposing_combat_card, source: opponent_hand, count: 1}]}
+      - id: illusion-own-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
   - id: and-the-beautiful-bess
     name: And the Beautiful Bess!
     quantity: 2
@@ -75,21 +108,18 @@ cards:
     boost: 1
     tags: [boosted-with]
     effects:
-      - trigger: card_discarded_from_hand
-        condition:
-          all:
-            - {source_card: this_card}
-            - {discard_cause: opponent_effect}
-        operations: [{op: DRAW, count: 1}]
-        normalization_blocker: Requires a generic discard event carrying cause/source attribution so an effect can distinguish an opponent-caused discard from costs, cleanup, random self-discard, or other causes.
-      - trigger: card_used_as_boost_source
-        condition:
-          all:
-            - {source_card: this_card}
-            - {active_player: controller}
-        operations: [{op: GAIN_ACTION, count: 1}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: bess-opponent-discard-draw
+        trigger: card_discarded_from_hand
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: {requirement: B-REQ-007, source_card: this_card, discard_cause: opponent_effect}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+      - id: bess-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: gain-action, when: {requirement: B-REQ-004, source_card: this_card, active_player: controller}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
   - id: flourish
     name: Flourish
     quantity: 4
@@ -100,14 +130,19 @@ cards:
     boost: 2
     tags: [boosted-with]
     effects:
-      - trigger: during_combat
-        optional: true
-        operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
-      - trigger: card_used_as_boost_source
-        condition: {source_card: this_card}
-        operations: [{op: DRAW, count: 1}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: flourish-combat-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: flourish-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: {requirement: B-REQ-004, source_card: this_card}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
   - id: for-my-next-trick
     name: For My Next Trick
     quantity: 2
@@ -118,13 +153,25 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: after_combat
-        choices: [{owner: controller, choose: friendly_fighter}]
-        operations:
-          - {op: MOVE, target: chosen_fighter, max_distance: 1}
-          - {op: DRAW, count: 1}
-          - {op: GAIN_ACTION, count: 1}
-
+      - id: next-trick-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: always
+            choices:
+              - {id: friendly_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: friendly_fighter, count: 1}, bind: friendly_fighter}
+            costs: []
+            operations: []
+          - id: resolve
+            when: {bound: friendly_fighter, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: {bound: friendly_fighter}, max_distance: 1}
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
   - id: grand-escape
     name: Grand Escape
     quantity: 3
@@ -135,13 +182,25 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: during_combat
-        optional: true
-        operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
-      - trigger: after_combat
-        condition: {combat_result: won}
-        operations: [{op: PLACE, target: own_combat_fighter, destination: any_space}]
-
+      - id: grand-escape-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: grand-escape-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {combat_result: won}
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: destination}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: destination, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: own_combat_fighter, destination: {bound: destination}}]}
   - id: misdirection
     name: Misdirection
     quantity: 3
@@ -152,14 +211,23 @@ cards:
     boost: 1
     tags: [boosted-with]
     effects:
-      - trigger: immediately
-        operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]
-      - trigger: card_used_as_boost_source
-        condition: {source_card: this_card}
-        choices: [{owner: controller, choose: fighter}]
-        operations: [{op: DEAL_EFFECT_DAMAGE, target: chosen_fighter, amount: 2}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: misdirection-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+      - id: misdirection-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {requirement: B-REQ-004, source_card: this_card}
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: fighter, count: 1}, bind: damage_target}
+            costs: []
+            operations: []
+          - {id: damage, when: {bound: damage_target, exists: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 2}]}
   - id: set-the-stage
     name: Set the Stage
     quantity: 2
@@ -170,25 +238,38 @@ cards:
     boost: 2
     tags: [boosted-with]
     effects:
-      - trigger: scheme
-        operations:
-          - {op: DRAW, count: 3}
-        nested_choice:
-          owner: controller
-          choose: card_in_hand_after_draw
-          then: [{op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: chosen_card}]
-      - trigger: card_used_as_boost_source
-        condition: {source_card: this_card}
-        choices:
-          - {owner: controller, choose: opponent}
-        operations:
-          - {op: LOOK_AT, source: chosen_opponent.hand, selector: all, viewer: controller}
-        nested_choice:
-          owner: controller
-          choose: one_card_from_viewed_hand
-          then: [{op: DISCARD, from: chosen_opponent.hand, selector: chosen_card, count: 1}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: set-the-stage-scheme
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 3, bind: draw_result}]}
+          - id: choose-card
+            when: {result: draw_result, completed: true}
+            choices:
+              - {id: topdeck_card, owner: controller, visibility: private, optional: false, domain: {kind: card, zone: own_hand_after_previous_stage, count: 1}, bind: topdeck_card}
+            costs: []
+            operations: []
+          - {id: topdeck, when: {bound: topdeck_card, exists: true}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: hand, to_zone: deck_top, selector: {bound: topdeck_card}}]}
+      - id: set-the-stage-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: {requirement: B-REQ-004, source_card: this_card}
+            choices:
+              - {id: chosen_opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, selector: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - {id: inspect, when: {bound: chosen_opponent, exists: true}, choices: [], costs: [], operations: [{op: LOOK_AT, source: {player: {bound: chosen_opponent}, zone: hand}, selector: all, viewer: controller, bind: viewed_hand}]}
+          - id: choose-discard
+            when: {result: viewed_hand, count_gte: 1}
+            choices:
+              - {id: discard_card, owner: controller, visibility: private, optional: false, domain: {kind: card, from_result: viewed_hand, count: 1}, bind: discard_card}
+            costs: []
+            operations: []
+          - {id: discard, when: {bound: discard_card, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_card}, count: 1}]}
   - id: sleight-of-hand
     name: Sleight of Hand
     quantity: 2
@@ -199,19 +280,25 @@ cards:
     boost: 3
     tags: [boosted-with]
     effects:
-      - trigger: immediately
-        optional: true
-        operations:
-          - {op: MOVE_CARD, from_zone: combat, to_zone: hand, selector: this_card}
-        nested_choice:
-          owner: controller
-          choose: different_legal_combat_card_from_hand
-          then: [{op: REPLACE_COMBAT_CARD, side: own, card: chosen_card, rule: resolve_replacement_normally}]
-      - trigger: card_used_as_boost_source
-        condition: {source_card: this_card}
-        operations: [{op: DRAW, count: 1}]
-        normalization_blocker: Requires the proposed generic BOOST-source event.
-
+      - id: sleight-replace-combat-card
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_effect, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - {id: return-card, when: {bound: use_effect, equals: true}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: combat, to_zone: hand, selector: this_card, bind: card_returned}]}
+          - id: choose-replacement
+            when: {result: card_returned, equals: succeeded}
+            choices:
+              - {id: replacement_card, owner: controller, visibility: private, optional: false, domain: {kind: card, zone: own_hand_after_previous_stage, selector: different_legal_combat_card, count: 1}, bind: replacement_card}
+            costs: []
+            operations: []
+          - {id: replace, when: {bound: replacement_card, exists: true}, choices: [], costs: [], operations: [{op: REPLACE_COMBAT_CARD, side: own, card: {bound: replacement_card}, rule: resolve_replacement_normally}]}
+      - id: sleight-boosted-with
+        trigger: card_used_as_boost_source
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: {requirement: B-REQ-004, source_card: this_card}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]
   - id: smoke-and-mirrors
     name: Smoke and Mirrors
     quantity: 2
@@ -222,12 +309,14 @@ cards:
     boost: 1
     tags: []
     effects:
-      - trigger: immediately
-        optional: true
-        operations:
-          - {op: SWAP, a: houdini, b: bess}
-          - {op: SET_STATE, key: combat.own_participant, value: other_fighter}
-
+      - id: smoke-and-mirrors-swap
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_swap, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_swap}], costs: [], operations: []}
+          - {id: swap, when: {bound: use_swap, equals: true}, choices: [], costs: [], operations: [{op: SWAP, a: houdini, b: bess, bind: swap_result}]}
+          - {id: replace-participant, when: {result: swap_result, equals: succeeded}, choices: [], costs: [], operations: [{op: SET_STATE, key_ref: {scope: combat, key: own_participant}, value: other_fighter}]}
   - id: the-big-reveal
     name: The Big Reveal
     quantity: 2
@@ -238,19 +327,36 @@ cards:
     boost: 3
     tags: []
     effects:
-      - trigger: during_combat
-        optional: true
-        choices:
-          - owner: controller
-            choose: exactly_2_legal_boost_cards_simultaneously
-        operations:
-          - {op: BOOST, target: this_card, source: chosen_boost_card_1, count: 1}
-          - {op: BOOST, target: this_card, source: chosen_boost_card_2, count: 1}
-      - trigger: after_combat
-        choices: [{owner: controller, choose: one_card_used_by_the_big_reveal_to_boost_this_card}]
-        operations: [{op: MOVE_CARD, from_zone: boost_disposition, to_zone: hand, selector: chosen_card}]
-        normalization_blocker: Selecting the cards used by this BOOST sequence requires BOOST-source identity/history to be first-class.
-
+      - id: big-reveal-double-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-two
+            when: always
+            choices:
+              - {id: boost_cards, owner: controller, visibility: private, optional: true, domain: {kind: card_set, selector: legal_boost_cards}, min: 2, max: 2, distinct: true, order_matters: true, bind: boost_cards}
+            costs: []
+            operations: []
+          - id: boost
+            when: {bound: boost_cards, count: 2}
+            choices: []
+            costs: []
+            operations:
+              - {op: BOOST, target: this_card, source: {bound: boost_cards, index: 0}, count: 1, requirement: B-REQ-004, history_group: big_reveal_boosts}
+              - {op: BOOST, target: this_card, source: {bound: boost_cards, index: 1}, count: 1, requirement: B-REQ-004, history_group: big_reveal_boosts}
+      - id: big-reveal-return-boost
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-used-card
+            when: {requirement: B-REQ-004, history_group_exists: big_reveal_boosts}
+            choices:
+              - {id: return_card, owner: controller, visibility: public, optional: false, domain: {kind: card, selector: card_used_as_boost_in_history_group, history_group: big_reveal_boosts, count: 1}, bind: return_card}
+            costs: []
+            operations: []
+          - {id: return, when: {bound: return_card, exists: true}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: boost_disposition, to_zone: hand, selector: {bound: return_card}}]}
   - id: vanishing-act
     name: Vanishing Act
     quantity: 3
@@ -261,36 +367,31 @@ cards:
     boost: 2
     tags: []
     effects:
-      - trigger: after_combat
-        choices: [{owner: controller, choose: combat_fighter}]
-        operations: [{op: MOVE, target: chosen_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]
+      - id: vanishing-act-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: always
+            choices:
+              - {id: combat_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: combat_fighter, count: 1}, bind: combat_fighter}
+            costs: []
+            operations: []
+          - {id: move, when: {bound: combat_fighter, exists: true}, choices: [], costs: [], operations: [{op: MOVE, target: {bound: combat_fighter}, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]}
 
 external_definitions: []
-
-validation:
-  available_pool_count: 30
-  game_deck_count: 30
-  quantity_sum: 30
-  unique_card_definitions: 13
-  quantity_reconciles: true
-
+interpretations: []
 sources:
-  - https://unmatched.cards/card-counter/harry-houdini
-  - https://unmatched.cards/umdb/decks/harry-houdini
-  - https://unmatched.cards/umdb/cards/the-big-reveal
-  - https://restorationgames.com/shop/unmatched-houdini-genie/
-  - https://restorationgames.com/wp-content/uploads/2022/09/UM-HvG_Rules-two-page.pdf
-  - https://www.the-unmatched.club/heroes/houdini
-
-normalization_notes:
-  - All 13 published definitions, exact card types, values, BOOST values, and quantities reconcile to the 30-card deck.
-  - BOOSTED WITH text is represented explicitly but remains blocked on a reusable event for effects printed on the card consumed as the BOOST source.
-  - The Big Reveal requires both boost cards to be chosen together; a draw caused by the first selected BOOST source does not create a new decision before the second.
-  - Audit correction: All Part of the Show carries explicit cancellation protection; And the Beautiful Bess! includes its opponent-caused-discard draw; Flourish includes its ordinary DURING COMBAT BOOST option.
-  - Audit correction: For My Next Trick and Vanishing Act explicitly bind their fighter choices; Set the Stage chooses the returned card only after drawing; Sleight of Hand chooses its replacement only after the original card has returned to hand.
-
-blockers:
-  - id: semantic-extension-boost-source-trigger
-    reason: Current Phase 4A effect vocabulary can execute BOOST but does not expose the consumed source card as an event source for its own BOOSTED WITH effect or preserve source-card identity for later selectors such as The Big Reveal.
-  - id: semantic-extension-discard-cause-event
-    reason: And the Beautiful Bess! depends on whether this specific hand card was discarded as the result of an opponent's effect. The current shared model has DISCARD as an operation but no reusable discard event carrying cause/source attribution for downstream triggers.
+  - {id: houdini-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/harry-houdini, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: houdini-official-rulebook, authority: official, url: https://restorationgames.com/wp-content/uploads/2022/09/UM-HvG_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [boosted_with_rules]}
+  - {id: houdini-official-product, authority: official, url: https://restorationgames.com/shop/unmatched-houdini-genie/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: houdini-rulings-index, authority: secondary_cross_check, url: https://www.the-unmatched.club/heroes/houdini, checked_at: 2026-07-27, supports: [boosted_with_cross_check, card_interactions]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
