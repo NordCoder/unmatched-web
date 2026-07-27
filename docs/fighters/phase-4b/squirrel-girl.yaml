@@ -49,6 +49,8 @@ ability:
           choices: [{owner: controller, choose: squirrel_on_battlefield}]
           operations:
             - {op: PLACE, target: chosen_squirrel, destination_rule: legal_small_fighter_space_adjacent_to_squirrel-girl}
+      evidence_status: uncertain
+      interpretation_note: "Project interpretation follows current reference/index/secondary FAQ behavior and does not require the destination to be empty, but the printed official Teen Spirit rulebook does say 'empty'. No exact authoritative correcting erratum has been captured, so this destination rule remains explicitly uncertain."
       normalization_blocker: Current occupancy rules cannot define the legal shared-space destination domain for small fighters.
 
 resources:
@@ -77,11 +79,18 @@ rulings:
     summary: If all eight Squirrels are already on the battlefield, the start-turn ability may reposition one existing Squirrel adjacent to Squirrel Girl instead of taking a token from reserve.
     source: https://restorationgames.com/wp-content/uploads/2023/02/UM-TS_Rules.pdf
   - id: squirrel-girl-empty-space-erratum
-    summary: The printed rulebook's requirement to use an empty space is erroneous. Current ruling permits a Squirrel in a space with an opposing fighter or with three or fewer Squirrels, subject to small-fighter occupancy limits.
+    summary: "UNCERTAIN: the project follows the current interpretation that Go Nuts may place a Squirrel in an adjacent space allowed by small-fighter occupancy, including a space containing an opposing fighter or up to three Squirrels. The printed official rulebook requires an empty space, while current reference/index wording omits 'empty' and secondary FAQ explicitly calls the printed word erroneous."
+    evidence_status: uncertain
     source: https://gridbeast.gg/unmatched-rules-faq/
-  - id: squirrel-girl-shared-damage-attribution
-    summary: When shared-space small-fighter damage defeats multiple Squirrels, the damage is attributed to one Squirrel rather than independently multiplying damage-dealt triggers for every affected Squirrel.
-    source: https://gridbeast.gg/unmatched-rules-faq/
+  - id: squirrel-girl-shared-damage-propagation
+    summary: "Official ruling: if a small fighter takes damage, all small fighters of the same type in that space take an equal amount. Since Squirrels have 1 health, any positive damage defeats every Squirrel in that space. Up to four small fighters may share a space and they are adjacent to fighters they share it with."
+    authority: official_ruling
+    source: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72
+  - id: squirrel-girl-shared-damage-attribution-normalization
+    summary: "Project normalization: every Squirrel that actually receives the propagated damage counts as a damaged fighter, and the originating effect is credited with the damage to every resulting recipient. Example: 1 damage to one of four co-located Squirrels results in four damaged fighters and 4 total damage, while provenance records which recipient was the primary target and which recipients were added by the small-fighter propagation rule."
+    authority: project_interpretation
+    evidence_status: resolved_by_project_normalization
+    source: https://www.the-unmatched.club/tools/disputes/458dae71-7481-4a9c-8d2e-4924ed4afb72
 
 sources:
   - type: official_product
@@ -98,9 +107,10 @@ sources:
 normalization_notes:
   - Official Teen Spirit rules define Squirrels as small fighters: opposing and small fighters may move through each other, a small fighter may share a space with another fighter, and up to four small fighters may occupy one space in addition to an ordinary fighter.
   - A small fighter sharing a space with another fighter is adjacent to that fighter.
-  - When a small fighter takes damage, each other small fighter of the same type in that space takes the same amount of damage.
-  - Current ruling supersedes the printed word "empty" for Squirrel Girl's start-turn placement. The legal destination may already contain an opposing fighter or up to three Squirrels.
+  - Official ruling evidence confirms that when a small fighter takes damage, every small fighter of the same type in that space takes an equal amount; this propagation rule is no longer an evidence gap.
+  - Project damage attribution counts every Squirrel that receives propagated damage as a damaged fighter and attributes those damage applications to the originating effect while retaining primary-target versus propagated-recipient provenance.
+  - Removal of the printed Go Nuts 'empty' restriction remains explicitly UNCERTAIN: current project behavior follows modern reference/index/secondary-FAQ wording, but an exact authoritative correcting erratum has not been captured.
 
 blockers:
   - id: semantic-extension-small-fighter-occupancy
-    reason: The published rules plus current ruling require shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, same-type co-located damage propagation and attribution, and a summon/place legality domain that can target an occupied space. Current generic battlefield occupancy/damage semantics do not encode these rules.
+    reason: Small-fighter shared occupancy, occupancy capacity/compatibility, adjacency within a shared space, pass-through behavior, same-type co-located damage propagation/provenance and a summon/place legality domain that can target an occupied space require reusable runtime semantics. The Go Nuts non-empty destination interpretation is additionally marked evidence-uncertain.
