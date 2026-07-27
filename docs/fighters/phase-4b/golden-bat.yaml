@@ -2,7 +2,13 @@ schema_version: 1
 id: golden-bat
 display_name: Golden Bat
 set_ids: [tales-to-amaze]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-013]
 movement: 3
 
 topology:
@@ -38,9 +44,30 @@ deck:
 
 rulings: []
 sources:
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/golden-bat}
-  - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/golden-bat}
-  - {type: official_product, url: https://restorationgames.com/shop/unmatched-adventures-tales-to-amaze/}
+  - id: tta-set-rules-golden-bat
+    authority: official_set_rules
+    url: https://iellogames.com/wp-content/uploads/2024/02/UN-Adventures_Set-rules_EN_Light.pdf
+    checked_at: 2026-07-27
+    supports: [competitive hero context]
+  - id: golden-bat-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/golden-bat
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: golden-bat-rulings
+    authority: secondary_crosscheck
+    url: https://www.the-unmatched.club/heroes/golden-bat
+    checked_at: 2026-07-27
+    supports: [current hero ruling index]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
   - The ability depends on action history, not current position or whether a maneuver changed any fighter position.
