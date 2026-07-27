@@ -1,10 +1,12 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 id: invisible-man
 display_name: Invisible Man
 set_ids: [cobble-and-fog]
-status: blocked
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-005]
 movement: 2
-
 topology:
   type: single_hero
   loss_rule: primary_hero_defeated
@@ -13,35 +15,57 @@ topology:
 setup:
   hooks:
     - stage: POST_PLACEMENT_CONFIGURATION
-      note: Place three Fog tokens in separate spaces in Invisible Man's zone after fighter placement and before the first turn.
+      requires: [A-REQ-003]
+      choices:
+        - {id: place-fog-1, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [previous_fog_spaces]}, bind: fog_space_1}
+        - {id: place-fog-2, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}]}, bind: fog_space_2}
+        - {id: place-fog-3, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}, {ref: choice.fog_space_2}]}, bind: fog_space_3}
+      operations:
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_1}, requires: A-REQ-003}
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_2}, requires: A-REQ-003}
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_3}, requires: A-REQ-003}
   state_initialization: []
 ability:
   id: fog
   controller: owner
   effects:
-    - {id: fog-defense, trigger: static, continuous: true, condition: {defender: invisible-man, on_token: fog}, operations: [{op: ADD_VALUE, target: invisible_man_defense, amount: 1}]}
+    - id: fog-defense
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: add-fog-defense
+          when: {combat: {defender: invisible-man}, position: {fighter: invisible-man, on_component_type: fog}}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: invisible_man_defense, amount: 1}]
     - id: fog-step
       trigger: movement_adjacency
-      continuous: true
-      note: Spaces containing Fog tokens are mutually adjacent for Invisible Man's movement only.
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: add-movement-only-adjacency
+          when: {moving_fighter: invisible-man}
+          choices: []
+          costs: []
+          operations:
+            - {op: ADD_DYNAMIC_ADJACENCY, scope: movement_only, between: {selector: {kind: space, containing_component_type: fog}}, requires: A-REQ-003}
 resources:
-  - {id: fog, kind: token_pool, visibility: public, initial: 3, max: 3, position_sensitive: true}
+  - {id: fog, kind: component_pool, visibility: public, initial: 3, max: 3, lifecycle: [board]}
 persistent_state: []
 deck: {manifest: ../../cards/phase-4b/invisible-man.yaml, construction: fixed}
-rulings:
-  - id: fog-movement-only
-    summary: Fog-to-Fog adjacency is a movement permission for Invisible Man and does not make the spaces adjacent for attacks or generic adjacency tests. Fog tokens may move through fighters/tokens and may share spaces with fighters or other token types, but two Fog tokens cannot share one space.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - id: vanish-dormant-player
-    summary: Vanish can leave Invisible Man undefeated but off-board. Current Dormant Player rules govern a player with no fighters on the board until the source-defined return placement occurs.
-    source: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
+interpretations: []
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/cobble-fog-unmatched/}
-  - {type: official_rulebook, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf}
-  - {type: official_edition_note, url: https://restorationgames.com/the-unmatched-vault-cobble-fog/}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man}
-  - {type: current_reference, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf}
-  - {type: official_rulings_archive, url: https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/}
-blocker:
-  reason: positioned_special_tokens_and_temporary_off_board_undefeated_state_not_in_shared_effect_model
-  report: ../../phase-4b/worker-a-report.md
+  - {id: invisible-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, fog_setup]}
+  - {id: invisible-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: invisible-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [fog_movement_only_adjacency, fog_occupancy, vanish_dormancy]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none
