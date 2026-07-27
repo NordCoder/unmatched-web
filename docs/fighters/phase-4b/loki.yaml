@@ -3,7 +3,8 @@ id: loki
 display_name: Loki
 set_ids:
 - battle-of-legends-vol-3
-status: verified
+status: partial
+reason: multiplayer_trick_destination_authority_unresolved
 movement: 2
 topology:
   type: single_hero
@@ -68,7 +69,7 @@ sources:
   note: Physical 2025 deck review used for component cross-checking.
 - authority: reference
   url: https://www.unmatchedarena.com/heroes/loki
-  checked_at: '2026-07-26'
+  checked_at: '2026-07-27'
   note: Complete current deck transcription.
 - authority: reference
   url: https://www.the-unmatched.club/tools/tracker?h=loki
@@ -78,4 +79,6 @@ sources:
 normalization_notes:
 - Opponent-held TRICK cards preserve owner_player=Loki while current_zone and zone controller change.
 - Cleanup disposition depends on who played the Loki-owned TRICK; ownership alone is not sufficient to select the destination.
+- In 1v1 the destination opponent is unambiguous. In 2v2/FFA the published ability says an opponent's hand but no authoritative recipient-selection rule was found for a Loki-played non-combat TRICK; this is a real multiplayer evidence gap and the reason fighter status is partial.
+- The current rulings index confirms an official END_TURN × TRICK ruling exists; its global cleanup integration is orchestrator-owned rather than a reason to invent a fighter-local control-flow rule.
 - The movement-value bonus is a proposed generic extension; corpus verification does not require modifying the shared model on this worker branch.
