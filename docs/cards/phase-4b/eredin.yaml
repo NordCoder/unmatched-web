@@ -50,12 +50,13 @@ cards:
     type: versatile
     printed_value: 2
     boost: 1
-    tags: []
+    tags: [evidence_qualified_self_defeat]
     effects:
       - {trigger: immediately, condition: {enraged: true}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
       - trigger: during_combat
         optional: true
-        choices: [{owner: controller, choose: living_red_rider, capture: rider_to_defeat}]
+        choices:
+          - {owner: controller, choose: living_red_rider, includes_current_combat_fighter: true, capture: rider_to_defeat}
         costs: [{op: DEFEAT, target: captured.rider_to_defeat}]
         operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
   - id: implacable
@@ -92,10 +93,12 @@ validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, un
 sources:
   - https://unmatched.cards/umdb/decks/eredin
   - https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
+  - https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf
   - https://www.the-unmatched.club/heroes/eredin
 normalization_notes:
   - Foul Purpose and Implacable modify card legality/type at declaration time, before ordinary cancellation windows; they use the generic combat-play-mode proposal.
-  - Foul Purpose and Icy Guile explicitly choose the living Red Rider that is defeated as their cost; whether the currently attacking Red Rider may choose itself remains a targeted ruling follow-up rather than an inferred restriction.
+  - Foul Purpose and Icy Guile explicitly choose the living Red Rider that is defeated as their cost; runtime fighter identity cannot be inferred after defeat.
+  - "Recommended integration behavior (high confidence): Icy Guile's 'a Red Rider' includes the currently attacking Red Rider because the published effect supplies no 'another' exclusion. If that Rider defeats itself during the already-started combat, the card effect and combat continue under the ordinary core rule that a played combat card still resolves when its fighter is defeated, unless the defeat ends the game. No exact-case publisher ruling naming Icy Guile self-defeat was found."
   - Wild Hunt and Close For The Kill say "your fighters" and therefore use only fighters controlled by the card controller; teammate fighters do not count merely because they are friendly.
   - Portal Defense may replace Eredin with a teammate's adjacent friendly fighter in team play; C-EXT-003 must keep replacement-defender controller separate from defense-card controller.
   - Eredin's +1 is a derived static bonus while every Rider is defeated; returning a Rider removes it immediately.
