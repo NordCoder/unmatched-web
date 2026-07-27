@@ -29,12 +29,17 @@ ability:
   effects:
     - id: refill-to-four
       trigger: turn_end
-      optional: true
-      condition: {hand_size: {lt: 4}}
-      operations:
-        - op: DRAW
-          count:
-            expr: {op: subtract, left: 4, right: {ref: controller.hand_size}}
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: optional-refill
+          when: {hand_size: {lt: 4}}
+          choices: [{id: refill, owner: controller, visibility: private, optional: true, domain: [refill_to_four], bind: refill_choice}]
+        - id: draw
+          when: {ref: refill_choice, exists: true}
+          operations:
+            - op: DRAW
+              count: {expr: {op: subtract, left: 4, right: {ref: controller.hand_size}}}
 
 resources: []
 persistent_state:
@@ -50,21 +55,9 @@ rulings:
     source_refs: [philippa-rulings]
 
 sources:
-  - id: witcher-rf-rules-philippa
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Philippa fighter rules, Witcher ongoing schemes]
-  - id: philippa-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/philippa
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published deck corpus]
-  - id: philippa-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/rules/philippa
-    checked_at: 2026-07-27
-    supports: [Two Steps Ahead and Philippa ruling index]
+  - {id: witcher-rf-rules-philippa, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Philippa fighter rules, Witcher ongoing schemes]}
+  - {id: philippa-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/philippa, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: philippa-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/philippa, checked_at: 2026-07-27, supports: [Two Steps Ahead and Philippa ruling index]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
