@@ -1,12 +1,45 @@
 schema_version: 1
+reconciliation_contract: phase-4b-v1
 fighter_id: beowulf
 status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
 
 cards:
-  - {id: remnant-of-valor, name: Remnant of Valor, quantity: 2, usable_by: [wiglaf], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_wiglaf, amount: 1}]}, {trigger: after_effect, condition: {beowulf_damaged_by_this_effect: true}, operations: [{op: GAIN_ACTION, count: 1}]}]}
-  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
-  - {id: epic-poem, name: Epic Poem, quantity: 2, usable_by: [beowulf], type: attack, printed_value: 2, boost: 2, effects: [{trigger: immediately, operations: [{op: GAIN_RESOURCE, resource: rage, amount: 1, max: 3}]}, {trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount: current_rage}]}]}
+  - id: remnant-of-valor
+    name: Remnant of Valor
+    quantity: 2
+    usable_by: [wiglaf]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: remnant-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: damage-adjacent
+            when: always
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, adjacent_to: wiglaf}}, amount: 1, bind_result: remnant_damage}]
+          - id: gain-action-if-beowulf-damaged
+            when: {result_contains: {ref: result.remnant_damage.damaged_fighters}, fighter: beowulf}
+            choices: []
+            costs: []
+            operations: [{op: GAIN_ACTION, count: 1}]
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 1, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - id: epic-poem
+    name: Epic Poem
+    quantity: 2
+    usable_by: [beowulf]
+    type: attack
+    printed_value: 2
+    boost: 2
+    effects:
+      - {id: epic-poem-rage, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: gain-rage, when: always, choices: [], costs: [], operations: [{op: GAIN_RESOURCE, resource: rage, amount: 1, max: 3}]}]}
+      - {id: epic-poem-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: add-rage, when: always, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount: {ref: resource.rage.current}}]}]}
   - id: the-ancient-heirloom
     name: The Ancient Heirloom
     quantity: 2
@@ -15,44 +48,201 @@ cards:
     printed_value: 3
     boost: 1
     effects:
-      - {trigger: static, operations: [{op: PREVENT_OPERATION, target: this_card_effects, operation: CANCEL_EFFECTS, duration: combat}]}
-      - trigger: during_combat
-        operations:
-          - {op: REQUEST_CHOICE, definition: ancient_heirloom_ordered_clauses}
-  - {id: no-contest-expecteth, name: No Contest Expecteth, quantity: 2, usable_by: [beowulf], type: attack, printed_value: 3, boost: 3, effects: [{trigger: after_combat, condition: {combat_result: won, opposing_fighter_role: sidekick}, optional: true, costs: [{op: SPEND_RESOURCE, resource: rage, amount: 3}], operations: [{op: DEFEAT, target: opposing_combat_fighter}]}]}
-  - {id: the-war-king, name: The War-King, quantity: 3, usable_by: [beowulf], type: versatile, printed_value: 1, boost: 3, effects: [{trigger: during_combat, optional: true, costs: [{op: SPEND_RESOURCE, resource: rage, amount: any_up_to_current}], operations: [{op: ADD_VALUE, target: this_card, amount: twice_rage_spent}]}]}
-  - {id: the-equal-of-grendel, name: The Equal of Grendel, quantity: 3, usable_by: [beowulf], type: defense, printed_value: 3, boost: 1, effects: [{trigger: immediately, optional: true, costs: [{op: SPEND_RESOURCE, resource: rage, amount: 2}], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: opposing_card_printed_value}]}]}
-  - {id: vigor-and-courage, name: Vigor and Courage, quantity: 3, usable_by: [beowulf], type: scheme, printed_value: null, boost: 2, effects: [{trigger: scheme, choices: [{choose: opponent}], operations: [{op: DISCARD, from: chosen_opponent_hand, selector: random, count: 1}, {op: GAIN_RESOURCE, resource: rage, amount: discarded_card_boost, max: 3}]}]}
-  - {id: golden-drinking-horn, name: Golden Drinking Horn, quantity: 2, usable_by: [beowulf], type: scheme, printed_value: null, boost: 3, effects: [{trigger: scheme, costs: [{op: SPEND_RESOURCE, resource: rage, amount: any_up_to_current}], choices: [{owner: controller, choose_different_effect_for_each_resource_spent: [draw_2, move_beowulf_4, recover_beowulf_2]}], operations: [{op: REQUEST_CHOICE, definition: golden_drinking_horn_distinct_effects}]}]}
-  - {id: hot-for-the-battle, name: Hot for the Battle, quantity: 2, usable_by: [wiglaf], type: attack, printed_value: 3, boost: 3, effects: [{trigger: after_combat, optional: true, operations: [{op: SWAP, a: wiglaf, b: beowulf}]}]}
-  - {id: fatal-struggle, name: Fatal Struggle, quantity: 3, usable_by: any, type: attack, printed_value: 4, boost: 2, effects: [{trigger: after_combat, branches: [{condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}, {condition: {combat_result: lost}, operations: [{op: DRAW, player: combat_opponent, count: 2}]}]}]}
-  - {id: skirmish, name: Skirmish, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 1, effects: [{trigger: after_combat, condition: {combat_result: won}, choices: [{choose: fighter_in_combat}], operations: [{op: MOVE, target: chosen_fighter, max_distance: 2}]}]}
+      - {id: heirloom-protection, trigger: static, controller: owner, cancellation: protected, stages: [{id: protect, when: always, choices: [], costs: [], operations: [{op: PREVENT_OPERATION, target: this_card_effects, operation: CANCEL_EFFECTS, duration: combat}]}]}
+      - id: heirloom-during-combat
+        trigger: during_combat
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: set-value-clause
+            when: always
+            choices:
+              - {id: use-set-value, owner: controller, visibility: public, optional: true, domain: [spend_2_rage_set_value_5], bind: use_set_value}
+            costs:
+              - {op: SPEND_RESOURCE, resource: rage, amount: 2, when: {choice_bound: use_set_value}}
+            operations:
+              - {op: SET_VALUE, target: this_card, value: 5, when: {choice_bound: use_set_value}}
+          - id: boost-clause
+            when: always
+            choices:
+              - {id: choose-boost-card, owner: controller, visibility: private, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+            costs:
+              - {op: SPEND_RESOURCE, resource: rage, amount: 1, when: {choice_bound: boost_card}}
+            operations:
+              - {op: BOOST, target: this_card, source: {ref: choice.boost_card}}
+  - id: no-contest-expecteth
+    name: No Contest Expecteth
+    quantity: 2
+    usable_by: [beowulf]
+    type: attack
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: no-contest-defeat
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-defeat
+            when: {all: [{combat: {result: won}}, {combat: {opposing_fighter_role: sidekick}}]}
+            choices:
+              - {id: use-no-contest, owner: controller, visibility: public, optional: true, domain: [spend_3_rage_defeat_sidekick], bind: use_effect}
+            costs: [{op: SPEND_RESOURCE, resource: rage, amount: 3, when: {choice_bound: use_effect}}]
+            operations: [{op: DEFEAT, target: {ref: combat.opposing_fighter}, when: {choice_bound: use_effect}}]
+  - id: the-war-king
+    name: The War-King
+    quantity: 3
+    usable_by: [beowulf]
+    type: versatile
+    printed_value: 1
+    boost: 3
+    effects:
+      - id: war-king-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-rage
+            when: always
+            choices:
+              - {id: choose-rage-spend, owner: controller, visibility: public, optional: true, domain: {kind: integer, min: 1, max: {ref: resource.rage.current}}, bind: rage_spent, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: [{op: SPEND_RESOURCE, resource: rage, amount: {ref: choice.rage_spent}, bind_result: spent_rage}]
+            operations: [{op: ADD_VALUE, target: this_card, amount: {expr: multiply, left: 2, right: {ref: result.spent_rage.amount}}}]
+  - id: the-equal-of-grendel
+    name: The Equal of Grendel
+    quantity: 3
+    usable_by: [beowulf]
+    type: defense
+    printed_value: 3
+    boost: 1
+    effects:
+      - id: equal-grendel-effect
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-damage
+            when: always
+            choices:
+              - {id: use-equal-grendel, owner: controller, visibility: public, optional: true, domain: [spend_2_rage_damage_opponent], bind: use_effect}
+            costs: [{op: SPEND_RESOURCE, resource: rage, amount: 2, when: {choice_bound: use_effect}}]
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: {ref: combat.opposing_card.printed_value}, when: {choice_bound: use_effect}}]
+  - id: vigor-and-courage
+    name: Vigor and Courage
+    quantity: 3
+    usable_by: [beowulf]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: vigor-courage-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: {ref: choice.chosen_opponent}}, selector: {kind: random}, count: 1, bind_result: discarded_card}]
+          - id: gain-rage
+            when: {result_exists: {ref: result.discarded_card.card}}
+            choices: []
+            costs: []
+            operations: [{op: GAIN_RESOURCE, resource: rage, amount: {ref: result.discarded_card.card.boost}, max: 3}]
+  - id: golden-drinking-horn
+    name: Golden Drinking Horn
+    quantity: 2
+    usable_by: [beowulf]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - id: golden-horn-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-rage-spend
+            when: always
+            choices:
+              - {id: choose-rage-spend, owner: controller, visibility: public, optional: false, domain: {kind: integer, min: 0, max: {ref: resource.rage.current}}, bind: rage_spent, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: [{op: SPEND_RESOURCE, resource: rage, amount: {ref: choice.rage_spent}}]
+            operations: []
+          - id: choose-effects-and-order
+            when: {choice: {ref: choice.rage_spent, gt: 0}}
+            choices:
+              - {id: choose-effects, owner: controller, visibility: public, optional: false, domain: [draw_2, move_beowulf_up_to_4, recover_beowulf_2], bind: selected_effects, min: {ref: choice.rage_spent}, max: {ref: choice.rage_spent}, distinct: true, order_matters: true}
+            costs: []
+            operations: []
+          - {id: first-draw, when: {choice_item: {ref: choice.selected_effects[0]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: first-move, when: {choice_item: {ref: choice.selected_effects[0]}, equals: move_beowulf_up_to_4}, choices: [], costs: [], operations: [{op: MOVE, target: beowulf, max_distance: 4}]}
+          - {id: first-recover, when: {choice_item: {ref: choice.selected_effects[0]}, equals: recover_beowulf_2}, choices: [], costs: [], operations: [{op: RECOVER, target: beowulf, amount: 2}]}
+          - {id: second-draw, when: {choice_item: {ref: choice.selected_effects[1]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: second-move, when: {choice_item: {ref: choice.selected_effects[1]}, equals: move_beowulf_up_to_4}, choices: [], costs: [], operations: [{op: MOVE, target: beowulf, max_distance: 4}]}
+          - {id: second-recover, when: {choice_item: {ref: choice.selected_effects[1]}, equals: recover_beowulf_2}, choices: [], costs: [], operations: [{op: RECOVER, target: beowulf, amount: 2}]}
+          - {id: third-draw, when: {choice_item: {ref: choice.selected_effects[2]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: third-move, when: {choice_item: {ref: choice.selected_effects[2]}, equals: move_beowulf_up_to_4}, choices: [], costs: [], operations: [{op: MOVE, target: beowulf, max_distance: 4}]}
+          - {id: third-recover, when: {choice_item: {ref: choice.selected_effects[2]}, equals: recover_beowulf_2}, choices: [], costs: [], operations: [{op: RECOVER, target: beowulf, amount: 2}]}
+  - id: hot-for-the-battle
+    name: Hot for the Battle
+    quantity: 2
+    usable_by: [wiglaf]
+    type: attack
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: hot-battle-swap
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: optional-swap
+            when: always
+            choices:
+              - {id: use-swap, owner: controller, visibility: public, optional: true, domain: [swap_wiglaf_beowulf], bind: use_swap}
+            costs: []
+            operations: [{op: SWAP, a: wiglaf, b: beowulf, when: {choice_bound: use_swap}}]
+  - {id: fatal-struggle, name: Fatal Struggle, quantity: 3, usable_by: any, type: attack, printed_value: 4, boost: 2, effects: [{id: fatal-struggle-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: lost, when: {combat: {result: lost}}, choices: [], costs: [], operations: [{op: DRAW, player: combat_opponent, count: 2}]}]}]}
+  - id: skirmish
+    name: Skirmish
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 1
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
 
-external_definitions:
-  - id: ancient_heirloom_ordered_clauses
-    kind: ordered_optional_clauses
-    commit_order: printed_order
-    both_allowed: true
-    clauses:
-      - id: set_value_clause
-        optional: true
-        cost: {op: SPEND_RESOURCE, resource: rage, amount: 2}
-        operations: [{op: SET_VALUE, target: this_card, value: 5}]
-      - id: boost_clause
-        optional: true
-        cost: {op: SPEND_RESOURCE, resource: rage, amount: 1}
-        operations: [{op: BOOST, target: this_card, card_or_blind_source: chosen_hand_card}]
-  - {id: golden-drinking-horn-distinct-effects, kind: distinct_choice_per_resource, options: [draw_2, move_beowulf_up_to_4, recover_beowulf_2], precommit_choices: true, owner_orders_chosen_effects_for_resolution: true}
-validation: {available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, unique_card_definitions: 12, attack_count: 11, versatile_count: 9, defense_count: 3, scheme_count: 7}
+external_definitions: []
+interpretations:
+  - id: ancient-heirloom-printed-order
+    affects: [the-ancient-heirloom]
+    status: derived
+    confidence: high
+    behavior: The two optional DURING COMBAT clauses resolve in printed order; either or both may be used.
+    source_refs: [beowulf-set-rules, beowulf-rulings]
+    replacement_condition: Replace only if a card-specific authoritative ruling explicitly grants a different ordering.
 sources:
-  - https://unmatched.cards/umdb/decks/beowulf
-  - https://unmatched.cards/umdb/decks/stats
-  - https://restorationgames.com/shop/little-red-beowulf-unmatched/
-  - https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf
-  - https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf
-  - https://docs.google.com/document/d/13b-FbPq_vuqcc3IokeHvQ2ctJaDNZZuUaZmt4uft5h0/
-normalization_notes:
-  - Rage gain from the fighter ability is once per damage effect, not once per damage point.
-  - The Ancient Heirloom's two DURING COMBAT clauses belong to one printed effect and are preserved in printed order; either or both may be used, rather than exposing two independently reorderable same-timing effects.
-  - Golden Drinking Horn records that selected distinct effects are committed first and then resolved in an owner-chosen order; the shared choice/result-binding contract still needs to formalize this centrally.
-  - Current UmDb aggregate statistics reconcile exactly to 11 Attack / 9 Versatile / 3 Defense / 7 Scheme cards; fan/community transcriptions were excluded.
+  - {id: beowulf-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/beowulf, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: beowulf-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [rage_rules, combat_timing]}
+  - {id: beowulf-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [rage_per_damage_effect, printed_order_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none
