@@ -2,7 +2,13 @@ schema_version: 1
 id: tomoe-gozen
 display_name: Tomoe Gozen
 set_ids: [suns-origin]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-013]
 movement: 2
 
 topology:
@@ -19,7 +25,7 @@ ability:
   effects:
     - id: damage-hero-leaving-zone
       trigger: left_zone
-      condition: {fighter: opposing_hero, zone_owner: tomoe-gozen}
+      condition: {fighter_role: opposing_hero, zone_owner: tomoe-gozen}
       operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_fighter, amount: 1}]
 
 resources: []
@@ -31,15 +37,35 @@ deck:
 
 rulings:
   - id: leaving-zone-is-event-semantic
-    summary: The ability applies whenever an opposing hero leaves Tomoe's zone through movement, placement, or removal from the board, including multiple times in one effect; it does not trigger merely because Tomoe herself moved and changed the zone relationship, and it never applies to sidekicks.
-    source: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
+    summary: The ability applies whenever an opposing hero actually leaves Tomoe's zone through movement, placement, or removal, can trigger multiple times in one effect, does not trigger merely because Tomoe moved, and never applies to sidekicks.
+    source_refs: [suns-origin-rules-tomoe]
 
 sources:
-  - {type: official_product, url: https://restorationgames.com/shop/suns-origin-unmatched/}
-  - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf}
-  - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen}
-  - {type: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen}
+  - id: suns-origin-rules-tomoe
+    authority: official_set_rules
+    url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf
+    checked_at: 2026-07-27
+    supports: [Attack of Opportunity, Sun's Origin fighter rules]
+  - id: tomoe-deck-index
+    authority: published_deck_index
+    url: https://unmatched.cards/umdb/decks/tomoe-gozen
+    checked_at: 2026-07-27
+    supports: [fighter metadata, published deck corpus]
+  - id: tomoe-crosscheck
+    authority: secondary_crosscheck
+    url: https://www.unmatchedarena.com/heroes/tomoe-gozen
+    checked_at: 2026-07-27
+    supports: [component transcription crosscheck]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
 
 normalization_notes:
-  - Attack of Opportunity consumes the existing `left_zone` relocation transition fact required by `docs/mechanics/movement-and-placement.md`; Tomoe does not require a second parallel zone-event primitive.
-  - Witness My Last Battle has declaration-time target and face-up-play rules. These use the reusable combat-play-mode proposal in the Worker C report rather than a Tomoe-only engine branch.
+  - Attack of Opportunity consumes the existing left_zone relocation transition fact; C-EXT-009 remains withdrawn and no duplicate zone-event primitive is requested.
+  - Witness My Last Battle requires generic declaration-time combat legality rather than a Tomoe-only branch.
