@@ -47,7 +47,7 @@ cards:
     requires: [D-REQ-003, D-REQ-012]
     stages:
     - id: capture-upgrades
-      bindings: [{id: upgrades_already_active, from: {resource: upgrade-tokens, query: count_active}}]
+      bindings: [{id: all_upgrades_already_active, from: {resource: upgrade-tokens, query: all_active}}]
     - id: grant-restricted-action
       operations:
       - op: GAIN_ACTION
@@ -55,10 +55,11 @@ cards:
         credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
     - id: activate-all
       operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_all}]
-    - id: scale-effects
+    - id: fixed-effects
+      condition: {bound.all_upgrades_already_active: true}
       operations:
-      - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_from: bound.upgrades_already_active}
-      - {op: RECOVER, target: rosie-the-riveter, amount_from: bound.upgrades_already_active}
+      - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}
+      - {op: RECOVER, target: rosie-the-riveter, amount: 1}
 - id: arc-welding
   name: Arc Welding
   quantity: 3
@@ -166,6 +167,6 @@ sources:
 - {id: rosie-club, authority: reference, url: https://www.the-unmatched.club/heroes/rosie-the-riveter, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
 normalization_notes:
 - All 11 definitions reconcile to 30 cards.
-- Upgrade cards use only D-REQ-012 transitions/queries: activate_next, deactivate_next, activate_all, count_active.
-- D-Day binds count_active before activate_all, preserving source order.
+- Upgrade cards use only D-REQ-012 transitions/queries: activate_next, deactivate_next, activate_all, count_active and all_active.
+- D-Day snapshots the printed all-upgrades-active condition before activate_all, then applies fixed 1 damage and fixed 1 recovery when it was true.
 - Restricted free attacks use D-REQ-003; no source_defined upgrade/action/capture constructs remain.
