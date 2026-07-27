@@ -40,13 +40,7 @@ ability:
       condition: {question_state: not-to-be, attacker: hamlet}
       operations: [{op: ADD_VALUE, target: hamlet_attack, amount: 2}]
 
-resources:
-  - id: question-token
-    kind: counter
-    visibility: public
-    initial: none
-    values: [none, to-be, not-to-be]
-
+resources: []
 persistent_state:
   - {key: question_state, type: enum, reset: never}
   - {key: hamlet_took_damage_this_turn, type: boolean, reset: turn_start}
@@ -67,3 +61,6 @@ sources:
   - {type: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf}
   - {type: published_deck_index, url: https://unmatched.cards/umdb/decks/hamlet}
   - {type: current_rulings_index, url: https://www.the-unmatched.club/heroes/hamlet}
+
+normalization_notes:
+  - question_state is the single authoritative public enum state. The physical TO BE / NOT TO BE token is a presentation of that state, not a second independently mutable resource.
