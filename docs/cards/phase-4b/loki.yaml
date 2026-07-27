@@ -184,7 +184,10 @@ cards:
       choices: [{owner: controller, choose: opposing_fighter}]
       operations: [{op: PLACE, target: chosen_opposing_fighter, destination_rule: space_adjacent_to_loki}]
     - condition: {card_controller_not: loki}
-      operations: [{op: REVEAL, source: controller_hand, selector: random, count: 1, capture: revealed_card}, {op: DISCARD, from: controller_hand, selector: captured.revealed_card}]
+      choices: [{owner: loki_owner, choose: card_instance_in_controller_hand, visibility_to_chooser: card_back_only, capture: chosen_card}]
+      operations:
+      - {op: REVEAL, source: controller_hand, selector: captured.chosen_card}
+      - {op: DISCARD, from: controller_hand, selector: captured.chosen_card}
 external_definitions: []
 validation:
   available_pool_count: 30
@@ -195,13 +198,14 @@ validation:
 sources:
 - {authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-26'}
 - {authority: reference, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-26', note: Physical deck review used as component cross-check.}
-- {authority: reference, url: https://www.unmatchedarena.com/heroes/loki, checked_at: '2026-07-26', note: Complete current card transcription.}
+- {authority: reference, url: https://www.unmatchedarena.com/heroes/loki, checked_at: '2026-07-27', note: Complete current card transcription.}
 - {authority: reference, url: https://www.the-unmatched.club/tools/tracker?h=loki, checked_at: '2026-07-26', note: Independent card-name and quantity cross-check.}
 - {authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-27'}
 normalization_notes:
 - TRICK cards use boost: null because the source defines no BOOST value for them.
 - Freyja's Rescue uses an explicit combat-value-swap composite; positional SWAP is not overloaded for numeric values.
 - Sindri's Bet resolves in DURING COMBAT; if the opponent elects to discard, the discard is an explicit operation rather than an unmaterialized choice.
+- Svadilfari's Lure does not perform a uniformly random discard: when a non-Loki player uses it, the Loki player selects a hand-card instance without seeing its face, then that card is revealed and discarded. This requires a generic partial-information/opaque selector so an online client does not leak hidden card identity.
 - Card title spellings use current physical/current-index forms: Baldr's Downfall, Malicious Flyting, Freyja's Rescue, Svadilfari's Lure, Shapeshifter.
 - Ownership is never transferred when a Loki-owned TRICK occupies an opponent hand.
 - No unmatched.cards/decks fan namespace is used.
