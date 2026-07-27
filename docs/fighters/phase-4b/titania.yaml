@@ -30,11 +30,18 @@ ability:
   effects:
     - id: expose-glamour
       trigger: turn_start
-      condition: {active_glamour_zone_empty: true, glamour_deck_not_empty: true}
-      operations: [{op: MOVE_CARD, from_zone: glamour-deck, to_zone: active-glamour, selector: top_card, face_up: true}]
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: expose
+          when: {active_glamour_zone_empty: true, glamour_deck_not_empty: true}
+          operations: [{op: MOVE_CARD, from_zone: glamour-deck, to_zone: active-glamour, selector: top_card, face_up: true}]
 
 resources:
-  - {id: glamour-cards, kind: external_definition_pool, visibility: public, initial: six_glamour_definitions}
+  - id: glamour-card-pool
+    kind: auxiliary_card_pool
+    visibility: public
+    definitions_from: ../../cards/phase-4b/titania.yaml#auxiliary_cards
   - {id: glamour-deck, kind: card_zone, visibility: private_order, initial: six_glamour_instances}
   - {id: active-glamour, kind: card_zone, visibility: public, initial: empty}
   - {id: glamour-discard, kind: card_zone, visibility: public, initial: empty}
@@ -53,21 +60,9 @@ rulings:
     source_refs: [titania-rulings]
 
 sources:
-  - id: slings-rules-titania
-    authority: official_set_rules
-    url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf
-    checked_at: 2026-07-27
-    supports: [Glamour setup and lifecycle, Titania fighter rules]
-  - id: titania-deck-index
-    authority: published_deck_index
-    url: https://unmatched.cards/umdb/decks/titania
-    checked_at: 2026-07-27
-    supports: [fighter metadata, published action deck and Glamour definitions]
-  - id: titania-rulings
-    authority: secondary_crosscheck
-    url: https://www.the-unmatched.club/heroes/titania
-    checked_at: 2026-07-27
-    supports: [current Titania ruling index]
+  - {id: slings-rules-titania, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/03/UM-SaA-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Glamour setup and lifecycle, Titania fighter rules]}
+  - {id: titania-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/titania, checked_at: 2026-07-27, supports: [fighter metadata, published action deck and Glamour definitions]}
+  - {id: titania-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/titania, checked_at: 2026-07-27, supports: [current Titania ruling index]}
 
 validation:
   quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30, external_gameplay_cards: 6}
@@ -79,5 +74,5 @@ validation:
   fan_content: pass
 
 normalization_notes:
-  - Glamours are first-class runtime card instances in an auxiliary shuffled deck; external_definitions contain definitions only, never procedural storage.
+  - Glamour definitions live under the deck manifest auxiliary_cards section; runtime instances occupy explicit zones.
   - The setup SHUFFLE hook is the single authoritative randomization step.
