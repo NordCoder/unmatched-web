@@ -55,11 +55,13 @@ cards:
             costs: []
             operations:
               - {op: REPLACE_COMBAT_PARTICIPANT, combat: {ref: combat.current}, role: attacker, fighter: {ref: choice.returned_archer}, preserve: [combat_id, defender, committed_cards, timing_window], requires: A-REQ-012}
-          - id: gain-action-if-no-return
-            when:
-              any:
-                - {choice_unbound: returned_archer}
-                - {result: {ref: result.archer_return.success, equals: false}}
+          - id: gain-action-if-no-selection
+            when: {choice_unbound: returned_archer}
+            choices: []
+            costs: []
+            operations: [{op: GAIN_ACTION, count: 1}]
+          - id: gain-action-if-return-failed
+            when: {all: [{result_exists: {ref: result.archer_return}}, {result: {ref: result.archer_return.success, equals: false}}]}
             choices: []
             costs: []
             operations: [{op: GAIN_ACTION, count: 1}]
