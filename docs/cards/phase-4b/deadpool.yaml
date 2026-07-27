@@ -150,8 +150,8 @@ cards:
               - {id: choose-spaces, owner: controller, visibility: public, optional: false, domain: {kind: space, external_predicate: subjectively_yellowish_zone, requires: A-REQ-015}, bind: chosen_spaces, min: 2, max: 2, distinct: true, order_matters: true}
             costs: []
             operations: []
-          - {id: first-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: choice.chosen_spaces[0]}}]}
-          - {id: second-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: choice.chosen_spaces[1]}}]}
+          - {id: first-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: "choice.chosen_spaces[0]"}}]}
+          - {id: second-move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: deadpool, destination: {ref: "choice.chosen_spaces[1]"}}]}
   - id: wanna-bet
     name: Wanna bet?
     quantity: 1
