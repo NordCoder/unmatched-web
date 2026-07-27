@@ -2,7 +2,13 @@ schema_version: 1
 id: george-washington
 display_name: George Washington
 set_ids: [stars-and-stripes]
-status: verified
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001, D-REQ-003, D-REQ-008]
 movement: 2
 topology:
   type: hero_with_sidekicks
@@ -17,10 +23,8 @@ topology:
     starting_health: 1
     starts_on_board: true
     summonable: true
-    runtime_identity: Each Culper Spy token is a distinct one-health fighter instance and may be returned after defeat when a source allows it.
-setup:
-  hooks: []
-  state_initialization: []
+    runtime_identity: Each Culper Spy is a distinct one-health fighter instance.
+setup: {hooks: [], state_initialization: []}
 ability:
   id: espionage
   controller: owner
@@ -29,36 +33,78 @@ ability:
     trigger: attack_declared_pre_defense
     optional: true
     condition: {resource: ruse-tokens, ready_gte: 1}
-    operations: [{op: TRIGGER_COMPOSITE, kind: source_defined_ruse_attachment_and_veto}]
+    requires: [D-REQ-008]
+    stages:
+    - id: attach-ready-ruse
+      choices:
+      - {id: choose-ready-ruse, owner: controller, visibility: public, optional: false, domain: ready_ruse_tokens, bind: ruse}
+      operations: [{op: CHANGE_STATE, resource: ruse-tokens, selector: bound.ruse, transition: attach_to_current_attack}]
+    - id: defender-veto
+      choices:
+      - id: ruse-veto
+        owner: defender
+        visibility: private
+        optional: true
+        domain: random_discard_one_card_if_hand_nonempty
+        bind: veto_payment
+      operations:
+      - {op: DISCARD, from: defender_hand, selector: random, count: 1, condition: {bound.veto_payment: accepted}}
+      - {op: CHANGE_STATE, resource: ruse-tokens, selector: bound.ruse, transition: remove_attachment_and_mark_used, condition: {bound.veto_payment: accepted}}
+    - id: retain-or-use-ruse
+      operations:
+      - {op: CHANGE_STATE, resource: ruse-tokens, selector: bound.ruse, transition: mark_attached_for_current_attack_if_not_vetoed}
 resources:
 - id: ruse-tokens
   kind: token_pool
   visibility: public
   initial: 4
   runtime_state:
+    requires: [D-REQ-008]
     per_token_states: [ready, attached_to_current_attack, used]
     initial_state: ready
-    use_rule: ready_to_attached_before_defense_choice
-    veto_rule: defender_random_discard_removes_attachment_before_defense_choice
-    post_attack_rule: used
-    regain_rule: used_to_ready
+    transitions:
+      attach_to_current_attack: ready_to_attached
+      remove_attachment_and_mark_used: attached_to_used
+      mark_used_after_attack: attached_to_used
+      regain_one: used_to_ready
 persistent_state: []
 deck:
   manifest: ../../cards/phase-4b/george-washington.yaml
   construction: fixed
 rulings:
 - id: ruse-pre-defense-window
-  summary: A ready ruse may be committed before the defender chooses whether to defend; the defender may discard a random card to remove the ruse before choosing a defense card.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  summary: A ready ruse may be committed before defense selection; the defender may randomly discard one card to remove it before choosing a defense card.
+  source_ref: stars-rules
 - id: ruse-ready-used-lifecycle
-  summary: Ruse tokens begin ready; using a token makes it unavailable until a source regains it. Card effects marked as ruse effects resolve only if the ruse remains associated with that attack after the defender's removal opportunity.
-  source: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  summary: Ruse tokens begin ready and become used after commitment unless regained by a source.
+  source_ref: stars-rules
 sources:
-- {authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27'}
-- {authority: official_set, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27'}
-- {authority: official_component, url: https://restorationgames.com/gameplay-of-unmatched-stars-and-stripes/, checked_at: '2026-07-27', note: Confirms pre-defense ruse commitment and bluffing semantics.}
-- {authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', note: Fighter ability and current visual card corpus.}
+- id: stars-rules
+  authority: official_set_rules
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, espionage, ruse_pre_defense_window, ruse_lifecycle]
+  durability: durable
+- id: stars-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: george-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/george-washington
+  checked_at: '2026-07-27'
+  supports: [fighter_cross_check, card_visual_corpus]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
 normalization_notes:
-- Culper Spies are summonable because Recruit to the Ring can return defeated Spies.
-- Ruse tokens require per-token ready/used state plus a combat-scoped attachment marker; a scalar token count alone is insufficient for reconnect-safe execution.
-- Ruse attachment/veto remains an explicit pre-defense composite pending shared combat-marker semantics.
+- Ruses are concrete per-token state plus a combat-scoped attachment under D-REQ-008; no opaque ruse handler remains.
+- Culper Spies retain distinct fighter-instance identity for return/summon effects.
+- Deck look-then-choose flows use D-REQ-001; free attack effects use D-REQ-003.
