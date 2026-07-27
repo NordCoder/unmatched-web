@@ -1,0 +1,76 @@
+schema_version: 1
+id: leonardo
+display_name: Leonardo
+set_ids: [tmnt-adventures]
+status: partial
+verification:
+  evidence: verified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: leonardo, display_name: Leonardo, role: hero, count: 1, attack_type: melee, starting_health: 16, starts_on_board: true, summonable: false}
+  - {id: splinter, display_name: Splinter, role: sidekick, count: 1, attack_type: melee, starting_health: 9, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: team-tactics
+  controller: owner
+  effects:
+  - id: team-tactics-move
+    trigger: start_turn
+    choices:
+    - {id: choose-team-tactics-fighter, owner: controller, visibility: public, optional: false, domain: any_fighter, bind: fighter}
+    operations: [{op: MOVE, target: bound.fighter, max_distance: 1}]
+resources: []
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/leonardo.yaml
+  construction: fixed
+interpretations:
+- id: leonardo-for-sensei-order
+  status: project_normalization
+  confidence: medium
+  behavior: The effect controller chooses the sequential order of the two optional combat-fighter moves.
+  source_refs: [tmnt-set-rules, leonardo-arena]
+  replacement_condition: Replace if an authoritative ruling specifies a different ordering authority.
+rulings: []
+sources:
+- id: tmnt-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, ability, deck_allocation, for_sensei_text]
+  durability: durable
+- id: tmnt-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: tmnt-physical-review
+  authority: physical_component_transcription
+  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
+  checked_at: '2026-07-27'
+  supports: [component_cross_check]
+  durability: transient
+- id: leonardo-arena
+  authority: reference
+  url: https://www.unmatchedarena.com/heroes/leonardo
+  checked_at: '2026-07-27'
+  supports: [deck_transcription]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Only competitive Leonardo/Splinter behavior is modeled; Adventures enemy, threat, initiative and scenario behavior is excluded.
+- Pair-level partial status reflects staged/repeated fighter repositioning in the deck plus the explicit For Sensei project normalization.

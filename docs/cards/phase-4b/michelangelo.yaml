@@ -1,0 +1,143 @@
+schema_version: 1
+fighter_id: michelangelo
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-013, D-REQ-014]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- id: hi-yaaaaah
+  name: Hi-Yaaaaaah!!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [michelangelo]
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - id: hi-damage
+    trigger: after_combat
+    choices: [{id: target, owner: controller, visibility: public, optional: false, domain: adjacent_opposing_fighters, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 1}]
+  - {id: hi-action, trigger: after_combat, optional: true, costs: [{op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: controller_chosen_card, position: bottom}], operations: [{op: GAIN_ACTION, count: 1}]}
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [michelangelo]
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - id: turtle-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- id: boisterous-beatdown
+  name: Boisterous Beatdown
+  quantity: 3
+  inclusion: fixed
+  usable_by: [michelangelo]
+  type: attack
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - id: beatdown-actions
+    trigger: after_combat
+    branches:
+    - {condition: {combat_result: won}, operations: [{op: GAIN_ACTION, count: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: GAIN_ACTION, count: 1}]}
+- {id: hard-hitting-investigation, name: Hard-Hitting Investigation, quantity: 3, inclusion: fixed, usable_by: [april-oneil], type: attack, printed_value: 0, boost: 3, tags: [], effects: [{id: investigation, trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: GAIN_ACTION, count: 1}]}]}
+- id: lets-go
+  name: Let's Go
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: lets-go
+    trigger: after_combat
+    choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: friendly_fighters, bind: target}]
+    operations: [{op: MOVE, target: bound.target, max_distance: 3}]
+- id: cowabunga
+  name: Cowabunga!!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [michelangelo]
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: cowabunga-value
+    trigger: during_combat
+    requires: [D-REQ-014]
+    operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_play_card_events_by_controller_this_turn}]
+- {id: guaranteed-delivery, name: Guaranteed Delivery, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: delivery-cancel, trigger: immediately, optional: true, costs: [{op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: controller_chosen_card, position: bottom}], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {id: delivery-draw, trigger: after_combat, condition: {controller_hand_empty: true}, operations: [{op: DRAW, count: 2}]}]}
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [michelangelo], type: defense, printed_value: 5, boost: 2, tags: [], effects: []}
+- {id: back-for-seconds, name: Back for Seconds, quantity: 2, inclusion: fixed, usable_by: any, type: defense, printed_value: 2, boost: 1, tags: [], effects: [{id: back-for-seconds, trigger: after_combat, operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2}, {op: SHUFFLE, zone: deck}]}]}
+- {id: michelangelo-is-a-party-dude, name: Michelangelo Is a Party Dude!!, quantity: 2, inclusion: fixed, usable_by: [michelangelo], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: party-dude, trigger: scheme, operations: [{op: RECOVER, target: each_friendly_fighter, amount: 1}]}]}
+- {id: nunchaku, name: Nunchaku, quantity: 2, inclusion: fixed, usable_by: [michelangelo], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: nunchaku, trigger: scheme, operations: [{op: CHANGE_STATE, key: michelangelo_attack_bonus_this_turn, delta: 1}, {op: GAIN_ACTION, count: 1}]}]}
+- id: shell-insertion
+  name: Shell Insertion
+  quantity: 2
+  inclusion: fixed
+  usable_by: [april-oneil]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - id: shell-insertion
+    trigger: scheme
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-two
+      choices:
+      - id: effects
+        owner: controller
+        visibility: public
+        optional: false
+        domain: {choose_distinct: {from: [each_opponent_discards, move_friendly, bottom_card_for_action, recycle_random], count: 2}}
+        bind: selected_effects
+    - id: resolve-selected-in-printed-order
+      repeat_for_each: [each_opponent_discards, move_friendly, bottom_card_for_action, recycle_random]
+      condition: {current_repeat_item_in: bound.selected_effects}
+      branches:
+      - condition: {current_repeat_item: each_opponent_discards}
+        operations: [{op: DISCARD, from: each_opponent_hand, selector: opponent_chosen, count: 1, controller: each_opponent}]
+      - condition: {current_repeat_item: move_friendly}
+        choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: friendly_fighters, bind: fighter}]
+        operations: [{op: MOVE, target: bound.fighter, max_distance: 2}]
+      - condition: {current_repeat_item: bottom_card_for_action}
+        choices: [{id: hand-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+        costs: [{op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: bound.card, position: bottom}]
+        operations: [{op: GAIN_ACTION, count: 1}]
+        dependency: gain_action_only_if_bottom_card_cost_paid
+      - condition: {current_repeat_item: recycle_random}
+        operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: random, count: 2}, {op: SHUFFLE, zone: deck}]
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: tmnt-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [fighter_hand_policy, deck_allocation], durability: durable}
+- {id: tmnt-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: michelangelo-club, authority: reference, url: https://www.the-unmatched.club/heroes/michelangelo, checked_at: '2026-07-27', supports: [complete_visual_deck_transcription]}
+normalization_notes:
+- All 12 definitions reconcile to 30 cards.
+- Cowabunga reads canonical PLAY events, not discard/move/reveal events, under D-REQ-014.
+- Shell Insertion chooses two distinct effects, resolves selected effects in printed order, and treats bottoming a hand card as the prerequisite cost for gaining an action.
+- Starting/max hand-size dependency remains D-REQ-013 at the fighter/pair level.

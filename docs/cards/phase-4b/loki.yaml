@@ -1,0 +1,225 @@
+schema_version: 1
+fighter_id: loki
+status: partial
+verification: {evidence: qualified, semantics: qualified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-004, D-REQ-017]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- id: trick-baldrs-downfall
+  name: "Trick: Baldr's Downfall"
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: null
+  tags: [trick]
+  effects:
+  - id: baldr-result
+    trigger: after_combat
+    branches:
+    - {condition: {combat_card_controller: loki}, operations: [{op: DRAW, count: 1}]}
+    - {condition: {combat_card_controller_not: loki}, operations: [{op: DEAL_EFFECT_DAMAGE, target: combat_card_controller_hero, amount: 2}]}
+- id: looking-for-trouble
+  name: Looking for Trouble
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: attack
+  printed_value: 4
+  boost: 3
+  tags: []
+  effects:
+  - id: looking-for-trouble-replacement
+    trigger: immediately
+    condition: {opponent_played_combat_card: true}
+    requires: [D-REQ-001]
+    stages:
+    - id: return-current-defense
+      operations:
+      - {op: MOVE_CARD, from_zone: combat_opponent.committed_defense, to_zone: combat_opponent.hand, selector: current_defense_card}
+    - id: inspect-resulting-hand
+      operations:
+      - {op: LOOK_AT, source: combat_opponent.hand, selector: all, viewer: controller}
+    - id: choose-replacement
+      choices:
+      - id: replacement-card
+        owner: controller
+        visibility: private
+        optional: false
+        domain: {zone: combat_opponent.hand, filter: legal_defense_or_versatile_for_current_defender}
+        bind: card
+    - id: commit-replacement
+      operations:
+      - op: REPLACE_COMBAT_CARD
+        side: defender
+        card: bound.card
+        controller: combat_opponent
+        rule:
+          replacement_enters_current_combat: true
+          restart_attack_action: false
+          timing_entry: current_immediately_window
+- id: shapeshifter
+  name: Shapeshifter
+  quantity: 4
+  inclusion: fixed
+  usable_by: [loki]
+  type: attack
+  printed_value: 0
+  boost: 2
+  tags: []
+  effects:
+  - id: shapeshifter-choice
+    trigger: during_combat
+    choices: [{id: mode, owner: controller, visibility: public, optional: false, domain: [add_opponent_hand_size_to_value, gain_action], bind: mode}]
+    branches:
+    - {condition: {bound.mode: add_opponent_hand_size_to_value}, operations: [{op: ADD_VALUE, target: this_card, amount_rule: opponent_hand_size}]}
+    - {condition: {bound.mode: gain_action}, operations: [{op: GAIN_ACTION, count: 1}]}
+- {id: ragnarok, name: Ragnarök, quantity: 2, inclusion: fixed, usable_by: [loki], type: attack, printed_value: 0, boost: 3, tags: [], effects: [{id: ragnarok-value, trigger: during_combat, cancellation: protected, operations: [{op: ADD_VALUE, target: this_card, amount_rule: three_per_loki_owned_trick_in_opponents_hands}]}]}
+- id: malicious-flyting
+  name: Malicious Flyting
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - id: flyting-draw
+    trigger: after_combat
+    branches:
+    - {condition: {opponent_combat_card_tag: trick}, operations: [{op: DRAW, count: 2}]}
+    - {condition: {opponent_combat_card_tag_not: trick}, operations: [{op: DRAW, count: 1}]}
+- {id: underhanded, name: Underhanded, quantity: 3, inclusion: fixed, usable_by: [loki], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: underhanded-value, trigger: during_combat, condition: {opponent_hand_size_gt_controller_hand_size: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
+- id: trick-freyjas-rescue
+  name: "Trick: Freyja's Rescue"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: null
+  tags: [trick]
+  effects:
+  - id: freyja-value-swap
+    trigger: during_combat
+    condition: {combat_card_controller: loki}
+    requires: [D-REQ-001]
+    stages:
+    - id: capture-values
+      bindings:
+      - {id: own_value, from: own_combat_card.current_combat_value}
+      - {id: opposing_value, from: opposing_combat_card.current_combat_value}
+    - id: apply-values
+      operations:
+      - {op: SET_VALUE, target: own_combat_card, value_from: bound.opposing_value}
+      - {op: SET_VALUE, target: opposing_combat_card, value_from: bound.own_value}
+  - {id: freyja-opponent-recovery, trigger: after_combat, condition: {combat_card_controller_not: loki}, operations: [{op: RECOVER, target: loki, amount: 3}]}
+- id: god-of-mischief
+  name: God of Mischief
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - id: god-of-mischief
+    trigger: immediately
+    branches:
+    - {condition: {opponent_combat_card_tag: trick}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}
+    - {condition: {opponent_combat_card_tag_not: trick}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+- id: laevateinn
+  name: Laevateinn
+  quantity: 3
+  inclusion: fixed
+  usable_by: [loki]
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - id: laevateinn
+    trigger: during_combat
+    choices: [{id: opponent-card, owner: controller, visibility: private, optional: false, domain: opponent_hand_cards, bind: card}]
+    operations:
+    - {op: REVEAL, source: opponent_hand, selector: bound.card}
+    - {op: ADD_VALUE, target: this_card, amount_from: bound.card.boost_or_0}
+    - {op: MOVE_CARD, from_zone: opponent_hand, to_zone: hand, selector: bound.card, condition: {bound.card.tag: trick}}
+- id: trick-sindris-bet
+  name: "Trick: Sindri's Bet"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: defense
+  printed_value: 3
+  boost: null
+  tags: [trick]
+  effects:
+  - id: sindri-loki-controller
+    trigger: during_combat
+    condition: {combat_card_controller: loki}
+    choices: [{id: opponent-discard, owner: combat_opponent, visibility: private, optional: true, domain: discard_one_card_from_own_hand, bind: discarded}]
+    branches:
+    - {condition: {bound.discarded: true}, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 1, controller: combat_opponent}]}
+    - {condition: {bound.discarded: false}, operations: [{op: ADD_VALUE, target: opposing_combat_card, amount: -3}]}
+  - id: sindri-opponent-controller
+    trigger: after_combat
+    condition: {combat_card_controller_not: loki, loki_discard_nonempty: true}
+    choices: [{id: recover-card, owner: loki_owner, visibility: public, optional: false, domain: top_card_of_loki_discard, bind: card}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: bound.card, controller: loki_owner}]
+- id: trick-svadilfaris-lure
+  name: "Trick: Svadilfari's Lure"
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: scheme
+  printed_value: null
+  boost: null
+  tags: [trick]
+  effects:
+  - id: svadilfari-loki-controller
+    trigger: scheme
+    condition: {card_controller: loki}
+    choices: [{id: opposing-fighter, owner: controller, visibility: public, optional: false, domain: opposing_fighters, bind: target}]
+    operations: [{op: PLACE, target: bound.target, destination_rule: space_adjacent_to_loki}]
+  - id: svadilfari-opponent-controller
+    trigger: scheme
+    condition: {card_controller_not: loki}
+    requires: [D-REQ-017]
+    stages:
+    - id: opaque-selection
+      choices:
+      - id: opaque-hand-card
+        owner: loki_owner
+        visibility: opaque_card_back_only
+        optional: false
+        domain: card_instances_in_current_controller_hand
+        bind: card
+    - id: disclose-and-discard
+      operations:
+      - {op: REVEAL, source: controller_hand, selector: bound.card}
+      - {op: DISCARD, from: controller_hand, selector: bound.card}
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: QUALIFIED
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: loki-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: loki-physical-review, authority: physical_component_transcription, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: loki-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/loki, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+- {id: loki-rules, authority: reference, url: https://www.the-unmatched.club/rules/loki, checked_at: '2026-07-27', supports: [trick_rulings]}
+normalization_notes:
+- TRICK cards have no BOOST value.
+- Looking for Trouble preserves the printed played-card gate and return, inspect, select, same-combat replacement order; the returned defense is part of the replacement domain.
+- Svadilfari selection is explicitly opaque until the selected instance is revealed, under D-REQ-017.
+- Freyja's Rescue swaps captured current combat values through stages; no numeric SWAP/source_defined handler remains.
+- Fighter-level multiplayer recipient behavior remains a medium-confidence project normalization, not an official ruling.

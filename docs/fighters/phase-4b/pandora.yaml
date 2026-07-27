@@ -1,0 +1,97 @@
+schema_version: 1
+id: pandora
+display_name: Pandora
+set_ids: [battle-of-legends-vol-3]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-002]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: pandora, display_name: Pandora, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+  - {id: kakodaemon, display_name: Kakodaemon, role: sidekick, count: 2, attack_type: melee, starting_health: 1, starts_on_board: false, summonable: true, runtime_identity: each_instance_distinct}
+setup:
+  hooks: []
+  state_initialization:
+  - {key: pandora_attack_bonus_this_turn, value: 0}
+  - {key: pandora_miseries_revealed_this_turn, value: 0}
+ability:
+  id: pandoras-box
+  controller: owner
+  effects:
+  - id: open-pandoras-box
+    trigger: start_turn
+    requires: [D-REQ-002]
+    procedure:
+      kind: resumable_repeat_stop
+      source_zone: pandora-box
+      reveal_destination: revealed-miseries
+      iteration:
+        - {op: REVEAL, source: pandora-box, selector: top, count: 1, bind: revealed_misery}
+        - {op: CHANGE_STATE, key: pandora_miseries_revealed_this_turn, delta: 1}
+        - {op: RESOLVE_EXTERNAL_DEFINITION, definition: bound.revealed_misery}
+      controller_may_stop_between_iterations: true
+      forced_stop: {total_revealed_feathers_gte: 3}
+      after_stop: [{op: DEAL_EFFECT_DAMAGE, target: pandora, amount_from_state: pandora_miseries_revealed_this_turn}]
+  - id: reset-pandoras-box
+    trigger: end_turn
+    operations:
+    - {op: MOVE_CARD, from_zone: revealed-miseries, to_zone: pandora-box, selector: all}
+    - {op: SHUFFLE, zone: pandora-box}
+  - id: pandora-turn-attack-bonus
+    trigger: static
+    continuous: true
+    condition: {attacker: pandora, state: pandora_attack_bonus_this_turn, gt: 0}
+    operations: [{op: ADD_VALUE, target: pandora_attack, amount_from_state: pandora_attack_bonus_this_turn}]
+resources:
+- {id: pandora-box, kind: card_zone, visibility: private, initial: seven_misery_definitions_shuffled}
+- {id: revealed-miseries, kind: card_zone, visibility: public, initial: empty}
+- {id: kakodaemons, kind: token_pool, visibility: public, initial: 2}
+persistent_state:
+- {key: pandora_attack_bonus_this_turn, type: integer, reset: turn_end}
+- {key: pandora_miseries_revealed_this_turn, type: integer, reset: turn_start}
+deck:
+  manifest: ../../cards/phase-4b/pandora.yaml
+  construction: fixed
+rulings: []
+sources:
+- id: pandora-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: pandora-physical-review
+  authority: physical_component_transcription
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-27'
+  supports: [fighter_and_misery_cross_check]
+  durability: transient
+- id: pandora-arena
+  authority: reference
+  url: https://www.unmatchedarena.com/heroes/pandora
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, deck_transcription]
+- id: pandora-geektopia
+  authority: reference
+  url: https://www.geektopiagames.com/unmatched/pandora/
+  checked_at: '2026-07-27'
+  supports: [deck_and_misery_cross_check]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Seven Miseries are external gameplay definitions and do not inflate the fixed 30-card action deck.
+- The reveal/resolve/continue procedure is fully described under D-REQ-002 rather than hidden behind source_defined_controlled_reveal_loop.
+- Revealed-Misery count is persisted because later cards inspect it.

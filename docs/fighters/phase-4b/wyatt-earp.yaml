@@ -1,0 +1,97 @@
+schema_version: 1
+id: wyatt-earp
+display_name: Wyatt Earp
+set_ids: [stars-and-stripes]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001, D-REQ-003]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: wyatt-earp, display_name: Wyatt Earp, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: doc-holliday, display_name: Doc Holliday, role: sidekick, count: 1, attack_type: ranged, starting_health: 8, starts_on_board: true, summonable: false}
+setup:
+  hooks: []
+  state_initialization:
+  - {key: showdown_draw_used, value: false}
+  - {key: showdown_attack_action_used, value: false}
+  - {key: showdown_move_used, value: false}
+ability:
+  id: showdown
+  controller: owner
+  effects:
+  - id: showdown-choice
+    trigger: after_attack
+    condition: {active_player: owner, attacking_fighter_owner: owner, combat_result: won, showdown_unused_effect_exists: true}
+    stages:
+    - id: select-showdown-effect
+      choices:
+      - id: showdown-mode
+        owner: controller
+        visibility: public
+        optional: false
+        domain: unused_showdown_effects
+        bind: mode
+    - id: resolve-showdown-effect
+      branches:
+      - condition: {bound.mode: draw, state: showdown_draw_used, equals: false}
+        operations: [{op: DRAW, count: 1}, {op: SET_STATE, key: showdown_draw_used, value: true}]
+      - condition: {bound.mode: attack_action, state: showdown_attack_action_used, equals: false}
+        requires: [D-REQ-003]
+        operations:
+        - op: GAIN_ACTION
+          count: 1
+          credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
+        - {op: SET_STATE, key: showdown_attack_action_used, value: true}
+      - condition: {bound.mode: move, state: showdown_move_used, equals: false}
+        operations: [{op: MOVE, target: attacking_fighter, max_distance: 1}, {op: SET_STATE, key: showdown_move_used, value: true}]
+resources: []
+persistent_state:
+- {key: showdown_draw_used, type: boolean, reset: turn_start}
+- {key: showdown_attack_action_used, type: boolean, reset: turn_start}
+- {key: showdown_move_used, type: boolean, reset: turn_start}
+deck:
+  manifest: ../../cards/phase-4b/wyatt-earp.yaml
+  construction: fixed
+rulings:
+- id: free-attack-action
+  summary: A free action to attack must be used immediately as the next action or it is lost.
+  source_ref: stars-rules
+- id: showdown-effect-once-per-turn
+  summary: During the owner's turn, each won attack by Wyatt Earp or Doc Holliday may select one unused Showdown effect; each effect is once per turn.
+  source_ref: stars-rules
+sources:
+- id: stars-rules
+  authority: official_set_rules
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, showdown, free_attack_action]
+  durability: durable
+- id: stars-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: wyatt-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/wyatt-earp
+  checked_at: '2026-07-27'
+  supports: [card_visual_corpus]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Showdown itself is staged and deterministic; its attack branch depends on the generic restricted immediate action-credit contract D-REQ-003.
+- Deck interactions also require reusable staged/alternating choices under D-REQ-001.

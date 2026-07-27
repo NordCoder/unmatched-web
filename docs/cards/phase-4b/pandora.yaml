@@ -1,0 +1,122 @@
+schema_version: 1
+fighter_id: pandora
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-002]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}, {id: pandora-box, owner: self}, {id: revealed-miseries, owner: self}]
+cards:
+- {id: heras-curiosity, name: "Hera's Curiosity", quantity: 3, inclusion: fixed, usable_by: [pandora], type: attack, printed_value: 3, boost: 4, tags: [], effects: [{id: curiosity-value, trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_revealed_miseries_this_turn}]}, {id: curiosity-look, trigger: after_combat, operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]}]}
+- {id: aphrodites-beauty, name: "Aphrodite's Beauty", quantity: 3, inclusion: fixed, usable_by: any, type: attack, printed_value: 0, boost: 3, tags: [], effects: [{id: beauty-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {id: beauty-recover, trigger: after_combat, operations: [{op: RECOVER, target: pandora, amount_rule: count_revealed_miseries_this_turn}]}]}
+- id: hindsight
+  name: Hindsight
+  quantity: 3
+  inclusion: fixed
+  usable_by: [pandora]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: hindsight-return
+    trigger: after_combat
+    condition: {combat_result: won}
+    choices: [{id: discard-card, owner: controller, visibility: public, optional: false, domain: own_discard_cards, bind: card}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: bound.card, position: top}]
+- {id: celestial-raiments, name: Celestial Raiments, quantity: 2, inclusion: fixed, usable_by: [pandora], type: defense, printed_value: 0, boost: 3, tags: [], effects: [{id: raiments, trigger: during_combat, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+- id: offering-to-the-gods
+  name: Offering to the Gods
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: defense
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - id: offering-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+  - {id: offering-damage, trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]}
+- id: guided-by-the-fates
+  name: Guided by the Fates
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - id: guided-value
+    trigger: during_combat
+    stages:
+    - {id: discard-top, operations: [{op: DISCARD, from: deck, selector: top, count: 1, bind: discarded_card}]}
+    - {id: add-boost, operations: [{op: ADD_VALUE, target: this_card, amount_from: bound.discarded_card.boost_or_0}]}
+  - {id: guided-recover, trigger: after_combat, condition: {combat_result: won}, operations: [{op: RECOVER, target: pandora, amount: 2}]}
+- {id: divine-intervention, name: Divine Intervention, quantity: 2, inclusion: fixed, usable_by: [pandora], type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: intervention, trigger: after_combat, operations: [{op: MOVE, target: pandora, max_distance: 5}]}]}
+- id: zeuss-mischief
+  name: "Zeus's Mischief"
+  quantity: 2
+  inclusion: fixed
+  usable_by: [pandora]
+  type: scheme
+  printed_value: null
+  boost: 1
+  tags: []
+  effects:
+  - id: zeuss-mischief
+    trigger: scheme
+    stages:
+    - {id: draw, operations: [{op: DRAW, count_rule: count_revealed_miseries_this_turn}]}
+    - id: choose-target
+      choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters, bind: target}]
+    - id: finish
+      operations: [{op: MOVE, target: bound.target, max_distance: 1}, {op: GAIN_ACTION, count: 1}]
+- id: forged-by-hephaestus
+  name: Forged by Hephaestus
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: scheme
+  printed_value: null
+  boost: 1
+  tags: []
+  effects:
+  - id: forged
+    trigger: scheme
+    choices:
+    - {id: fighter, owner: controller, visibility: public, optional: false, domain: controller_owned_fighters, bind: fighter}
+    - {id: destination, owner: controller, visibility: public, optional: false, domain: any_open_space, bind: destination}
+    operations: [{op: PLACE, target: bound.fighter, destination_rule: bound.destination}, {op: GAIN_ACTION, count: 1}]
+- {id: spite, name: Spite, quantity: 2, inclusion: fixed, usable_by: [kakodaemon], type: attack, printed_value: 3, boost: 2, tags: [], effects: [{id: spite-damage, trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
+- {id: malice, name: Malice, quantity: 2, inclusion: fixed, usable_by: [kakodaemon], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: malice-discard, trigger: after_combat, operations: [{op: DISCARD, from: opponent_hand, selector: opponent_chosen, count: 1, controller: opponent}]}]}
+- {id: feint, name: Feint, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: feint, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+external_definitions:
+- {id: pain, kind: pandora_misery, feathers: 1, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_pandora, amount: 1}]}
+- {id: toil, kind: pandora_misery, feathers: 1, operations: [{op: CHANGE_STATE, key: pandora_attack_bonus_this_turn, delta: 1}]}
+- {id: confusion, kind: pandora_misery, feathers: 0, operations: [{op: MOVE, target: pandora, max_distance: 1}]}
+- {id: woe, kind: pandora_misery, feathers: 0, operations: [{op: SUMMON, pool: kakodaemons, destination_rule: space_in_pandora_zone}]}
+- {id: hope, kind: pandora_misery, feathers: 0, operations: [{op: LOOK_AT, source: pandora_box_top, selector: 1, viewer: controller}]}
+- {id: misfortune, kind: pandora_misery, feathers: 2, operations: []}
+- {id: greed, kind: pandora_misery, feathers: 1, operations: [{op: DRAW, count: 1}]}
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: pandora-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: pandora-physical-review, authority: physical_component_transcription, url: https://www.youtube.com/watch?v=6fP2amMnphI, checked_at: '2026-07-27', supports: [deck_and_misery_cross_check], durability: transient}
+- {id: pandora-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/pandora, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+- {id: pandora-geektopia, authority: reference, url: https://www.geektopiagames.com/unmatched/pandora/, checked_at: '2026-07-27', supports: [deck_and_misery_cross_check]}
+normalization_notes:
+- Seven Miseries are external definitions and do not count toward the 30-card deck.
+- Zeus's Mischief is staged; the old followup field is removed.
+- Hindsight, Guided by the Fates, Forged by Hephaestus, Spite and Malice retain corrected current semantics.
+- Pair-level integration remains partial because Pandora's Box requires D-REQ-002.

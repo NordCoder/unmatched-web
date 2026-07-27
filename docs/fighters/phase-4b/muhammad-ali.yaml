@@ -1,0 +1,96 @@
+schema_version: 1
+id: muhammad-ali
+display_name: Muhammad Ali
+set_ids: [bruce-lee-vs-muhammad-ali]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-005, D-REQ-006]
+movement: 3
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: muhammad-ali, display_name: Muhammad Ali, role: hero, count: 1, attack_type: melee, starting_health: 16, starts_on_board: true, summonable: false}
+setup:
+  hooks: []
+  state_initialization:
+  - {key: ali_stance, value: float}
+  - {key: ali_won_combat_this_turn, value: false}
+  - {key: ali_combat_damage_dealt_this_turn, value: 0}
+ability:
+  id: float-like-a-butterfly-sting-like-a-bee
+  controller: owner
+  effects:
+  - id: initialize-float
+    trigger: setup
+    operations: [{op: SET_STATE, key: ali_stance, value: float}]
+  - id: record-combat-win
+    trigger: after_combat
+    condition: {controller_won_combat: true}
+    operations: [{op: SET_STATE, key: ali_won_combat_this_turn, value: true}]
+  - id: record-combat-damage
+    trigger: combat_damage_applied
+    condition: {damage_type: combat, source_fighter: muhammad-ali, applied_damage_gt: 0}
+    operations: [{op: CHANGE_STATE, key: ali_combat_damage_dealt_this_turn, delta_rule: applied_damage_amount}]
+  - id: change-stance-after-win
+    trigger: after_attack
+    condition: {combat_result: won}
+    operations: [{op: CHANGE_STATE, key: ali_stance, transition: {kind: toggle_enum, values: [float, sting]}}]
+  - id: sting-attack-bonus
+    trigger: static
+    continuous: true
+    condition: {state: ali_stance, equals: sting, attacker: muhammad-ali}
+    operations: [{op: ADD_VALUE, target: muhammad_ali_attack, amount: 2}]
+  - id: float-reach
+    trigger: static
+    continuous: true
+    condition: {state: ali_stance, equals: float}
+    requires: [D-REQ-005]
+    modifier:
+      kind: attack_legality
+      fighter: muhammad-ali
+      reach_rule: may_attack_opposing_fighter_within_two_spaces
+resources:
+- {id: ali-stance-token, kind: token_pool, visibility: public, initial: float}
+persistent_state:
+- {key: ali_stance, type: enum, values: [float, sting], reset: never}
+- {key: ali_won_combat_this_turn, type: boolean, reset: turn_start}
+- {key: ali_combat_damage_dealt_this_turn, type: integer, reset: turn_start}
+deck:
+  manifest: ../../cards/phase-4b/muhammad-ali.yaml
+  construction: fixed
+rulings: []
+sources:
+- id: ali-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/Unmatched-LvsA_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, stance_rules, float_attack_reach]
+  durability: durable
+- id: ali-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-bruce-lee-vs-muhammad-ali/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: ali-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/muhammad-ali
+  checked_at: '2026-07-27'
+  supports: [fighter_cross_check, card_visual_cross_check]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Float reach is explicit declarative attack-legality data under D-REQ-005; no opaque source_defined handler remains.
+- Historical combat-win and combat-damage state is persisted because later cards inspect earlier combats in the same turn.
+- Combat damage is accumulated when applied, before AFTER COMBAT reads it.

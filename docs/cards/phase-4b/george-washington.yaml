@@ -1,0 +1,147 @@
+schema_version: 1
+fighter_id: george-washington
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-003, D-REQ-008]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- id: lead-astray
+  name: Lead Astray
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: attack
+  printed_value: 5
+  boost: 2
+  tags: []
+  effects:
+  - id: lead-move
+    trigger: after_combat
+    choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: combat_fighters, bind: target}]
+    operations: [{op: MOVE, target: bound.target, max_distance: 2}]
+- {id: agent-711, name: Agent 711, quantity: 2, inclusion: fixed, usable_by: [george-washington], type: attack, printed_value: 4, boost: 3, tags: [ruse_effect], effects: [{id: agent-damage, trigger: after_combat, condition: {ruse_attached_to_this_attack: true, combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 7}]}]}
+- {id: circumvent, name: Circumvent, quantity: 2, inclusion: fixed, usable_by: any, type: attack, printed_value: 3, boost: 2, tags: [ruse_effect], effects: [{id: circumvent-ruse, trigger: during_combat, condition: {ruse_attached_to_this_attack: true}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+- {id: sabotage, name: Sabotage, quantity: 2, inclusion: fixed, usable_by: any, type: attack, printed_value: 3, boost: 3, tags: [ruse_effect], effects: [{id: sabotage-ruse, trigger: after_combat, condition: {ruse_attached_to_this_attack: true, combat_result: won}, operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 2, controller: opponent}]}]}
+- id: allies-everywhere
+  name: Allies Everywhere
+  quantity: 3
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: attack
+  printed_value: 1
+  boost: 3
+  tags: [ruse_effect]
+  effects:
+  - id: allies-action
+    trigger: after_combat
+    requires: [D-REQ-003]
+    operations:
+    - op: GAIN_ACTION
+      count: 1
+      credit: {must_be_next: true, allowed_actions: [attack], expires_if_not_immediately_used: true}
+  - {id: allies-ruse-recover, trigger: after_combat, condition: {ruse_attached_to_this_attack: true}, operations: [{op: RECOVER, target: george-washington, amount: 3}]}
+- id: misinformation
+  name: Misinformation
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - {id: misinformation-ruse, trigger: after_combat, condition: {combat_result: won}, requires: [D-REQ-008], operations: [{op: CHANGE_STATE, resource: ruse-tokens, transition: regain_one}]}
+- {id: make-a-stand, name: Make a Stand, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: make-stand, trigger: during_combat, condition: {own_combat_fighter_started_turn_in_current_space: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+- {id: feint, name: Feint, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 3, tags: [], effects: [{id: feint, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+- id: recruit-to-the-ring
+  name: Recruit to the Ring
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - id: recruit
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-spy
+      choices: [{id: spy, owner: controller, visibility: public, optional: false, domain: defeated_culper_spy_instances, bind: spy}]
+    - id: choose-destination-if-won
+      condition: {combat_result: won}
+      choices: [{id: destination, owner: controller, visibility: public, optional: false, domain: any_open_space, bind: destination}]
+    - id: return-spy
+      branches:
+      - {condition: {combat_result: won}, operations: [{op: RETURN_FIGHTER, fighter: bound.spy, destination_rule: bound.destination, health: 1}]}
+      - {condition: {combat_result_not: won}, operations: [{op: RETURN_FIGHTER, fighter: bound.spy, destination_rule: space_adjacent_to_george_washington, health: 1}]}
+- {id: network-of-spies, name: Network of Spies, quantity: 2, inclusion: fixed, usable_by: [george-washington], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: network-value, trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_other_friendly_fighters_in_george_washington_zone}]}]}
+- id: undercover-agent
+  name: Undercover Agent
+  quantity: 2
+  inclusion: fixed
+  usable_by: [george-washington]
+  type: defense
+  printed_value: 1
+  boost: 2
+  tags: []
+  effects:
+  - id: undercover-swap-defender
+    trigger: during_combat
+    optional: true
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-spy
+      choices: [{id: spy, owner: controller, visibility: public, optional: false, domain: adjacent_culper_spy_instances, bind: spy}]
+    - id: swap-position
+      operations: [{op: SWAP, a: george-washington, b: bound.spy}]
+    - id: rebind-defender
+      operations: [{op: SET_STATE, key: current_combat.defender_fighter, value_from: bound.spy, scope: current_combat}]
+- id: sympathetic-stain
+  name: Sympathetic Stain
+  quantity: 2
+  inclusion: fixed
+  usable_by: [culper-spy]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - id: sympathetic-stain
+    trigger: scheme
+    requires: [D-REQ-001, D-REQ-008]
+    stages:
+    - id: choose-opponent
+      choices: [{id: opponent, owner: controller, visibility: public, optional: false, domain: opponents, bind: target_player}]
+    - id: inspect-hand
+      operations: [{op: LOOK_AT, source: bound.target_player.hand, selector: all, viewer: controller}]
+    - id: choose-card-if-adjacent
+      condition: {culper_spy_adjacent_to_bound_target_player_fighter: true}
+      choices: [{id: card, owner: controller, visibility: private, optional: false, domain: bound.target_player.hand_cards, bind: card}]
+    - id: resolve-adjacent-clause
+      condition: {culper_spy_adjacent_to_bound_target_player_fighter: true}
+      operations:
+      - {op: DISCARD, from: bound.target_player.hand, selector: bound.card}
+      - {op: CHANGE_STATE, resource: ruse-tokens, transition: regain_one}
+- {id: gather-information, name: Gather Information, quantity: 2, inclusion: fixed, usable_by: [george-washington], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: gather, trigger: scheme, operations: [{op: DRAW, count: 3}, {op: MOVE, target: controller_owned_fighters, max_distance: 3, overrides: [may_move_through_opposing_fighters]}]}]}
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: stars-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf, checked_at: '2026-07-27', supports: [ruse_rules, free_attack_rule], durability: durable}
+- {id: stars-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-stars-and-stripes/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: george-club, authority: reference, url: https://www.the-unmatched.club/heroes/george-washington, checked_at: '2026-07-27', supports: [visual_action_card_transcription]}
+normalization_notes:
+- All 13 definitions reconcile to 30 cards.
+- Ruse regain uses explicit token transition regain_one under D-REQ-008.
+- Gather Information targets only fighters controlled by the resolving player, not team-wide friendly fighters.
+- Sympathetic Stain is fully staged; no choices_after/followup remains.
+- Undercover Agent explicitly swaps positions and rebinds the combat defender under D-REQ-001; no opaque defender-swap instruction remains.
