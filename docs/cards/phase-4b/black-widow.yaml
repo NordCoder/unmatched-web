@@ -11,7 +11,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: [black-widow]
-    type: attack
+    type: versatile
     printed_value: 4
     boost: 2
     tags: []
@@ -28,6 +28,7 @@ cards:
             operations:
               - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: MOVE, scope: rest_of_turn}}
               - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: PLACE, scope: rest_of_turn}}
+              - {op: PREVENT_OPERATION, target_operation: {fighter: opposing_combat_fighter, op: SWAP, scope: rest_of_turn}}
   - id: widows-sting
     name: Widow's Sting
     quantity: 2
@@ -114,7 +115,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: any
-    type: versatile
+    type: defense
     printed_value: 3
     boost: 2
     tags: []
@@ -132,7 +133,7 @@ cards:
     quantity: 2
     inclusion: fixed
     usable_by: any
-    type: versatile
+    type: attack
     printed_value: 1
     boost: 1
     tags: []
@@ -163,7 +164,7 @@ cards:
     quantity: 3
     inclusion: fixed
     usable_by: any
-    type: defense
+    type: versatile
     printed_value: 2
     boost: 1
     tags: []
@@ -257,15 +258,13 @@ cards:
                 owner: {bound: chosen_opponent}
                 visibility: private
                 optional: false
-                domain: {kind: card_set, zone: own_hand, count_rule: up_to_2_limited_by_hand_size}
-                min: 0
-                max: 2
+                domain: {kind: card_set, zone: own_hand, count_rule: exactly_2_limited_by_hand_size}
                 distinct: true
                 order_matters: false
                 bind: discard_cards
             costs: []
             operations: []
-          - {id: discard, when: {bound: discard_cards, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_cards}}]}
+          - {id: discard, when: {bound: discard_cards, exists: true}, choices: [], costs: [], operations: [{op: DISCARD, controller: {bound: chosen_opponent}, from_zone: hand, selector: {bound: discard_cards}, skip_if_empty: true}]}
           - {id: acquire, when: {bound: chosen_opponent, exists: true}, choices: [], costs: [], operations: [{op: TRIGGER_COMPOSITE, kind: black_widow_mission_acquisition}]}
   - id: the-madripoor-sanction
     name: The Madripoor Sanction
