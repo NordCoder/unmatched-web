@@ -89,9 +89,9 @@ export const MatchEvent = { kind: "created" } as const;
 
     def test_language_identifiers_do_not_match_gameplay_literals(self) -> None:
         self.assertFalse(
-            validator.contains_identifier("from __future__ import annotations", "future")
+            validator.contains_identifier("from __lexeme__ import annotations", "lexeme")
         )
-        self.assertTrue(validator.contains_identifier('CARD = "future"', "future"))
+        self.assertTrue(validator.contains_identifier('CARD = "lexeme"', "lexeme"))
 
     def test_nested_effect_ids_do_not_expand_the_identity_boundary(self) -> None:
         self.write(
