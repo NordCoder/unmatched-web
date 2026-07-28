@@ -461,11 +461,25 @@ func startPostgresContainer(t *testing.T, ctx context.Context) (string, func()) 
 		}
 		t.Skip("Docker is unavailable and CORE_TEST_DATABASE_URL is not set")
 	}
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("allocate PostgreSQL test port: %v", err)
+	}
+	address := listener.Addr().String()
+	if err := listener.Close(); err != nil {
+		t.Fatalf("release PostgreSQL test port: %v", err)
+	}
+	_, port, err := net.SplitHostPort(address)
+	if err != nil {
+		t.Fatalf("parse PostgreSQL test address: %v", err)
+	}
+
 	name := "unmatched-core-test-" + strconv.FormatInt(time.Now().UnixNano(), 36)
 	command := exec.CommandContext(ctx, docker, "run", "--rm", "-d", "--name", name,
 		"-e", "POSTGRES_DB=unmatched", "-e", "POSTGRES_USER=unmatched",
-		"-e", "POSTGRES_PASSWORD=unmatched-test-only", "-p", "127.0.0.1::5432",
-		"postgres:17-alpine")
+		"-e", "POSTGRES_PASSWORD=unmatched-test-only",
+		"-p", "127.0.0.1:"+port+":5432", "postgres:17-alpine")
 	output, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("start PostgreSQL container: %v\n%s", err, output)
@@ -477,24 +491,8 @@ func startPostgresContainer(t *testing.T, ctx context.Context) (string, func()) 
 		_ = exec.CommandContext(cleanupContext, docker, "rm", "-f", containerID).Run()
 	}
 
-	var address string
-	deadline := time.Now().Add(60 * time.Second)
-	for time.Now().Before(deadline) {
-		portOutput, portErr := exec.CommandContext(ctx, docker, "port", containerID, "5432/tcp").Output()
-		if portErr == nil {
-			candidate := strings.TrimSpace(string(portOutput))
-			if _, _, splitErr := net.SplitHostPort(candidate); splitErr == nil {
-				address = candidate
-				break
-			}
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-	if address == "" {
-		stop()
-		t.Fatal("PostgreSQL container did not publish a port")
-	}
 	baseURL := "postgres://unmatched:unmatched-test-only@" + address + "/unmatched?sslmode=disable"
+	deadline := time.Now().Add(60 * time.Second)
 	for time.Now().Before(deadline) {
 		pool, openErr := persistence.OpenPostgres(ctx, persistence.PostgresConfig{
 			DatabaseURL: baseURL, MaxConns: 2, MinConns: 0, ConnectTimeout: time.Second,
@@ -505,8 +503,9 @@ func startPostgresContainer(t *testing.T, ctx context.Context) (string, func()) 
 		}
 		time.Sleep(250 * time.Millisecond)
 	}
+	logs, _ := exec.CommandContext(ctx, docker, "logs", containerID).CombinedOutput()
 	stop()
-	t.Fatal("PostgreSQL container did not become ready")
+	t.Fatalf("PostgreSQL container did not become ready:\n%s", logs)
 	return "", nil
 }
 
