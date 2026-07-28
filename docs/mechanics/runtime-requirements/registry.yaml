@@ -1,0 +1,49 @@
+schema_version: 1
+phase: phase-4c
+status: parallel_research
+base_sha: 106ae552ce597cde954c0a1b22374ef446974ce2
+source_owner_reports:
+  - docs/phase-4b/worker-a-report.md
+  - docs/phase-4b/worker-b-report.md
+  - docs/phase-4b/worker-c-report.md
+  - docs/phase-4b/worker-d-report.md
+coverage:
+  expected_owner_aliases: 52
+  dispositioned_owner_aliases: 0
+  unresolved_owner_aliases: 52
+  multiply_mapped_owner_aliases: 0
+worker_fragments:
+  resolution:
+    issue: 13
+    branch: phase-4c-worker-1-resolution
+    path: docs/mechanics/runtime-requirements/fragments/resolution.yaml
+    status: pending
+  fighter_presence:
+    issue: 14
+    branch: phase-4c-worker-2-presence
+    path: docs/mechanics/runtime-requirements/fragments/fighter-presence.yaml
+    status: pending
+  movement_combat:
+    issue: 15
+    branch: phase-4c-worker-3-movement-combat
+    path: docs/mechanics/runtime-requirements/fragments/movement-combat.yaml
+    status: pending
+  damage_modifiers:
+    issue: 16
+    branch: phase-4c-worker-4-damage-modifiers
+    path: docs/mechanics/runtime-requirements/fragments/damage-modifiers.yaml
+    status: pending
+  cards_actions:
+    issue: 17
+    branch: phase-4c-worker-5-cards-actions
+    path: docs/mechanics/runtime-requirements/fragments/cards-actions.yaml
+    status: pending
+canonical_requirements: []
+alias_dispositions: []
+validation:
+  yaml_parse: pending
+  alias_coverage: pending
+  alias_uniqueness: pending
+  affected_fighter_refs: pending
+  test_scenario_coverage: pending
+  independent_qa: pending
