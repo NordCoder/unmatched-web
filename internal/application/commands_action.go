@@ -8,11 +8,12 @@ import (
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/model"
+	"github.com/NordCoder/unmatched-web/internal/persistence"
 	coreruntime "github.com/NordCoder/unmatched-web/internal/runtime"
 )
 
-func (h *Host) prepareStartAction(ctx context.Context, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
-	state, playerID, err := h.loadAndAuthorize(ctx, principal, command, true)
+func (h *Host) prepareStartAction(ctx context.Context, lease persistence.CommandLease, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
+	state, playerID, err := h.loadAndAuthorize(ctx, lease, principal, command, true)
 	if err != nil {
 		return preparedCommand{}, err
 	}
@@ -74,8 +75,8 @@ func (h *Host) prepareStartAction(ctx context.Context, principal model.Principal
 	}, nil
 }
 
-func (h *Host) prepareSubmitChoice(ctx context.Context, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
-	state, playerID, err := h.loadAndAuthorize(ctx, principal, command, true)
+func (h *Host) prepareSubmitChoice(ctx context.Context, lease persistence.CommandLease, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
+	state, playerID, err := h.loadAndAuthorize(ctx, lease, principal, command, true)
 	if err != nil {
 		return preparedCommand{}, err
 	}

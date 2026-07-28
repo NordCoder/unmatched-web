@@ -85,6 +85,8 @@ type EventStore interface {
 	AbortCommand(ctx context.Context, lease CommandLease) error
 	LoadEvents(ctx context.Context, matchID model.MatchID) ([]contracts.DomainEvent, error)
 	ResolveAuthorityContext(ctx context.Context, matchID model.MatchID, principalID model.PrincipalID) (model.PlayerID, bool, error)
+	LoadEventsForCommand(ctx context.Context, lease CommandLease, matchID model.MatchID) ([]contracts.DomainEvent, error)
+	ResolveAuthorityForCommand(ctx context.Context, lease CommandLease, matchID model.MatchID, principalID model.PrincipalID) (model.PlayerID, bool, error)
 }
 
 func cloneCommandRecord(record CommandRecord) CommandRecord {

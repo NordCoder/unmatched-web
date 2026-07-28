@@ -58,19 +58,19 @@ func (h *Host) prepareCreate(principal model.PrincipalID, command contracts.Comm
 	}, nil
 }
 
-func (h *Host) prepareJoin(ctx context.Context, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
+func (h *Host) prepareJoin(ctx context.Context, lease persistence.CommandLease, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
 	if command.MatchID == "" {
 		return preparedCommand{}, opError(CodeInvalidCommand, "match ID is required")
 	}
 	if command.ActorPlayerID != "" {
 		return preparedCommand{}, opError(CodeInvalidCommand, "JoinMatch cannot supply an actor player ID")
 	}
-	if _, alreadyBound, err := h.store.ResolveAuthorityContext(ctx, command.MatchID, principal); err != nil {
+	if _, alreadyBound, err := h.resolveAuthorityForCommand(ctx, lease, command.MatchID, principal); err != nil {
 		return preparedCommand{}, internalError("resolve join authority", err)
 	} else if alreadyBound {
 		return preparedCommand{}, opError(CodeInvalidCommand, "principal already joined this match")
 	}
-	state, err := h.StateContext(ctx, command.MatchID)
+	state, err := h.stateForCommand(ctx, lease, command.MatchID)
 	if err != nil {
 		return preparedCommand{}, err
 	}

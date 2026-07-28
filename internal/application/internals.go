@@ -1,13 +1,15 @@
 package application
 
 import (
+	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/model"
+	"github.com/NordCoder/unmatched-web/internal/persistence"
 	coreruntime "github.com/NordCoder/unmatched-web/internal/runtime"
 )
 
@@ -51,18 +53,18 @@ func (h *Host) buildBatch(command contracts.Command, prepared preparedCommand) (
 	}, state, nil
 }
 
-func (h *Host) loadAndAuthorize(ctx context.Context, principal model.PrincipalID, command contracts.Command, requireActor bool) (coreruntime.HostedState, model.PlayerID, error) {
+func (h *Host) loadAndAuthorize(ctx context.Context, lease persistence.CommandLease, principal model.PrincipalID, command contracts.Command, requireActor bool) (coreruntime.HostedState, model.PlayerID, error) {
 	if command.MatchID == "" {
 		return coreruntime.HostedState{}, "", opError(CodeInvalidCommand, "match ID is required")
 	}
-	state, err := h.StateContext(ctx, command.MatchID)
+	state, err := h.stateForCommand(ctx, lease, command.MatchID)
 	if err != nil {
 		return coreruntime.HostedState{}, "", err
 	}
 	if err := checkExpectedRevision(command, state.Game.Revision); err != nil {
 		return coreruntime.HostedState{}, "", err
 	}
-	playerID, ok, err := h.store.ResolveAuthorityContext(ctx, command.MatchID, principal)
+	playerID, ok, err := h.resolveAuthorityForCommand(ctx, lease, command.MatchID, principal)
 	if err != nil {
 		return state, "", internalError("resolve principal authority", err)
 	}
@@ -141,7 +143,7 @@ func validateEnvelope(principal model.PrincipalID, command contracts.Command) er
 		return opError(CodeInvalidCommand, "command ID, schema version, and type are required")
 	}
 	if len(command.Payload) == 0 || !json.Valid(command.Payload) {
-		return opError(CodeInvalidCommand, "command payload must be valid JSON")
+		return opError(CoeInvalidCommand, "command payload must be valid JSON")
 	}
 	return nil
 }
@@ -156,21 +158,14 @@ func checkExpectedRevision(command contracts.Command, current uint64) error {
 	return nil
 }
 
-func commandFingerprint(principal model.PrincipalID, command contracts.Command) ([]byte, error) {
-	encoded, err := json.Marshal(struct {
-		Principal model.PrincipalID `json:"principal"`
-		Command   contracts.Command `json:"command"`
-	}{Principal: principal, Command: command})
-	if err != nil {
-		return nil, err
-	}
-	sum := sha256.Sum256(encoded)
-	return sum[:], nil
-}
-
 func decodePayload(raw json.RawMessage, target any) error {
-	if err := json.Unmarshal(raw, target); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(target); err != nil {
 		return opError(CodeInvalidCommand, "command payload does not match its type")
+	}
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
+		return opError(CodeInvalidCommand, "command payload contains trailing data")
 	}
 	return nil
 }
