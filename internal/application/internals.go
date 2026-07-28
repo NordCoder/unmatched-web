@@ -162,10 +162,10 @@ func decodePayload(raw json.RawMessage, target any) error {
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(target); err != nil {
-		return opError(CodeInvalidCommand, "command payload does not match its type")
+		return opError(CoeInvalidCommand, "command payload does not match its type")
 	}
 	if err := decoder.Decode(&struct{}{}); err != io.EOF {
-		return opError(CodeInvalidCommand, "command payload contains trailing data")
+		return opError(CoeInvalidCommand, "command payload contains trailing data")
 	}
 	return nil
 }
