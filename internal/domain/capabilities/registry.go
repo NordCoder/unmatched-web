@@ -7,12 +7,19 @@ import (
 )
 
 type Capability struct {
-	ID, Name  string
-	DependsOn []string
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	DependsOn []string `json:"depends_on,omitempty"`
 }
 
 func Wave1() map[string]Capability {
-	return map[string]Capability{"CAP-001": {"CAP-001", "staged resolution procedures", nil}, "CAP-002": {"CAP-002", "interactions and visibility", []string{"CAP-001"}}, "CAP-003": {"CAP-003", "reaction and cancellation windows", []string{"CAP-001", "CAP-002"}}, "CAP-004": {"CAP-004", "history and provenance ledger", nil}, "CAP-018": {"CAP-018", "derived query expressions", nil}}
+	return map[string]Capability{
+		"CAP-001": {ID: "CAP-001", Name: "staged resolution procedures"},
+		"CAP-002": {ID: "CAP-002", Name: "interactions and visibility", DependsOn: []string{"CAP-001"}},
+		"CAP-003": {ID: "CAP-003", Name: "reaction and cancellation windows", DependsOn: []string{"CAP-001", "CAP-002"}},
+		"CAP-004": {ID: "CAP-004", Name: "history and provenance ledger"},
+		"CAP-018": {ID: "CAP-018", Name: "derived query expressions"},
+	}
 }
 func Validate(m map[string]Capability) error {
 	seen, active := map[string]bool{}, map[string]bool{}
@@ -46,6 +53,26 @@ func Validate(m map[string]Capability) error {
 	for _, id := range ids {
 		if err := visit(id); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+func ValidateDeclaration(ids []string, m map[string]Capability) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("at least one capability is required")
+	}
+	decl := map[string]bool{}
+	for _, id := range ids {
+		if _, ok := m[id]; !ok {
+			return fmt.Errorf("unknown capability %s", id)
+		}
+		decl[id] = true
+	}
+	for id := range decl {
+		for _, dep := range m[id].DependsOn {
+			if !decl[dep] {
+				return fmt.Errorf("capability %s requires %s", id, dep)
+			}
 		}
 	}
 	return nil
