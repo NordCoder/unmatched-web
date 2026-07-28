@@ -10,7 +10,7 @@ import (
 	"github.com/NordCoder/unmatched-web/internal/domain/query"
 )
 
-const actorPlayerIDBinding = "actor_player_id"
+const actorPlayerIDBinding = effects.TrustedActorBinding
 
 var trustedHostBindingSpecs = map[string]query.ValueSpec{
 	actorPlayerIDBinding: {Type: query.TypePlayer, Visibility: query.Public, Optional: true},
@@ -40,6 +40,9 @@ func validateWave1Safety(d effects.Definition) error {
 		if stage.Choice == nil {
 			continue
 		}
+		if err := effects.ValidateOwnerSelector(stage.Choice.Owner); err != nil {
+			return fmt.Errorf("choice %s: %w", stage.Choice.Binding, err)
+		}
 		if stage.Choice.Multi {
 			return fmt.Errorf("choice %s multi-select is not supported in Wave 1", stage.Choice.Binding)
 		}
@@ -48,6 +51,36 @@ func validateWave1Safety(d effects.Definition) error {
 		}
 	}
 	return validatePublicControlFlow(d)
+}
+
+func definitionForValidation(d effects.Definition) effects.Definition {
+	if !requiresActorOwner(d) {
+		return d
+	}
+	d.Stages = append([]effects.Stage(nil), d.Stages...)
+	for i := range d.Stages {
+		if d.Stages[i].Choice == nil {
+			continue
+		}
+		choice := *d.Stages[i].Choice
+		if effects.IsActorOwner(choice.Owner) {
+			// effects.Validate still has a legacy owner-expression slot. Feed it a
+			// validation-only public player literal so the trusted actor binding is
+			// not added to the general definition expression environment.
+			choice.Owner = query.Expr{Kind: query.Literal, Value: "__wave1_actor__", ValueType: query.TypePlayer, Visibility: query.Public}
+		}
+		d.Stages[i].Choice = &choice
+	}
+	return d
+}
+
+func requiresActorOwner(d effects.Definition) bool {
+	for _, stage := range d.Stages {
+		if stage.Choice != nil && effects.IsActorOwner(stage.Choice.Owner) {
+			return true
+		}
+	}
+	return false
 }
 
 func validatePublicControlFlow(d effects.Definition) error {
@@ -111,7 +144,7 @@ func validatePublicControlFlow(d effects.Definition) error {
 }
 
 func copyBindingSpecs(source map[string]query.ValueSpec) map[string]query.ValueSpec {
-	result := make(map[string]query.ValueSpec, len(source))
+	result := make(map[string]query.ValueSpec, len(source)+1)
 	for name, spec := range source {
 		result[name] = spec
 	}
@@ -131,6 +164,9 @@ func capturedTransportSpecs(d effects.Definition) map[string]query.ValueSpec {
 		specs[name] = spec
 	}
 	for name, spec := range trustedHostBindingSpecs {
+		if name == actorPlayerIDBinding && requiresActorOwner(d) {
+			spec.Optional = false
+		}
 		specs[name] = spec
 	}
 	return specs

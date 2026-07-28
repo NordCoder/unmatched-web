@@ -39,7 +39,7 @@ func New(defs []effects.Definition) (*Engine, error) {
 		if err := validateWave1Safety(d); err != nil {
 			return nil, fmt.Errorf("definition %s: %w", d.ID, err)
 		}
-		if err := effects.Validate(d, ops, caps); err != nil {
+		if err := effects.Validate(definitionForValidation(d), ops, caps); err != nil {
 			return nil, fmt.Errorf("definition %s: %w", d.ID, err)
 		}
 		if _, ok := e.defs[d.ID]; ok {
@@ -96,6 +96,10 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 		validatedCaptured[name] = append(json.RawMessage(nil), input...)
 	}
 	ps.Captured = validatedCaptured
+	actorOwner, err := trustedActorOwner(d, validatedCaptured)
+	if err != nil {
+		return rejectWithDiagnostic("invalid_actor_owner", err), nil
+	}
 	working, err := operations.CloneState(state)
 	if err != nil {
 		return contracts.ResolutionOutcome{}, err
@@ -214,14 +218,6 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 				ps.Phase = effects.PhaseOperations
 				continue
 			}
-			ownerV, x := query.Eval(s.Choice.Owner, ctx)
-			if x != nil {
-				return contracts.ResolutionOutcome{}, x
-			}
-			owner, ok := ownerV.(string)
-			if !ok {
-				return contracts.ResolutionOutcome{}, fmt.Errorf("choice owner must be string")
-			}
 			domainV, x := query.Eval(s.Choice.Domain, ctx)
 			if x != nil {
 				return contracts.ResolutionOutcome{}, x
@@ -278,10 +274,10 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 			domain, _ := json.Marshal(map[string]any{"options": projected})
 			prompt, _ := json.Marshal(s.Choice.Prompt)
 			pid := model.InteractionID(id(string(in.Procedure.ID), s.ID, "interaction"))
-			ps.Pending = &effects.Pending{ID: pid, Owner: model.PlayerID(owner), Kind: s.Choice.Kind, Visibility: s.Choice.Visibility, Binding: s.Choice.Binding, ValueSpec: spec, Options: opts, Domain: domain, Prompt: prompt}
+			ps.Pending = &effects.Pending{ID: pid, Owner: actorOwner, Kind: s.Choice.Kind, Visibility: s.Choice.Visibility, Binding: s.Choice.Binding, ValueSpec: spec, Options: opts, Domain: domain, Prompt: prompt}
 			ps.Status = "pending"
 			ref, _ := effects.Encode(in.Procedure, ps, s.ID)
-			pending := &model.PendingInteraction{ID: pid, OwnerPlayerID: model.PlayerID(owner), Kind: s.Choice.Kind, Visibility: string(s.Choice.Visibility), Prompt: prompt, LegalDomain: domain, ResumeProcedure: ref}
+			pending := &model.PendingInteraction{ID: pid, OwnerPlayerID: actorOwner, Kind: s.Choice.Kind, Visibility: string(s.Choice.Visibility), Prompt: prompt, LegalDomain: domain, ResumeProcedure: ref}
 			normalize(events, state, in)
 			return contracts.ResolutionOutcome{Status: contracts.ResolutionPending, Events: events, PendingInteraction: pending, Procedure: &ref}, nil
 		case effects.PhaseOperations:
@@ -369,6 +365,20 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 	ref, _ := effects.Encode(in.Procedure, ps, "completed")
 	normalize(events, state, in)
 	return contracts.ResolutionOutcome{Status: contracts.ResolutionCompleted, Events: events, Procedure: &ref}, nil
+}
+
+func trustedActorOwner(d effects.Definition, captured map[string]json.RawMessage) (model.PlayerID, error) {
+	if !requiresActorOwner(d) {
+		return "", nil
+	}
+	var actor model.PlayerID
+	if err := json.Unmarshal(captured[actorPlayerIDBinding], &actor); err != nil {
+		return "", fmt.Errorf("decode trusted actor: %w", err)
+	}
+	if actor == "" {
+		return "", fmt.Errorf("trusted actor is empty")
+	}
+	return actor, nil
 }
 
 func (e *Engine) attempt(s model.GameState, q query.Context, in contracts.ResolutionInput, o operations.Definition, mode string) (attempt, error) {

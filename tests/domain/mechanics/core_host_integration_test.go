@@ -15,7 +15,7 @@ import (
 	coreruntime "github.com/NordCoder/unmatched-web/internal/runtime"
 )
 
-func TestConcreteRulesAcceptsRealCoreActorBindingAndResumes(t *testing.T) {
+func TestConcreteRulesActorOwnerWorksForBothCoreSeats(t *testing.T) {
 	registry := coreruntime.NewMemoryDefinitionRegistry()
 	bundle := hostIntegrationBundle()
 	if err := registry.Register("host-integration@v1", bundle); err != nil {
@@ -37,26 +37,45 @@ func TestConcreteRulesAcceptsRealCoreActorBindingAndResumes(t *testing.T) {
 		t.Fatalf("create match: %v", err)
 	}
 	one := uint64(1)
-	if _, err = host.Execute(ctx, "principal-b", hostIntegrationCommand(
+	joined, err := host.Execute(ctx, "principal-b", hostIntegrationCommand(
 		"join", application.CommandJoinMatch, created.MatchID, "", &one,
 		application.JoinMatchPayload{FighterDefinition: "mirror"},
-	)); err != nil {
+	))
+	if err != nil {
 		t.Fatalf("join match: %v", err)
 	}
 
-	two := uint64(2)
-	started, err := host.Execute(ctx, "principal-a", hostIntegrationCommand(
-		"start", application.CommandStartAction, created.MatchID, created.PlayerID, &two,
+	exerciseCoreActorChoice(t, ctx, host, created.MatchID, "principal-a", created.PlayerID, 2, "first")
+	exerciseCoreActorChoice(t, ctx, host, created.MatchID, "principal-b", joined.PlayerID, 4, "second")
+}
+
+func exerciseCoreActorChoice(
+	t *testing.T,
+	ctx context.Context,
+	host *application.Host,
+	matchID model.MatchID,
+	principal model.PrincipalID,
+	actor model.PlayerID,
+	startRevision uint64,
+	commandPrefix string,
+) {
+	t.Helper()
+	started, err := host.Execute(ctx, principal, hostIntegrationCommand(
+		commandPrefix+"-start", application.CommandStartAction, matchID, actor, &startRevision,
 		application.StartActionPayload{Kind: application.ActionScheme, SourceRef: "card:host-integration"},
 	))
 	if err != nil {
-		t.Fatalf("real Core StartAction rejected trusted actor binding: %v", err)
+		t.Fatalf("Core StartAction rejected actor %q: %v", actor, err)
 	}
-	if started.Projection.PendingInteraction == nil {
-		t.Fatalf("concrete Rules did not open interaction: %+v", started)
+	projected := started.Projection.PendingInteraction
+	if projected == nil {
+		t.Fatalf("concrete Rules did not open interaction for actor %q: %+v", actor, started)
+	}
+	if projected.OwnerPlayerID != actor {
+		t.Fatalf("projected owner %q, want actor %q", projected.OwnerPlayerID, actor)
 	}
 
-	state, err := host.State(created.MatchID)
+	state, err := host.State(matchID)
 	if err != nil {
 		t.Fatalf("load pending state: %v", err)
 	}
@@ -64,27 +83,30 @@ func TestConcreteRulesAcceptsRealCoreActorBindingAndResumes(t *testing.T) {
 	if pending == nil {
 		t.Fatal("pending interaction was not persisted")
 	}
+	if pending.OwnerPlayerID != actor {
+		t.Fatalf("persisted interaction owner %q, want %q", pending.OwnerPlayerID, actor)
+	}
 	var persistedActor model.PlayerID
-	if err = json.Unmarshal(pending.ResumeProcedure.Bindings["actor_player_id"], &persistedActor); err != nil {
+	if err = json.Unmarshal(pending.ResumeProcedure.Bindings[effects.TrustedActorBinding], &persistedActor); err != nil {
 		t.Fatalf("decode persisted actor: %v", err)
 	}
-	if persistedActor != created.PlayerID {
-		t.Fatalf("persisted actor %q, want %q", persistedActor, created.PlayerID)
+	if persistedActor != actor {
+		t.Fatalf("persisted actor %q, want %q", persistedActor, actor)
 	}
 
-	three := uint64(3)
-	completed, err := host.Execute(ctx, "principal-a", hostIntegrationCommand(
-		"resume", application.CommandSubmitChoice, created.MatchID, created.PlayerID, &three,
+	resumeRevision := startRevision + 1
+	completed, err := host.Execute(ctx, principal, hostIntegrationCommand(
+		commandPrefix+"-resume", application.CommandSubmitChoice, matchID, actor, &resumeRevision,
 		application.SubmitChoicePayload{
-			InteractionID: started.Projection.PendingInteraction.ID,
-			Choice:        hostIntegrationChoice(t, started.Projection.PendingInteraction.LegalDomain),
+			InteractionID: projected.ID,
+			Choice:        hostIntegrationChoice(t, projected.LegalDomain),
 		},
 	))
 	if err != nil {
-		t.Fatalf("real Core SubmitChoice could not resume persisted actor binding: %v", err)
+		t.Fatalf("Core SubmitChoice could not resume actor %q: %v", actor, err)
 	}
 	if completed.Projection.PendingInteraction != nil || completed.Projection.BlockedByInteraction {
-		t.Fatalf("action remained pending after accepted choice: %+v", completed)
+		t.Fatalf("action remained pending after actor %q choice: %+v", actor, completed)
 	}
 }
 
@@ -93,7 +115,7 @@ func hostIntegrationRulesDefinition() effects.Definition {
 		ID: application.ActionScheme, Kind: "linear_stages", RuleID: "FX-060", CapabilityIDs: []string{"CAP-001", "CAP-002"},
 		Stages: []effects.Stage{{ID: "choose", Choice: &effects.Choice{
 			Kind: "select", Binding: "picked", Visibility: query.Opaque,
-			Owner: query.Expr{Kind: query.Literal, Value: "host-player-1", ValueType: query.TypePlayer},
+			Owner: effects.ActorOwner(),
 			Domain: query.Expr{Kind: query.List, Args: []query.Expr{
 				{Kind: query.Literal, Value: "left"},
 				{Kind: query.Literal, Value: "right"},

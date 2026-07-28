@@ -82,10 +82,10 @@ func TestChoiceTypingVisibilityAndPresence(t *testing.T) {
 	privateList := query.ValueSpec{Type: query.TypeList, Element: &query.ValueSpec{Type: query.TypeString, Visibility: query.OwnerPrivate}, Visibility: query.OwnerPrivate}
 	publicList := query.ValueSpec{Type: query.TypeList, Element: &query.ValueSpec{Type: query.TypeString, Visibility: query.Public}, Visibility: query.Public}
 	cases := []effects.Definition{
-		choiceFromCaptured("wrong-type", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, ValueType: query.TypeFighter}, nil),
-		choiceFromCaptured("weak-vis", privateList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, ValueType: query.TypeString}, nil),
-		choiceFromCaptured("scalar-empty", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindEmpty, ValueType: query.TypeString}, nil),
-		choiceFromCaptured("absent-read", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptySkipStage, ValueType: query.TypeString}, []operations.Definition{{ID: "use", Kind: operations.BindValue, Arguments: map[string]query.Expr{"value": ref(query.Choice, query.TypeString, "pick")}}}),
+		choiceFromCaptured("wrong-type", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, ValueType: query.TypeFighter}, nil),
+		choiceFromCaptured("weak-vis", privateList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, ValueType: query.TypeString}, nil),
+		choiceFromCaptured("scalar-empty", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindEmpty, ValueType: query.TypeString}, nil),
+		choiceFromCaptured("absent-read", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptySkipStage, ValueType: query.TypeString}, []operations.Definition{{ID: "use", Kind: operations.BindValue, Arguments: map[string]query.Expr{"value": ref(query.Choice, query.TypeString, "pick")}}}),
 	}
 	for _, d := range cases {
 		if _, err := rules.New([]effects.Definition{d}); err == nil {
@@ -93,7 +93,7 @@ func TestChoiceTypingVisibilityAndPresence(t *testing.T) {
 		}
 	}
 	defExpr := lit("fallback")
-	good := choiceFromCaptured("default", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindDefault, ValueType: query.TypeString, Default: &defExpr}, []operations.Definition{{ID: "use", Kind: operations.BindValue, Arguments: map[string]query.Expr{"value": ref(query.Choice, query.TypeString, "pick")}}})
+	good := choiceFromCaptured("default", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindDefault, ValueType: query.TypeString, Default: &defExpr}, []operations.Definition{{ID: "use", Kind: operations.BindValue, Arguments: map[string]query.Expr{"value": ref(query.Choice, query.TypeString, "pick")}}})
 	if _, err := rules.New([]effects.Definition{good}); err != nil {
 		t.Fatalf("valid default rejected: %v", err)
 	}

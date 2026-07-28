@@ -29,9 +29,12 @@ func TestOpaqueResumeAndProjectionAllowList(t *testing.T) {
 			t.Fatalf("projection leak %q: %s", forbidden, projection)
 		}
 	}
-	first, err := e.Resolve(base(), contracts.ResolutionInput{CommandID: "start", Procedure: model.ProcedureRef{ID: "p", Kind: "choice"}})
+	first, err := e.Resolve(base(), contracts.ResolutionInput{CommandID: "start", Procedure: actorProcedure("p", "choice", "p1")})
 	if err != nil || first.Status != contracts.ResolutionPending {
 		t.Fatalf("pending: %+v %v", first, err)
+	}
+	if first.PendingInteraction.OwnerPlayerID != "p1" {
+		t.Fatalf("actor selector owner %q", first.PendingInteraction.OwnerPlayerID)
 	}
 	if bytes.Contains(first.PendingInteraction.LegalDomain, []byte("secret-")) {
 		t.Fatalf("domain leak: %s", first.PendingInteraction.LegalDomain)
@@ -47,7 +50,7 @@ func TestCostBeforeChoicePersistsOnce(t *testing.T) {
 	e := must(t, d)
 	s := base()
 	s.Fighters["alice"] = model.RuntimeObject{DefinitionID: "alice", State: map[string]any{}}
-	first, err := e.Resolve(s, contracts.ResolutionInput{CommandID: "start", Procedure: model.ProcedureRef{ID: "p", Kind: d.ID, SourceRef: "card:cost"}})
+	first, err := e.Resolve(s, contracts.ResolutionInput{CommandID: "start", Procedure: actorProcedure("p", d.ID, "p1")})
 	if err != nil || countType(first.Events, "rules.fighter_state_set") != 1 || countType(first.Events, "rules.operation_result") != 1 {
 		t.Fatalf("first: %+v %v", first, err)
 	}
@@ -124,7 +127,7 @@ func choiceDefinition() effects.Definition {
 			ID: "choose",
 			Choice: &effects.Choice{
 				Kind: "select", Binding: "picked", Visibility: query.Opaque,
-				Owner: player("p1"), Domain: list(lit("secret-a"), lit("secret-b")),
+				Owner: effects.ActorOwner(), Domain: list(lit("secret-a"), lit("secret-b")),
 				Prompt: map[string]any{"message": "choose"}, EmptyDomain: effects.EmptyReject,
 				ValueType: query.TypeString,
 			},
@@ -148,7 +151,7 @@ func costChoiceDefinition() effects.Definition {
 			}},
 			Choice: &effects.Choice{
 				Kind: "select", Binding: "picked", Visibility: query.Opaque,
-				Owner: player("p1"), Domain: list(lit("left"), lit("right")),
+				Owner: effects.ActorOwner(), Domain: list(lit("left"), lit("right")),
 				Prompt: map[string]any{"message": "choose"}, EmptyDomain: effects.EmptyReject,
 				ValueType: query.TypeString,
 			},
@@ -194,9 +197,6 @@ func base() model.GameState {
 }
 
 func lit(v any) query.Expr { return query.Expr{Kind: query.Literal, Value: v} }
-func player(v string) query.Expr {
-	return query.Expr{Kind: query.Literal, Value: v, ValueType: query.TypePlayer}
-}
 func fighter(v string) query.Expr {
 	return query.Expr{Kind: query.Literal, Value: v, ValueType: query.TypeFighter}
 }
@@ -208,6 +208,9 @@ func obj(k string, v query.Expr) query.Expr {
 	return query.Expr{Kind: query.Object, Fields: map[string]query.Expr{k: v}}
 }
 func raw(v any) json.RawMessage { b, _ := json.Marshal(v); return b }
+func actorProcedure(id model.ProcedureID, kind string, actor model.PlayerID) model.ProcedureRef {
+	return model.ProcedureRef{ID: id, Kind: kind, Bindings: map[string]json.RawMessage{effects.TrustedActorBinding: raw(actor)}}
+}
 func countType(es []contracts.DomainEvent, typ string) int {
 	n := 0
 	for _, e := range es {

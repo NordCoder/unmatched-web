@@ -120,16 +120,17 @@ func TestRuntimeBindingContractsRejectUntrustedData(t *testing.T) {
 		ID: "input-resume-contract", Kind: "linear_stages", RuleID: "FX-060", CapabilityIDs: []string{"CAP-001", "CAP-002"},
 		InputBindings: map[string]query.ValueSpec{"payload": payloadSpec},
 		Stages: []effects.Stage{{ID: "choose", Choice: &effects.Choice{
-			Kind: "select", Binding: "picked", Visibility: query.Opaque, Owner: player("p1"), Domain: list(lit("left"), lit("right")), EmptyDomain: effects.EmptyReject, ValueType: query.TypeString,
+			Kind: "select", Binding: "picked", Visibility: query.Opaque, Owner: effects.ActorOwner(), Domain: list(lit("left"), lit("right")), EmptyDomain: effects.EmptyReject, ValueType: query.TypeString,
 		}, Operations: []operations.Definition{{ID: "emit", Kind: operations.EmitEvent, Arguments: map[string]query.Expr{"event_type": lit("input.resume"), "payload": ref(query.Input, query.TypeObject, "payload")}}}}},
 	}
 	resumeEngine := must(t, resumeDef)
 	transportPayload := raw(map[string]any{"safe": "ok"})
-	first, err := resumeEngine.Resolve(base(), contracts.ResolutionInput{CommandID: "input-start", Procedure: model.ProcedureRef{ID: "p", Kind: resumeDef.ID, Bindings: map[string]json.RawMessage{"payload": transportPayload}}, Context: map[string]json.RawMessage{"payload": transportPayload}})
+	firstBindings := map[string]json.RawMessage{"payload": transportPayload, effects.TrustedActorBinding: raw("p1")}
+	first, err := resumeEngine.Resolve(base(), contracts.ResolutionInput{CommandID: "input-start", Procedure: model.ProcedureRef{ID: "p", Kind: resumeDef.ID, Bindings: firstBindings}, Context: map[string]json.RawMessage{"payload": transportPayload}})
 	if err != nil || first.Status != contracts.ResolutionPending {
 		t.Fatalf("duplicated Core context did not open interaction: %+v %v", first, err)
 	}
-	mismatch, err := resumeEngine.Resolve(base(), contracts.ResolutionInput{CommandID: "input-mismatch", Procedure: model.ProcedureRef{ID: "other", Kind: resumeDef.ID, Bindings: map[string]json.RawMessage{"payload": raw(map[string]any{"safe": "captured"})}}, Context: map[string]json.RawMessage{"payload": raw(map[string]any{"safe": "input"})}})
+	mismatch, err := resumeEngine.Resolve(base(), contracts.ResolutionInput{CommandID: "input-mismatch", Procedure: model.ProcedureRef{ID: "other", Kind: resumeDef.ID, Bindings: map[string]json.RawMessage{"payload": raw(map[string]any{"safe": "captured"}), effects.TrustedActorBinding: raw("p1")}}, Context: map[string]json.RawMessage{"payload": raw(map[string]any{"safe": "input"})}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,8 +147,8 @@ func TestWave1RejectsOpenBindingsAndMultiSelect(t *testing.T) {
 	publicList := query.ValueSpec{Type: query.TypeList, Element: &query.ValueSpec{Type: query.TypeString, Visibility: query.Public}, Visibility: query.Public}
 	cases := []effects.Definition{
 		{ID: "open-external", Kind: "linear_stages", RuleID: "FX-010", CapabilityIDs: []string{"CAP-001"}, CapturedBindings: map[string]query.ValueSpec{"payload": {Type: query.TypeAny, Visibility: query.Public}}, Stages: []effects.Stage{{ID: "s"}}},
-		choiceFromCaptured("multi-unsupported", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, Multi: true}, nil),
-		choiceFromCaptured("multi-empty-unsupported", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: player("p1"), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindEmpty, Multi: true}, nil),
+		choiceFromCaptured("multi-unsupported", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyReject, Multi: true}, nil),
+		choiceFromCaptured("multi-empty-unsupported", publicList, effects.Choice{Kind: "x", Binding: "pick", Visibility: query.Public, Owner: effects.ActorOwner(), Domain: ref(query.Captured, query.TypeList, "opts"), EmptyDomain: effects.EmptyBindEmpty, Multi: true}, nil),
 	}
 	for _, d := range cases {
 		if _, err := rules.New([]effects.Definition{d}); err == nil {
