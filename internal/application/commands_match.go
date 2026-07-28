@@ -5,6 +5,7 @@ import (
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/model"
+	"github.com/NordCoder/unmatched-web/internal/persistence"
 	coreruntime "github.com/NordCoder/unmatched-web/internal/runtime"
 )
 
@@ -31,51 +32,44 @@ func (h *Host) prepareCreate(principal model.PrincipalID, command contracts.Comm
 	matchID := model.MatchID(h.ids.Next("match"))
 	player, fighters, cards := h.instantiatePlayer(1, fighter)
 	state := model.GameState{
-		MatchID:       matchID,
-		DefinitionRef: bundle.Ref,
-		Lifecycle:     model.LifecycleWaitingForPlayers,
-		Players:       map[model.PlayerID]model.PlayerState{player.ID: player},
-		Fighters:      fighters,
-		Cards:         cards,
-		Components:    make(map[model.ComponentID]model.RuntimeObject),
-		Battlefield:   make(map[string]any),
-		Turn:          make(map[string]any),
-		Resolver:      model.ResolverState{},
-		Random:        make(map[string]any),
-		GameResult:    make(map[string]any),
+		MatchID: matchID, DefinitionRef: bundle.Ref,
+		Lifecycle: model.LifecycleWaitingForPlayers,
+		Players:   map[model.PlayerID]model.PlayerState{player.ID: player},
+		Fighters:  fighters, Cards: cards,
+		Components:  make(map[model.ComponentID]model.RuntimeObject),
+		Battlefield: make(map[string]any), Turn: make(map[string]any),
+		Resolver: model.ResolverState{}, Random: make(map[string]any), GameResult: make(map[string]any),
 	}
 	public := mustJSON(coreruntime.MatchCreatedPayload{
 		MatchID: matchID, DefinitionRef: bundle.Ref, Lifecycle: state.Lifecycle, PlayerID: player.ID,
 	})
-	private := mustJSON(coreruntime.MatchCreatedPrivatePayload{
-		State: state, Authority: coreruntime.AuthorityBinding{PrincipalID: principal, PlayerID: player.ID},
-	})
+	private := mustJSON(coreruntime.MatchCreatedPrivatePayload{State: state})
 	return preparedCommand{
-		matchID:  matchID,
-		playerID: player.ID,
-		ruleset:  bundle.Ref.RulesetVersion,
+		matchID: matchID, playerID: player.ID, ruleset: bundle.Ref.RulesetVersion,
 		events: []contracts.DomainEvent{{
-			Type:            coreruntime.EventMatchCreated,
-			PublicPayload:   public,
+			Type: coreruntime.EventMatchCreated, PublicPayload: public,
 			PrivatePayloads: map[model.PlayerID]json.RawMessage{player.ID: private},
 		}},
+		authority: &persistence.AuthorityRecord{
+			MatchID: matchID, PlayerID: player.ID, PrincipalID: principal, Seat: player.Seat,
+			BindingVersion: 1, Status: persistence.AuthorityActive, EstablishedByCommandID: command.ID,
+		},
 	}, nil
 }
 
 func (h *Host) prepareJoin(principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
-	state, playerID, err := h.loadAndAuthorize(principal, command, false)
-	if err != nil && CodeOf(err) != CodeUnauthorized {
-		return preparedCommand{}, err
-	}
-	if err == nil || playerID != "" {
-		return preparedCommand{}, opError(CodeInvalidCommand, "principal already joined this match")
-	}
-	state, err = h.State(command.MatchID)
-	if err != nil {
-		return preparedCommand{}, err
+	if command.MatchID == "" {
+		return preparedCommand{}, opError(CodeInvalidCommand, "match ID is required")
 	}
 	if command.ActorPlayerID != "" {
 		return preparedCommand{}, opError(CodeInvalidCommand, "JoinMatch cannot supply an actor player ID")
+	}
+	if _, alreadyBound := h.store.ResolveAuthority(command.MatchID, principal); alreadyBound {
+		return preparedCommand{}, opError(CodeInvalidCommand, "principal already joined this match")
+	}
+	state, err := h.State(command.MatchID)
+	if err != nil {
+		return preparedCommand{}, err
 	}
 	if err := checkExpectedRevision(command, state.Game.Revision); err != nil {
 		return preparedCommand{}, err
@@ -105,17 +99,17 @@ func (h *Host) prepareJoin(principal model.PrincipalID, command contracts.Comman
 	}
 	privateEvent := coreruntime.PlayerJoinedPrivatePayload{
 		Player: player, Fighters: fighters, Cards: cards, Lifecycle: model.LifecycleActive,
-		Authority: coreruntime.AuthorityBinding{PrincipalID: principal, PlayerID: player.ID},
 	}
 	return preparedCommand{
-		matchID:  command.MatchID,
-		playerID: player.ID,
-		previous: state,
-		ruleset:  state.Game.DefinitionRef.RulesetVersion,
+		matchID: command.MatchID, playerID: player.ID, previous: state,
+		ruleset: state.Game.DefinitionRef.RulesetVersion,
 		events: []contracts.DomainEvent{{
-			Type:            coreruntime.EventPlayerJoined,
-			PublicPayload:   mustJSON(publicEvent),
+			Type: coreruntime.EventPlayerJoined, PublicPayload: mustJSON(publicEvent),
 			PrivatePayloads: map[model.PlayerID]json.RawMessage{player.ID: mustJSON(privateEvent)},
 		}},
+		authority: &persistence.AuthorityRecord{
+			MatchID: command.MatchID, PlayerID: player.ID, PrincipalID: principal, Seat: player.Seat,
+			BindingVersion: 1, Status: persistence.AuthorityActive, EstablishedByCommandID: command.ID,
+		},
 	}, nil
 }

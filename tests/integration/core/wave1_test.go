@@ -16,17 +16,7 @@ import (
 
 func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	registry := coreruntime.NewMemoryDefinitionRegistry()
-	bundle := coreruntime.DefinitionBundle{
-		Ref: model.DefinitionRef{
-			RulesetVersion:         "synthetic-rules/v1",
-			CapabilityRegistry:     "synthetic-capabilities/v1",
-			FighterManifestDigests: map[string]string{"mirror": "fighter-digest"},
-			CardManifestDigests:    map[string]string{"strike": "strike-digest", "scheme": "scheme-digest"},
-		},
-		Fighters: map[model.DefinitionID]coreruntime.FighterDefinition{
-			"mirror": {ID: "mirror", CardDefinitions: []model.DefinitionID{"strike", "strike", "scheme"}},
-		},
-	}
+	bundle := syntheticBundle()
 	if err := registry.Register("synthetic@v1", bundle); err != nil {
 		t.Fatalf("register definitions: %v", err)
 	}
@@ -45,6 +35,9 @@ func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	}
 	if created.Revision != 1 || created.Projection.Lifecycle != model.LifecycleWaitingForPlayers {
 		t.Fatalf("unexpected create result: %+v", created)
+	}
+	if player, ok := store.ResolveAuthority(created.MatchID, "principal-a"); !ok || player != created.PlayerID {
+		t.Fatalf("first authority record missing: player=%q ok=%v", player, ok)
 	}
 	initialEventCount := len(store.Events(created.MatchID))
 	duplicate, err := host.Execute(ctx, "principal-a", create)
@@ -66,14 +59,22 @@ func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	if joined.Revision != 2 || joined.Projection.Lifecycle != model.LifecycleActive {
 		t.Fatalf("unexpected join result: %+v", joined)
 	}
+	if player, ok := store.ResolveAuthority(created.MatchID, "principal-b"); !ok || player != joined.PlayerID {
+		t.Fatalf("second authority record missing: player=%q ok=%v", player, ok)
+	}
 
 	stateAfterJoin, err := host.State(created.MatchID)
 	if err != nil {
 		t.Fatalf("read joined state: %v", err)
 	}
 	assertDistinctInstances(t, stateAfterJoin.Game)
-	if stateAfterJoin.Game.DefinitionRef.RulesetVersion != bundle.Ref.RulesetVersion {
-		t.Fatal("match did not pin definition identity")
+	for _, player := range stateAfterJoin.Game.Players {
+		if player.AuthorityState != "ACTIVE" {
+			t.Fatalf("gameplay authority state is not ACTIVE: %+v", player)
+		}
+	}
+	if !reflect.DeepEqual(stateAfterJoin.Game.DefinitionRef, bundle.Ref) {
+		t.Fatal("match did not pin complete definition identity")
 	}
 
 	stale := uint64(1)
@@ -83,6 +84,14 @@ func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	))
 	if application.CodeOf(err) != application.CodeRevisionConflict {
 		t.Fatalf("expected revision conflict, got %v", err)
+	}
+	// Deterministic rejections are immutable command results.
+	_, err = host.Execute(ctx, "principal-a", command(
+		"stale-action", application.CommandStartAction, created.MatchID, created.PlayerID, &stale,
+		application.StartActionPayload{Kind: application.ActionScheme, SourceRef: "card-instance"},
+	))
+	if application.CodeOf(err) != application.CodeRevisionConflict {
+		t.Fatalf("expected replayed revision conflict, got %v", err)
 	}
 
 	two := uint64(2)
@@ -139,9 +148,13 @@ func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	}
 
 	for _, event := range store.Events(created.MatchID) {
-		for _, forbidden := range [][]byte{[]byte("principal-a"), []byte("principal-b"), []byte("\"deck\""), []byte("choose")} {
-			if bytes.Contains(event.PublicPayload, forbidden) {
-				t.Fatalf("public event %q leaked private data %q: %s", event.Type, forbidden, event.PublicPayload)
+		encoded, marshalErr := json.Marshal(event)
+		if marshalErr != nil {
+			t.Fatalf("encode event: %v", marshalErr)
+		}
+		for _, forbidden := range [][]byte{[]byte("principal-a"), []byte("principal-b"), []byte("principal_id")} {
+			if bytes.Contains(encoded, forbidden) {
+				t.Fatalf("gameplay event %q leaked authority data %q: %s", event.Type, forbidden, encoded)
 			}
 		}
 	}
@@ -179,6 +192,50 @@ func TestWave1PendingChoiceResumeAndReplay(t *testing.T) {
 	if len(live.Game.Resolver.History) != 1 || live.Game.Resolver.History[0] != "rules.synthetic.choice_accepted" {
 		t.Fatalf("Rules event was not retained as ordered authoritative history: %+v", live.Game.Resolver.History)
 	}
+}
+
+func syntheticBundle() coreruntime.DefinitionBundle {
+	fighter := coreruntime.FighterDefinition{
+		ID: "mirror", CardDefinitions: []model.DefinitionID{"strike", "strike", "scheme"},
+	}
+	return coreruntime.DefinitionBundle{
+		Ref: model.DefinitionRef{
+			RulesetVersion: "synthetic-rules/v1", CapabilityRegistry: "synthetic-capabilities/v1",
+			FighterManifestDigests: map[string]string{"mirror": coreruntime.FighterDefinitionDigest(fighter)},
+			CardManifestDigests:    map[string]string{"strike": "sha256:strike", "scheme": "sha256:scheme"},
+		},
+		Fighters: map[model.DefinitionID]coreruntime.FighterDefinition{"mirror": fighter},
+	}
+}
+
+func newHost(t *testing.T, ids coreruntime.IDProvider, rules contracts.RulesEngine) (*application.Host, *persistence.MemoryStore) {
+	t.Helper()
+	registry := coreruntime.NewMemoryDefinitionRegistry()
+	if err := registry.Register("synthetic@v1", syntheticBundle()); err != nil {
+		t.Fatalf("register definitions: %v", err)
+	}
+	store := persistence.NewMemoryStore()
+	return application.NewHost(registry, ids, store, rules), store
+}
+
+func createAndJoin(t *testing.T, host *application.Host) (application.CommandResult, application.CommandResult) {
+	t.Helper()
+	created, err := host.Execute(context.Background(), "principal-a", command(
+		"create-1", application.CommandCreateMatch, "", "", nil,
+		application.CreateMatchPayload{DefinitionKey: "synthetic@v1", FighterDefinition: "mirror"},
+	))
+	if err != nil {
+		t.Fatalf("create match: %v", err)
+	}
+	one := uint64(1)
+	joined, err := host.Execute(context.Background(), "principal-b", command(
+		"join-1", application.CommandJoinMatch, created.MatchID, "", &one,
+		application.JoinMatchPayload{FighterDefinition: "mirror"},
+	))
+	if err != nil {
+		t.Fatalf("join match: %v", err)
+	}
+	return created, joined
 }
 
 func assertDistinctInstances(t *testing.T, state model.GameState) {
@@ -247,8 +304,7 @@ func (f *fakeRulesEngine) Resolve(_ model.GameState, input contracts.ResolutionI
 	return contracts.ResolutionOutcome{
 		Status: contracts.ResolutionCompleted,
 		Events: []contracts.DomainEvent{{
-			Type:          "rules.synthetic.choice_accepted",
-			PublicPayload: json.RawMessage(`{"accepted":true}`),
+			Type: "rules.synthetic.choice_accepted", PublicPayload: json.RawMessage(`{"accepted":true}`),
 		}},
 	}, nil
 }
@@ -260,9 +316,8 @@ func (f *fakeRulesEngine) LegalActions(state model.GameState, playerID model.Pla
 	return []json.RawMessage{json.RawMessage(`{"type":"StartAction","player_id":"` + string(playerID) + `"}`)}, nil
 }
 
-func (f *fakeRulesEngine) Project(state model.GameState, playerID model.PlayerID) (json.RawMessage, error) {
+func (f *fakeRulesEngine) Project(_ model.GameState, playerID model.PlayerID) (json.RawMessage, error) {
 	return json.Marshal(struct {
-		Player model.PlayerState  `json:"player"`
-		Action *model.ActionState `json:"action,omitempty"`
-	}{Player: state.Players[playerID], Action: state.Action})
+		PlayerID model.PlayerID `json:"player_id"`
+	}{PlayerID: playerID})
 }

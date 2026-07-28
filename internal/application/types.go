@@ -70,16 +70,28 @@ type SubmitChoicePayload struct {
 	Choice        json.RawMessage     `json:"choice"`
 }
 
+// ProjectedInteraction is an explicit delivery allow-list. Internal resolver
+// state, including ResumeProcedure and captured bindings, is intentionally not
+// representable in this type.
+type ProjectedInteraction struct {
+	ID            model.InteractionID `json:"interaction_instance_id"`
+	OwnerPlayerID model.PlayerID      `json:"owner_player_id"`
+	Kind          string              `json:"kind"`
+	Visibility    string              `json:"visibility"`
+	Prompt        json.RawMessage     `json:"prompt"`
+	LegalDomain   json.RawMessage     `json:"legal_domain"`
+}
+
 type PlayerProjection struct {
-	MatchID              model.MatchID             `json:"match_id"`
-	PlayerID             model.PlayerID            `json:"player_id"`
-	Revision             uint64                    `json:"revision"`
-	EventSequence        uint64                    `json:"event_sequence"`
-	Lifecycle            model.Lifecycle           `json:"lifecycle"`
-	View                 json.RawMessage           `json:"view"`
-	LegalActions         []json.RawMessage         `json:"legal_actions"`
-	PendingInteraction   *model.PendingInteraction `json:"pending_interaction,omitempty"`
-	BlockedByInteraction bool                      `json:"blocked_by_interaction"`
+	MatchID              model.MatchID         `json:"match_id"`
+	PlayerID             model.PlayerID        `json:"player_id"`
+	Revision             uint64                `json:"revision"`
+	EventSequence        uint64                `json:"event_sequence"`
+	Lifecycle            model.Lifecycle       `json:"lifecycle"`
+	View                 json.RawMessage       `json:"view"`
+	LegalActions         []json.RawMessage     `json:"legal_actions"`
+	PendingInteraction   *ProjectedInteraction `json:"pending_interaction,omitempty"`
+	BlockedByInteraction bool                  `json:"blocked_by_interaction"`
 }
 
 type CommandResult struct {

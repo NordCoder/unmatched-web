@@ -16,14 +16,8 @@ const (
 	EventActionCompleted    = "core.action.completed"
 )
 
-type AuthorityBinding struct {
-	PrincipalID model.PrincipalID `json:"principal_id"`
-	PlayerID    model.PlayerID    `json:"player_id"`
-}
-
 type HostedState struct {
-	Game        model.GameState
-	Authorities map[model.PrincipalID]model.PlayerID
+	Game model.GameState
 }
 
 type MatchCreatedPayload struct {
@@ -34,8 +28,7 @@ type MatchCreatedPayload struct {
 }
 
 type MatchCreatedPrivatePayload struct {
-	State     model.GameState  `json:"state"`
-	Authority AuthorityBinding `json:"authority"`
+	State model.GameState `json:"state"`
 }
 
 type PlayerJoinedPayload struct {
@@ -50,7 +43,6 @@ type PlayerJoinedPrivatePayload struct {
 	Fighters  map[model.FighterID]model.RuntimeObject `json:"fighters"`
 	Cards     map[model.CardID]model.RuntimeObject    `json:"cards"`
 	Lifecycle model.Lifecycle                         `json:"lifecycle"`
-	Authority AuthorityBinding                        `json:"authority"`
 }
 
 type ActionStartedPublicPayload struct {
@@ -81,7 +73,7 @@ type ActionCompletedPayload struct {
 }
 
 func Replay(events []contracts.DomainEvent) (HostedState, error) {
-	state := HostedState{Authorities: make(map[model.PrincipalID]model.PlayerID)}
+	var state HostedState
 	for _, event := range events {
 		var err error
 		state, err = Apply(state, event)
@@ -93,10 +85,6 @@ func Replay(events []contracts.DomainEvent) (HostedState, error) {
 }
 
 func Apply(state HostedState, event contracts.DomainEvent) (HostedState, error) {
-	if state.Authorities == nil {
-		state.Authorities = make(map[model.PrincipalID]model.PlayerID)
-	}
-
 	switch event.Type {
 	case EventMatchCreated:
 		var public MatchCreatedPayload
@@ -112,7 +100,6 @@ func Apply(state HostedState, event contracts.DomainEvent) (HostedState, error) 
 		state.Game.Players = clonePlayers(state.Game.Players)
 		state.Game.Fighters = cloneRuntimeObjects(state.Game.Fighters)
 		state.Game.Cards = cloneCardObjects(state.Game.Cards)
-		state.Authorities[payload.Authority.PrincipalID] = payload.Authority.PlayerID
 	case EventPlayerJoined:
 		var public PlayerJoinedPayload
 		if err := json.Unmarshal(event.PublicPayload, &public); err != nil {
@@ -129,7 +116,6 @@ func Apply(state HostedState, event contracts.DomainEvent) (HostedState, error) 
 		mergeRuntimeObjects(state.Game.Fighters, payload.Fighters)
 		mergeRuntimeObjects(state.Game.Cards, payload.Cards)
 		state.Game.Lifecycle = payload.Lifecycle
-		state.Authorities[payload.Authority.PrincipalID] = payload.Authority.PlayerID
 	case EventActionStarted:
 		var public ActionStartedPublicPayload
 		if err := json.Unmarshal(event.PublicPayload, &public); err != nil {
@@ -174,11 +160,8 @@ func Apply(state HostedState, event contracts.DomainEvent) (HostedState, error) 
 		state.Game.Resolver.ActiveProcedure = nil
 		state.Game.Resolver.PendingInteraction = nil
 	default:
-		// Rules events are authoritative history. Core advances their ordered
-		// envelope without interpreting fighter/card semantics.
 		state.Game.Resolver.History = append(state.Game.Resolver.History, event.Type)
 	}
-
 	state.Game.Revision = event.Revision
 	state.Game.EventSequence = event.Sequence
 	return state, nil
@@ -189,10 +172,7 @@ func decodePrivate(payloads map[model.PlayerID]json.RawMessage, playerID model.P
 	if !ok {
 		return fmt.Errorf("private payload for player %q is missing", playerID)
 	}
-	if err := json.Unmarshal(raw, target); err != nil {
-		return err
-	}
-	return nil
+	return json.Unmarshal(raw, target)
 }
 
 func clonePlayers(source map[model.PlayerID]model.PlayerState) map[model.PlayerID]model.PlayerState {
@@ -205,72 +185,65 @@ func clonePlayers(source map[model.PlayerID]model.PlayerState) map[model.PlayerI
 	}
 	return result
 }
-
 func clonePlayer(player model.PlayerState) model.PlayerState {
 	player.FighterInstanceIDs = append([]model.FighterID(nil), player.FighterInstanceIDs...)
 	player.ActionPermissionIDs = append([]string(nil), player.ActionPermissionIDs...)
 	player.SubmittedChoiceIDs = append([]string(nil), player.SubmittedChoiceIDs...)
 	if player.PrivateZones != nil {
 		zones := make(map[string][]model.CardID, len(player.PrivateZones))
-		for key, cards := range player.PrivateZones {
-			zones[key] = append([]model.CardID(nil), cards...)
+		for k, v := range player.PrivateZones {
+			zones[k] = append([]model.CardID(nil), v...)
 		}
 		player.PrivateZones = zones
 	}
 	if player.Resources != nil {
 		resources := make(map[string]int, len(player.Resources))
-		for key, value := range player.Resources {
-			resources[key] = value
+		for k, v := range player.Resources {
+			resources[k] = v
 		}
 		player.Resources = resources
 	}
 	return player
 }
-
 func cloneRuntimeObjects(source map[model.FighterID]model.RuntimeObject) map[model.FighterID]model.RuntimeObject {
 	result := make(map[model.FighterID]model.RuntimeObject, len(source))
-	for id, object := range source {
-		result[id] = cloneRuntimeObject(object)
+	for id, obj := range source {
+		result[id] = cloneRuntimeObject(obj)
 	}
 	return result
 }
-
 func cloneCardObjects(source map[model.CardID]model.RuntimeObject) map[model.CardID]model.RuntimeObject {
 	result := make(map[model.CardID]model.RuntimeObject, len(source))
-	for id, object := range source {
-		result[id] = cloneRuntimeObject(object)
+	for id, obj := range source {
+		result[id] = cloneRuntimeObject(obj)
 	}
 	return result
 }
-
 func mergeRuntimeObjects[K ~string](target map[K]model.RuntimeObject, source map[K]model.RuntimeObject) {
-	for id, object := range source {
-		target[id] = cloneRuntimeObject(object)
+	for id, obj := range source {
+		target[id] = cloneRuntimeObject(obj)
 	}
 }
-
 func cloneRuntimeObject(object model.RuntimeObject) model.RuntimeObject {
 	if object.State != nil {
 		state := make(map[string]any, len(object.State))
-		for key, value := range object.State {
-			state[key] = value
+		for k, v := range object.State {
+			state[k] = v
 		}
 		object.State = state
 	}
 	return object
 }
-
 func cloneProcedure(procedure model.ProcedureRef) model.ProcedureRef {
 	if procedure.Bindings != nil {
 		bindings := make(map[string]json.RawMessage, len(procedure.Bindings))
-		for key, value := range procedure.Bindings {
-			bindings[key] = append(json.RawMessage(nil), value...)
+		for k, v := range procedure.Bindings {
+			bindings[k] = append(json.RawMessage(nil), v...)
 		}
 		procedure.Bindings = bindings
 	}
 	return procedure
 }
-
 func cloneInteraction(interaction model.PendingInteraction) model.PendingInteraction {
 	interaction.Prompt = append(json.RawMessage(nil), interaction.Prompt...)
 	interaction.LegalDomain = append(json.RawMessage(nil), interaction.LegalDomain...)

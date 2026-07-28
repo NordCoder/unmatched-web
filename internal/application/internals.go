@@ -24,9 +24,6 @@ func (h *Host) buildBatch(command contracts.Command, prepared preparedCommand) (
 		}
 	}
 	state := prepared.previous
-	if state.Authorities == nil {
-		state.Authorities = make(map[model.PrincipalID]model.PlayerID)
-	}
 	for index := range prepared.events {
 		event := &prepared.events[index]
 		event.SchemaVersion = "core-event/v1"
@@ -64,7 +61,7 @@ func (h *Host) loadAndAuthorize(principal model.PrincipalID, command contracts.C
 	if err := checkExpectedRevision(command, state.Game.Revision); err != nil {
 		return coreruntime.HostedState{}, "", err
 	}
-	playerID, ok := state.Authorities[principal]
+	playerID, ok := h.store.ResolveAuthority(command.MatchID, principal)
 	if !ok {
 		return state, "", opError(CodeUnauthorized, "principal is not bound to this match")
 	}
@@ -95,10 +92,12 @@ func (h *Host) project(state coreruntime.HostedState, playerID model.PlayerID) (
 	if pending := state.Game.Resolver.PendingInteraction; pending != nil {
 		projection.BlockedByInteraction = true
 		if pending.OwnerPlayerID == playerID {
-			cloned := *pending
-			cloned.Prompt = append(json.RawMessage(nil), pending.Prompt...)
-			cloned.LegalDomain = append(json.RawMessage(nil), pending.LegalDomain...)
-			projection.PendingInteraction = &cloned
+			projection.PendingInteraction = &ProjectedInteraction{
+				ID: pending.ID, OwnerPlayerID: pending.OwnerPlayerID,
+				Kind: pending.Kind, Visibility: pending.Visibility,
+				Prompt:      append(json.RawMessage(nil), pending.Prompt...),
+				LegalDomain: append(json.RawMessage(nil), pending.LegalDomain...),
+			}
 		}
 	}
 	return projection, nil
@@ -118,7 +117,7 @@ func (h *Host) instantiatePlayer(seat int, fighter coreruntime.FighterDefinition
 		cards[cardID] = model.RuntimeObject{DefinitionID: definitionID, OwnerID: playerID, ControllerID: playerID, State: make(map[string]any)}
 	}
 	player := model.PlayerState{
-		ID: playerID, Seat: seat, AuthorityState: "BOUND",
+		ID: playerID, Seat: seat, AuthorityState: "ACTIVE",
 		FighterInstanceIDs: []model.FighterID{fighterID},
 		PrivateZones:       map[string][]model.CardID{"deck": deck},
 		Resources:          make(map[string]int),

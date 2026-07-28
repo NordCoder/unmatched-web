@@ -1,7 +1,6 @@
 package application
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,14 +12,15 @@ import (
 )
 
 type preparedCommand struct {
-	matchID  model.MatchID
-	playerID model.PlayerID
-	previous coreruntime.HostedState
-	ruleset  string
-	events   []contracts.DomainEvent
+	matchID   model.MatchID
+	playerID  model.PlayerID
+	previous  coreruntime.HostedState
+	ruleset   string
+	events    []contracts.DomainEvent
+	authority *persistence.AuthorityRecord
 }
 
-func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command contracts.Command) (CommandResult, error) {
+func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command contracts.Command) (result CommandResult, err error) {
 	if err := validateEnvelope(principal, command); err != nil {
 		return CommandResult{}, err
 	}
@@ -28,52 +28,72 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 	if err != nil {
 		return CommandResult{}, internalError("fingerprint command", err)
 	}
-	if existing, ok := h.store.LookupCommand(command.ID); ok {
-		if !bytes.Equal(existing.Fingerprint, fingerprint) {
+	key := persistence.CommandKey{PrincipalID: principal, CommandID: command.ID}
+	lease, existing, duplicate, err := h.store.AcquireCommand(ctx, key, fingerprint)
+	if err != nil {
+		if errors.Is(err, persistence.ErrCommandConflict) {
 			return CommandResult{}, opError(CodeCommandConflict, "command ID was already used with different input")
 		}
-		return decodeResult(existing.Result)
+		return CommandResult{}, internalError("acquire command identity", err)
+	}
+	if duplicate {
+		return decodeCommandRecord(existing)
+	}
+
+	finished := false
+	defer func() {
+		if !finished {
+			h.store.AbortCommand(lease)
+		}
+	}()
+
+	reject := func(cause error) (CommandResult, error) {
+		var operational *OperationalError
+		if !errors.As(cause, &operational) || operational.Code == CodeInternal {
+			return CommandResult{}, cause
+		}
+		if _, rejectErr := h.store.RejectCommand(lease, command.MatchID, operational.Code, operational.Message); rejectErr != nil {
+			return CommandResult{}, internalError("persist command rejection", rejectErr)
+		}
+		finished = true
+		return CommandResult{}, cause
 	}
 
 	prepared, err := h.prepare(ctx, principal, command)
 	if err != nil {
-		return CommandResult{}, err
+		return reject(err)
 	}
 	batch, state, err := h.buildBatch(command, prepared)
 	if err != nil {
-		return CommandResult{}, err
+		return reject(err)
 	}
 	projection, err := h.project(state, prepared.playerID)
 	if err != nil {
-		return CommandResult{}, err
+		return reject(err)
 	}
-	result := CommandResult{
-		MatchID:    prepared.matchID,
-		PlayerID:   prepared.playerID,
-		Revision:   state.Game.Revision,
-		Sequence:   state.Game.EventSequence,
+	result = CommandResult{
+		MatchID: prepared.matchID, PlayerID: prepared.playerID,
+		Revision: state.Game.Revision, Sequence: state.Game.EventSequence,
 		Projection: projection,
 	}
 	encoded, err := json.Marshal(result)
 	if err != nil {
 		return CommandResult{}, internalError("encode command result", err)
 	}
-	record, duplicate, err := h.store.Commit(persistence.CommitRequest{
-		MatchID: prepared.matchID, Fingerprint: fingerprint, Batch: batch, Result: encoded,
+	_, err = h.store.Commit(lease, persistence.CommitRequest{
+		MatchID: prepared.matchID, Batch: batch, Result: encoded, Authority: prepared.authority,
 	})
 	if err != nil {
 		switch {
 		case errors.Is(err, persistence.ErrRevisionConflict):
-			return CommandResult{}, opError(CodeRevisionConflict, err.Error())
-		case errors.Is(err, persistence.ErrCommandConflict):
-			return CommandResult{}, opError(CodeCommandConflict, err.Error())
+			return reject(opError(CodeRevisionConflict, err.Error()))
+		case errors.Is(err, persistence.ErrAuthorityConflict):
+			return reject(opError(CodeUnauthorized, err.Error()))
 		default:
 			return CommandResult{}, internalError("commit event batch", err)
 		}
 	}
-	if duplicate {
-		return decodeResult(record.Result)
-	}
+	finished = true
 	return result, nil
 }
 
@@ -94,7 +114,7 @@ func (h *Host) Project(matchID model.MatchID, principal model.PrincipalID) (Play
 	if err != nil {
 		return PlayerProjection{}, err
 	}
-	playerID, ok := state.Authorities[principal]
+	playerID, ok := h.store.ResolveAuthority(matchID, principal)
 	if !ok {
 		return PlayerProjection{}, opError(CodeUnauthorized, "principal is not bound to this match")
 	}
@@ -114,4 +134,11 @@ func (h *Host) prepare(ctx context.Context, principal model.PrincipalID, command
 	default:
 		return preparedCommand{}, opError(CodeInvalidCommand, "unsupported command type")
 	}
+}
+
+func decodeCommandRecord(record persistence.CommandRecord) (CommandResult, error) {
+	if record.ErrorCode != "" {
+		return CommandResult{}, &OperationalError{Code: record.ErrorCode, Message: record.ErrorMessage}
+	}
+	return decodeResult(record.Result)
 }
