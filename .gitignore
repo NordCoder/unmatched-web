@@ -1,0 +1,17 @@
+# Go
+/bin/
+*.test
+coverage.out
+
+# Node / TypeScript
+node_modules/
+**/dist/
+*.tsbuildinfo
+
+# Local environment
+.env
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
