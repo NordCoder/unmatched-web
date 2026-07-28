@@ -11,15 +11,25 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-func normalizeCommandRequest(principal model.PrincipalID, command contracts.Command) (model.PrincipalID, contracts.Command, []byte, error) {
-	if err := validateEnvelope(principal, command); err != nil {
-		return "", contracts.Command{}, nil, err
+func canonicalizePrincipal(principal model.PrincipalID) (model.PrincipalID, error) {
+	if principal == "" {
+		return "", opError(CodeUnauthorized, "principal ID is required")
 	}
+	if !utf8.ValidString(string(principal)) {
+		return "", opError(CodeInvalidCommand, "principal ID contains invalid Unicode")
+	}
+	return model.PrincipalID(norm.NFC.String(string(principal))), nil
+}
 
-	normalizedPrincipal, err := normalizeIdentifier("principal ID", string(principal))
+func normalizeCommandRequest(principal model.PrincipalID, command contracts.Command) (model.PrincipalID, contracts.Command, []byte, error) {
+	normalizedPrincipalID, err := canonicalizePrincipal(principal)
 	if err != nil {
 		return "", contracts.Command{}, nil, err
 	}
+	if err := validateEnvelope(normalizedPrincipalID, command); err != nil {
+		return "", contracts.Command{}, nil, err
+	}
+
 	commandID, err := normalizeIdentifier("command ID", string(command.ID))
 	if err != nil {
 		return "", contracts.Command{}, nil, err
@@ -76,7 +86,7 @@ func normalizeCommandRequest(principal model.PrincipalID, command contracts.Comm
 		ExpectedRevision: normalizedRevision,
 		Payload:          canonicalJSON(normalizedPayload),
 	}
-	normalizedPrincipalID := model.PrincipalID(normalizedPrincipal)
+	normalizedPrincipal := string(normalizedPrincipalID)
 
 	identity := map[string]any{
 		"fingerprint_schema_version": persistence.FingerprintSchemaV1,

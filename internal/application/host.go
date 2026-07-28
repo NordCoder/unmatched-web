@@ -152,6 +152,10 @@ func (h *Host) Project(matchID model.MatchID, principal model.PrincipalID) (Play
 }
 
 func (h *Host) ProjectContext(ctx context.Context, matchID model.MatchID, principal model.PrincipalID) (PlayerProjection, error) {
+	principal, err := canonicalizePrincipal(principal)
+	if err != nil {
+		return PlayerProjection{}, err
+	}
 	state, err := h.StateContext(ctx, matchID)
 	if err != nil {
 		return PlayerProjection{}, err

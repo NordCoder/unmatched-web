@@ -26,6 +26,9 @@ func TestPostgresPersistenceCorrections(t *testing.T) {
 	t.Run("canonical identity survives reconstruction", func(t *testing.T) {
 		assertCanonicalIdentitySurvivesReconstruction(t, ctx, pool, registry)
 	})
+	t.Run("principal identity survives reconstruction", func(t *testing.T) {
+		assertPrincipalIdentitySurvivesReconstruction(t, ctx, pool, registry)
+	})
 	t.Run("saturated pool cannot deadlock command owner", func(t *testing.T) {
 		assertSaturatedPoolProgress(t, ctx, pool, registry)
 	})

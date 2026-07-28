@@ -31,6 +31,26 @@ broker or distributed lease system is introduced.
 Command results, event batches and events reject update/delete operations through
 append-only database triggers.
 
+## Principal identity boundary
+
+Authenticated principal identity is canonicalized at the application boundary
+before every authority-bearing operation. The boundary rejects an empty principal,
+rejects invalid UTF-8 and converts valid input to Unicode NFC exactly once.
+
+The resulting canonical `PrincipalID` is used consistently for:
+
+- command reservation scope and canonical command fingerprint identity;
+- create/join authority persistence;
+- lease-scoped authority reads during command preparation;
+- `Host.Project` and `Host.ProjectContext` authority lookup.
+
+Persistence adapters store and compare the canonical application-provided value;
+they do not apply a second normalization rule. The original non-NFC spelling is
+not persisted as an alias. Canonically equivalent spellings therefore identify
+one command principal and one authority binding, while a genuinely different
+normalized principal remains unauthorized. Invalid principals fail before command
+acquisition, state loading, authority lookup or any durable mutation.
+
 ## Single-writer and idempotency model
 
 A command uses a dedicated pooled PostgreSQL connection for its execution lease.
@@ -113,6 +133,7 @@ The test covers:
 ```text
 create + join durable match
 store and Host reconstruction
+NFC-equivalent principal authority before and after reconstruction
 same-request duplicate returns the original result
 conflicting duplicate has zero durable mutation
 deterministic rejection survives reconstruction
