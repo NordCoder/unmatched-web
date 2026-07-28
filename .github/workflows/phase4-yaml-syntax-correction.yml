@@ -33,6 +33,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p artifacts
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("docs/cards/phase-4a/geralt-of-rivia.yaml")
+          text = path.read_text(encoding="utf-8")
+          old = "    name: GEAR: Sword of Silver"
+          if text.count(old) != 1:
+              raise SystemExit(f"expected one Silver Sword scalar, found {text.count(old)}")
+          path.write_text(text.replace(old, '    name: "GEAR: Sword of Silver"'), encoding="utf-8")
+          PY
           set -o pipefail
           python scripts/apply_phase4_yaml_syntax_corrections.py 2>&1 | tee artifacts/phase4-yaml-correction.log
 
