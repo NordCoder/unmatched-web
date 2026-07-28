@@ -1,4 +1,4 @@
-name: Phase 4 YAML Syntax Correction
+name: Phase 4 YAML Correction Finalizer
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  apply-syntax-correction:
+  finalize-correction:
     if: github.event.pull_request.head.ref == 'phase-4-final-integration'
     runs-on: ubuntu-latest
     steps:
@@ -21,56 +21,27 @@ jobs:
           ref: phase-4-final-integration
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install migration dependency
-        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-
-      - name: Apply and validate syntax-only corrections
-        shell: bash
+      - name: Broaden requirement-definition parser and remove one-time tooling
         run: |
-          mkdir -p artifacts
           python - <<'PY'
           from pathlib import Path
-          path = Path("docs/cards/phase-4a/geralt-of-rivia.yaml")
-          text = path.read_text(encoding="utf-8")
-          names = [
-              "Sword of Silver",
-              "Wolf Medallion",
-              "Armor of the Forgotten Wolf",
-              "Blizzard",
-              "Tawny Owl",
-          ]
-          for name in names:
-              old = f"    name: GEAR: {name}"
-              if text.count(old) != 1:
-                  raise SystemExit(f"expected one unquoted GEAR scalar for {name}, found {text.count(old)}")
-              text = text.replace(old, f'    name: "GEAR: {name}"')
-          path.write_text(text, encoding="utf-8")
+
+          validator = Path("scripts/validate_phase4_corpus.py")
+          text = validator.read_text(encoding="utf-8")
+          old = 'REQ_PATTERN = re.compile(r"^[ \\t]*- id: ([ABCD]-REQ-\\d+)\\s*$", re.MULTILINE)'
+          new = 'REQ_PATTERN = re.compile(r"^(?:[ \\t]*- id:[ \\t]*`?|###[ \\t]+)([ABCD]-REQ-\\d+)(?:`|\\b)", re.MULTILINE)'
+          if text.count(old) != 1:
+              raise SystemExit(f"expected one legacy requirement pattern, found {text.count(old)}")
+          validator.write_text(text.replace(old, new), encoding="utf-8")
+
+          Path("scripts/apply_phase4_yaml_syntax_corrections.py").unlink()
+          Path(".github/workflows/phase4-yaml-syntax-correction.yml").unlink()
           PY
-          set -o pipefail
-          python scripts/apply_phase4_yaml_syntax_corrections.py 2>&1 | tee artifacts/phase4-yaml-correction.log
 
-      - name: Upload correction diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase4-yaml-correction-diagnostics
-          path: artifacts/phase4-yaml-correction.log
-          if-no-files-found: error
-
-      - name: Commit corrected manifests
+      - name: Commit finalizer changes
         run: |
-          # This commit is syntax-only; the migration validates every card YAML first.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/cards/phase-4a docs/cards/phase-4b
-          if git diff --cached --quiet; then
-            echo "No syntax corrections required."
-            exit 0
-          fi
-          git commit -m "fix: make integrated Phase 4 card YAML parseable"
+          git add -A
+          git commit -m "chore: finalize Phase 4 corpus validation tooling"
           git push origin HEAD:phase-4-final-integration
