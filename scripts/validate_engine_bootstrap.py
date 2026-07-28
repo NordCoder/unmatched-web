@@ -62,7 +62,12 @@ IMPLEMENTATION_SUFFIXES = {
     ".yaml",
     ".yml",
 }
-IMPLEMENTATION_EXCLUDED_ROOTS = {".git", "docs", "node_modules"}
+IMPLEMENTATION_ROOTS = (
+    "apps",
+    "internal",
+    "packages",
+    "tests/architecture",
+)
 IMPLEMENTATION_EXPLICIT_FILES = {
     ".env.example",
     ".gitignore",
@@ -72,6 +77,8 @@ IMPLEMENTATION_EXPLICIT_FILES = {
     "go.mod",
     "package-lock.json",
     "package.json",
+    "scripts/validate_engine_bootstrap.py",
+    "scripts/verify_postgres_persistence.sh",
 }
 
 IMPORT_RE = re.compile(r'^\s*(?:[._A-Za-z][._A-Za-z0-9]*\s+)?"([^"]+)"\s*$', re.MULTILINE)
@@ -261,19 +268,24 @@ def canonical_gameplay_identifiers(root: Path) -> set[str]:
 
 
 def implementation_source_files(root: Path):
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(root)
-        relative_text = relative.as_posix()
-        if relative_text in IMPLEMENTATION_EXPLICIT_FILES:
+    yielded: set[Path] = set()
+    for relative_text in sorted(IMPLEMENTATION_EXPLICIT_FILES):
+        path = root / relative_text
+        if path.is_file():
+            yielded.add(path)
             yield path
+
+    for relative_root in IMPLEMENTATION_ROOTS:
+        source_root = root / relative_root
+        if not source_root.exists():
             continue
-        if path.suffix not in IMPLEMENTATION_SUFFIXES:
-            continue
-        if relative.parts and relative.parts[0] in IMPLEMENTATION_EXCLUDED_ROOTS:
-            continue
-        yield path
+        for path in source_root.rglob("*"):
+            if not path.is_file() or path.suffix not in IMPLEMENTATION_SUFFIXES:
+                continue
+            if path in yielded:
+                continue
+            yielded.add(path)
+            yield path
 
 
 def contains_identifier(text: str, identifier: str) -> bool:
