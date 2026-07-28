@@ -63,7 +63,7 @@ EXPECTED_DECK_COUNTS = {
 }
 
 ALLOWED_CARD_TYPES = {"attack", "defense", "versatile", "scheme"}
-REQ_PATTERN = re.compile(r"^(?:[ \t]*- id:[ \t]*`?|###[ \t]+)([ABCD]-REQ-\d+)(?:`|\b)", re.MULTILINE)
+REQ_PATTERN = re.compile(r"^(?:(?=[ \t]*- id:[ \t]*`?[ACD]-REQ-\d+)|(?=###[ \t]+B-REQ-\d+))(?:[ \t]*- id:[ \t]*`?|###[ \t]+)([ABCD]-REQ-\d+)(?:`|\b)", re.MULTILINE)
 REF_PATTERN = re.compile(r"^(?:choice|result|operation|bound)\.([A-Za-z0-9_-]+)$")
 
 
