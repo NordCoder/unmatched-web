@@ -37,7 +37,17 @@ jobs:
       - name: Validator regression tests
         run: python -m unittest discover -s tests/architecture -p "test_*.py"
       - name: Validate bootstrap architecture
-        run: python scripts/validate_engine_bootstrap.py
+        run: |
+          set -o pipefail
+          python scripts/validate_engine_bootstrap.py 2>&1 | tee architecture-validation.log
+      - name: Upload architecture validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-validation-${{ github.sha }}
+          path: architecture-validation.log
+          if-no-files-found: error
+          retention-days: 7
 
   go:
     runs-on: ubuntu-latest
