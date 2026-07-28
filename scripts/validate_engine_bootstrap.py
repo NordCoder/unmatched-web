@@ -289,7 +289,7 @@ def implementation_source_files(root: Path):
 
 
 def contains_identifier(text: str, identifier: str) -> bool:
-    pattern = rf"(?<![a-z0-9]){re.escape(identifier)}(?![a-z0-9])"
+    pattern = rf"(?<![a-z0-9_-]){re.escape(identifier)}(?![a-z0-9_-])"
     return re.search(pattern, text) is not None
 
 

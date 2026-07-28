@@ -87,6 +87,12 @@ export const MatchEvent = { kind: "created" } as const;
         self.assertTrue(any("qa-sample-card" in error for error in errors))
         self.assertTrue(all("scripts/validate_engine_bootstrap.py" in error for error in errors))
 
+    def test_language_identifiers_do_not_match_gameplay_literals(self) -> None:
+        self.assertFalse(
+            validator.contains_identifier("from __future__ import annotations", "future")
+        )
+        self.assertTrue(validator.contains_identifier('CARD = "future"', "future"))
+
     def test_nested_effect_ids_do_not_expand_the_identity_boundary(self) -> None:
         self.write(
             "docs/cards/phase-4b/qa-sample.yaml",
