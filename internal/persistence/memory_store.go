@@ -3,78 +3,28 @@ package persistence
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
+	"strconv"
 	"sync"
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/model"
 )
 
-var (
-	ErrRevisionConflict  = errors.New("revision conflict")
-	ErrCommandConflict   = errors.New("command identity conflict")
-	ErrAuthorityConflict = errors.New("authority binding conflict")
-	ErrInvalidLease      = errors.New("invalid command lease")
-)
-
-const AuthorityActive = "ACTIVE"
-
-type CommandKey struct {
-	PrincipalID model.PrincipalID
-	CommandID   model.CommandID
-}
-
-type CommandRecord struct {
-	Fingerprint  []byte
-	Result       []byte
-	MatchID      model.MatchID
-	ErrorCode    string
-	ErrorMessage string
-}
-
-type CommandLease struct {
-	key   CommandKey
-	token uint64
-}
-
-type AuthorityRecord struct {
-	MatchID                model.MatchID
-	PlayerID               model.PlayerID
-	PrincipalID            model.PrincipalID
-	Seat                   int
-	BindingVersion         uint64
-	Status                 string
-	EstablishedByCommandID model.CommandID
-}
-
-type CommitRequest struct {
-	MatchID   model.MatchID
-	Batch     contracts.EventBatch
-	Result    []byte
-	Authority *AuthorityRecord
-}
-
-type EventStore interface {
-	AcquireCommand(ctx context.Context, key CommandKey, fingerprint []byte) (lease CommandLease, record CommandRecord, duplicate bool, err error)
-	Commit(lease CommandLease, request CommitRequest) (CommandRecord, error)
-	RejectCommand(lease CommandLease, matchID model.MatchID, code, message string) (CommandRecord, error)
-	AbortCommand(lease CommandLease)
-	Events(matchID model.MatchID) []contracts.DomainEvent
-	ResolveAuthority(matchID model.MatchID, principalID model.PrincipalID) (model.PlayerID, bool)
-}
-
 type stream struct {
-	revision uint64
-	events   []contracts.DomainEvent
+	revision      uint64
+	eventSequence uint64
+	definitionRef model.DefinitionRef
+	events        []contracts.DomainEvent
 }
 
 type commandEntry struct {
 	fingerprint []byte
 	record      *CommandRecord
 	done        chan struct{}
-	token       uint64
+	token       string
 }
 
 type authorityKey struct {
@@ -105,9 +55,11 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) AcquireCommand(ctx context.Context, key CommandKey, fingerprint []byte) (CommandLease, CommandRecord, bool, error) {
-	if key.PrincipalID == "" || key.CommandID == "" || len(fingerprint) == 0 {
-		return CommandLease{}, CommandRecord{}, false, ErrInvalidLease
+func (s *MemoryStore) AcquireCommand(ctx context.Context, identity CommandIdentity) (CommandLease, CommandRecord, bool, error) {
+	key := identity.Key
+	fingerprint := identity.Fingerprint
+	if err := validateCommandIdentity(identity); err != nil {
+		return CommandLease{}, CommandRecord{}, false, err
 	}
 	for {
 		s.mu.Lock()
@@ -117,10 +69,10 @@ func (s *MemoryStore) AcquireCommand(ctx context.Context, key CommandKey, finger
 			entry = &commandEntry{
 				fingerprint: append([]byte(nil), fingerprint...),
 				done:        make(chan struct{}),
-				token:       s.nextToken,
+				token:       strconv.FormatUint(s.nextToken, 10),
 			}
 			s.commands[key] = entry
-			lease := CommandLease{key: key, token: entry.token}
+			lease := CommandLease{key: key, token: entry.token, matchID: identity.MatchID, actorPlayerID: identity.ActorPlayerID, scope: identity.Scope, backend: s}
 			s.mu.Unlock()
 			return lease, CommandRecord{}, false, nil
 		}
@@ -138,14 +90,13 @@ func (s *MemoryStore) AcquireCommand(ctx context.Context, key CommandKey, finger
 
 		select {
 		case <-done:
-			// The owner committed, rejected, or aborted. Re-check the key.
 		case <-ctx.Done():
 			return CommandLease{}, CommandRecord{}, false, ctx.Err()
 		}
 	}
 }
 
-func (s *MemoryStore) Commit(lease CommandLease, request CommitRequest) (CommandRecord, error) {
+func (s *MemoryStore) Commit(_ context.Context, lease CommandLease, request CommitRequest) (CommandRecord, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -153,28 +104,24 @@ func (s *MemoryStore) Commit(lease CommandLease, request CommitRequest) (Command
 	if err != nil {
 		return CommandRecord{}, err
 	}
-	if request.Batch.CommandID != lease.key.CommandID {
-		return CommandRecord{}, fmt.Errorf("%w: batch command does not match lease", ErrInvalidLease)
+	if err := validateCommitRequest(lease, request); err != nil {
+		return CommandRecord{}, err
 	}
 
 	current := s.streams[request.MatchID]
-	var currentRevision uint64
+	var currentRevision, currentSequence uint64
 	if current != nil {
 		currentRevision = current.revision
+		currentSequence = current.eventSequence
+		if !reflect.DeepEqual(current.definitionRef, request.DefinitionRef) {
+			return CommandRecord{}, errors.New("pinned definition reference changed")
+		}
 	}
 	if currentRevision != request.Batch.PreviousRevision {
 		return CommandRecord{}, fmt.Errorf("%w: expected %d, current %d", ErrRevisionConflict, request.Batch.PreviousRevision, currentRevision)
 	}
-	if request.Batch.NextRevision != request.Batch.PreviousRevision+1 {
-		return CommandRecord{}, fmt.Errorf("invalid event batch revision transition %d -> %d", request.Batch.PreviousRevision, request.Batch.NextRevision)
-	}
-	if len(request.Batch.Events) == 0 {
-		return CommandRecord{}, errors.New("event batch is empty")
-	}
-	for _, event := range request.Batch.Events {
-		if event.MatchID != request.MatchID || event.Revision != request.Batch.NextRevision || event.CausedByCommand != request.Batch.CommandID {
-			return CommandRecord{}, errors.New("event metadata does not match batch")
-		}
+	if request.Batch.Events[0].Sequence != currentSequence+1 {
+		return CommandRecord{}, fmt.Errorf("event sequence must continue at %d", currentSequence+1)
 	}
 	if request.Authority != nil {
 		if err := s.validateAuthorityLocked(lease, request.MatchID, *request.Authority); err != nil {
@@ -183,11 +130,12 @@ func (s *MemoryStore) Commit(lease CommandLease, request CommitRequest) (Command
 	}
 
 	if current == nil {
-		current = &stream{}
+		current = &stream{definitionRef: cloneDefinitionRef(request.DefinitionRef)}
 		s.streams[request.MatchID] = current
 	}
 	current.events = append(current.events, cloneEvents(request.Batch.Events)...)
 	current.revision = request.Batch.NextRevision
+	current.eventSequence = request.Batch.Events[len(request.Batch.Events)-1].Sequence
 	if request.Authority != nil {
 		record := cloneAuthorityRecord(*request.Authority)
 		s.authorities[authorityKey{matchID: record.MatchID, principalID: record.PrincipalID}] = record
@@ -203,7 +151,7 @@ func (s *MemoryStore) Commit(lease CommandLease, request CommitRequest) (Command
 	return cloneCommandRecord(record), nil
 }
 
-func (s *MemoryStore) RejectCommand(lease CommandLease, matchID model.MatchID, code, message string) (CommandRecord, error) {
+func (s *MemoryStore) RejectCommand(_ context.Context, lease CommandLease, matchID model.MatchID, code, message string) (CommandRecord, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	entry, err := s.pendingEntryLocked(lease)
@@ -223,15 +171,23 @@ func (s *MemoryStore) RejectCommand(lease CommandLease, matchID model.MatchID, c
 	return cloneCommandRecord(record), nil
 }
 
-func (s *MemoryStore) AbortCommand(lease CommandLease) {
+func (s *MemoryStore) AbortCommand(_ context.Context, lease CommandLease) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if lease.backend != s {
+		return ErrInvalidLease
+	}
 	entry, ok := s.commands[lease.key]
 	if !ok || entry.token != lease.token || entry.record != nil {
-		return
+		return nil
 	}
 	delete(s.commands, lease.key)
 	close(entry.done)
+	return nil
+}
+
+func (s *MemoryStore) LoadEvents(_ context.Context, matchID model.MatchID) ([]contracts.DomainEvent, error) {
+	return s.Events(matchID), nil
 }
 
 func (s *MemoryStore) Events(matchID model.MatchID) []contracts.DomainEvent {
@@ -242,6 +198,11 @@ func (s *MemoryStore) Events(matchID model.MatchID) []contracts.DomainEvent {
 		return nil
 	}
 	return cloneEvents(current.events)
+}
+
+func (s *MemoryStore) ResolveAuthorityContext(_ context.Context, matchID model.MatchID, principalID model.PrincipalID) (model.PlayerID, bool, error) {
+	playerID, ok := s.ResolveAuthority(matchID, principalID)
+	return playerID, ok, nil
 }
 
 func (s *MemoryStore) ResolveAuthority(matchID model.MatchID, principalID model.PrincipalID) (model.PlayerID, bool) {
@@ -255,6 +216,9 @@ func (s *MemoryStore) ResolveAuthority(matchID model.MatchID, principalID model.
 }
 
 func (s *MemoryStore) pendingEntryLocked(lease CommandLease) (*commandEntry, error) {
+	if lease.backend != s {
+		return nil, ErrInvalidLease
+	}
 	entry, ok := s.commands[lease.key]
 	if !ok || entry.token != lease.token || entry.record != nil {
 		return nil, ErrInvalidLease
@@ -286,26 +250,66 @@ func (s *MemoryStore) completeEntryLocked(entry *commandEntry, record CommandRec
 	close(entry.done)
 }
 
-func cloneCommandRecord(record CommandRecord) CommandRecord {
-	record.Fingerprint = append([]byte(nil), record.Fingerprint...)
-	record.Result = append([]byte(nil), record.Result...)
-	return record
+func validateCommitRequest(lease CommandLease, request CommitRequest) error {
+	if len(request.Batch.Events) == 0 {
+		return errors.New("event batch is empty")
+	}
+	if request.MatchID == "" || request.Batch.CommandID != lease.key.CommandID || request.MatchID != request.Batch.Events[0].MatchID {
+		return fmt.Errorf("%w: commit identity does not match lease", ErrInvalidLease)
+	}
+	if lease.matchID != "" && request.MatchID != lease.matchID {
+		return fmt.Errorf("%w: committed match does not match reserved match", ErrInvalidLease)
+	}
+	if request.Batch.NextRevision != request.Batch.PreviousRevision+1 {
+		return fmt.Errorf("invalid event batch revision transition %d -> %d", request.Batch.PreviousRevision, request.Batch.NextRevision)
+	}
+	if len(request.Result) == 0 {
+		return errors.New("command result is empty")
+	}
+	if request.DefinitionRef.RulesetVersion == "" || request.DefinitionRef.CapabilityRegistry == "" {
+		return errors.New("pinned definition reference is incomplete")
+	}
+	var previousSequence uint64
+	for index, event := range request.Batch.Events {
+		if event.MatchID != request.MatchID || event.Revision != request.Batch.NextRevision || event.CausedByCommand != request.Batch.CommandID {
+			return errors.New("event metadata does not match batch")
+		}
+		if event.ID == "" || event.SchemaVersion == "" || event.Type == "" || event.RulesetVersion == "" {
+			return errors.New("event envelope is incomplete")
+		}
+		if index > 0 && event.Sequence != previousSequence+1 {
+			return errors.New("event sequence inside batch is not contiguous")
+		}
+		previousSequence = event.Sequence
+	}
+	return nil
 }
 
-func cloneAuthorityRecord(record AuthorityRecord) AuthorityRecord { return record }
+func validateCommandIdentity(identity CommandIdentity) error {
+	if identity.Key.PrincipalID == "" || identity.Key.CommandID == "" || len(identity.Fingerprint) == 0 {
+		return ErrInvalidLease
+	}
+	switch identity.Scope {
+	case CommandScopeCreateMatch, CommandScopeJoinMatch, CommandScopeExistingSeat:
+		return nil
+	default:
+		return fmt.Errorf("%w: unknown command scope", ErrInvalidLease)
+	}
+}
 
-func cloneEvents(events []contracts.DomainEvent) []contracts.DomainEvent {
-	result := make([]contracts.DomainEvent, len(events))
-	for index, event := range events {
-		event.PublicPayload = append([]byte(nil), event.PublicPayload...)
-		if event.PrivatePayloads != nil {
-			payloads := make(map[model.PlayerID]json.RawMessage, len(event.PrivatePayloads))
-			for playerID, payload := range event.PrivatePayloads {
-				payloads[playerID] = append([]byte(nil), payload...)
-			}
-			event.PrivatePayloads = payloads
-		}
-		result[index] = event
+func cloneDefinitionRef(ref model.DefinitionRef) model.DefinitionRef {
+	ref.FighterManifestDigests = cloneStringMap(ref.FighterManifestDigests)
+	ref.CardManifestDigests = cloneStringMap(ref.CardManifestDigests)
+	return ref
+}
+
+func cloneStringMap(source map[string]string) map[string]string {
+	if source == nil {
+		return nil
+	}
+	result := make(map[string]string, len(source))
+	for key, value := range source {
+		result[key] = value
 	}
 	return result
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func (h *Host) prepareStartAction(ctx context.Context, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
-	state, playerID, err := h.loadAndAuthorize(principal, command, true)
+	state, playerID, err := h.loadAndAuthorize(ctx, principal, command, true)
 	if err != nil {
 		return preparedCommand{}, err
 	}
@@ -75,7 +75,7 @@ func (h *Host) prepareStartAction(ctx context.Context, principal model.Principal
 }
 
 func (h *Host) prepareSubmitChoice(ctx context.Context, principal model.PrincipalID, command contracts.Command) (preparedCommand, error) {
-	state, playerID, err := h.loadAndAuthorize(principal, command, true)
+	state, playerID, err := h.loadAndAuthorize(ctx, principal, command, true)
 	if err != nil {
 		return preparedCommand{}, err
 	}

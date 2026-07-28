@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/model"
 	"github.com/NordCoder/unmatched-web/internal/persistence"
 	coreruntime "github.com/NordCoder/unmatched-web/internal/runtime"
 )
+
+const commandCleanupTimeout = 5 * time.Second
 
 type preparedCommand struct {
 	matchID   model.MatchID
@@ -28,8 +31,12 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 	if err != nil {
 		return CommandResult{}, internalError("fingerprint command", err)
 	}
-	key := persistence.CommandKey{PrincipalID: principal, CommandID: command.ID}
-	lease, existing, duplicate, err := h.store.AcquireCommand(ctx, key, fingerprint)
+	identity := persistence.CommandIdentity{
+		Key:         persistence.CommandKey{PrincipalID: principal, CommandID: command.ID},
+		Fingerprint: fingerprint, MatchID: command.MatchID,
+		ActorPlayerID: command.ActorPlayerID, Scope: commandScope(command.Type),
+	}
+	lease, existing, duplicate, err := h.store.AcquireCommand(ctx, identity)
 	if err != nil {
 		if errors.Is(err, persistence.ErrCommandConflict) {
 			return CommandResult{}, opError(CodeCommandConflict, "command ID was already used with different input")
@@ -42,8 +49,13 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 
 	finished := false
 	defer func() {
-		if !finished {
-			h.store.AbortCommand(lease)
+		if finished {
+			return
+		}
+		cleanupContext, cancel := context.WithTimeout(context.WithoutCancel(ctx), commandCleanupTimeout)
+		defer cancel()
+		if abortErr := h.store.AbortCommand(cleanupContext, lease); abortErr != nil && err == nil {
+			err = internalError("abort command reservation", abortErr)
 		}
 	}()
 
@@ -52,7 +64,7 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 		if !errors.As(cause, &operational) || operational.Code == CodeInternal {
 			return CommandResult{}, cause
 		}
-		if _, rejectErr := h.store.RejectCommand(lease, command.MatchID, operational.Code, operational.Message); rejectErr != nil {
+		if _, rejectErr := h.store.RejectCommand(ctx, lease, command.MatchID, operational.Code, operational.Message); rejectErr != nil {
 			return CommandResult{}, internalError("persist command rejection", rejectErr)
 		}
 		finished = true
@@ -80,8 +92,12 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 	if err != nil {
 		return CommandResult{}, internalError("encode command result", err)
 	}
-	_, err = h.store.Commit(lease, persistence.CommitRequest{
-		MatchID: prepared.matchID, Batch: batch, Result: encoded, Authority: prepared.authority,
+	_, err = h.store.Commit(ctx, lease, persistence.CommitRequest{
+		MatchID:       prepared.matchID,
+		DefinitionRef: state.Game.DefinitionRef,
+		Batch:         batch,
+		Result:        encoded,
+		Authority:     prepared.authority,
 	})
 	if err != nil {
 		switch {
@@ -98,7 +114,14 @@ func (h *Host) Execute(ctx context.Context, principal model.PrincipalID, command
 }
 
 func (h *Host) State(matchID model.MatchID) (coreruntime.HostedState, error) {
-	events := h.store.Events(matchID)
+	return h.StateContext(context.Background(), matchID)
+}
+
+func (h *Host) StateContext(ctx context.Context, matchID model.MatchID) (coreruntime.HostedState, error) {
+	events, err := h.store.LoadEvents(ctx, matchID)
+	if err != nil {
+		return coreruntime.HostedState{}, internalError("load match events", err)
+	}
 	if len(events) == 0 {
 		return coreruntime.HostedState{}, opError(CodeNotFound, "match was not found")
 	}
@@ -110,11 +133,18 @@ func (h *Host) State(matchID model.MatchID) (coreruntime.HostedState, error) {
 }
 
 func (h *Host) Project(matchID model.MatchID, principal model.PrincipalID) (PlayerProjection, error) {
-	state, err := h.State(matchID)
+	return h.ProjectContext(context.Background(), matchID, principal)
+}
+
+func (h *Host) ProjectContext(ctx context.Context, matchID model.MatchID, principal model.PrincipalID) (PlayerProjection, error) {
+	state, err := h.StateContext(ctx, matchID)
 	if err != nil {
 		return PlayerProjection{}, err
 	}
-	playerID, ok := h.store.ResolveAuthority(matchID, principal)
+	playerID, ok, err := h.store.ResolveAuthorityContext(ctx, matchID, principal)
+	if err != nil {
+		return PlayerProjection{}, internalError("resolve principal authority", err)
+	}
 	if !ok {
 		return PlayerProjection{}, opError(CodeUnauthorized, "principal is not bound to this match")
 	}
@@ -126,13 +156,24 @@ func (h *Host) prepare(ctx context.Context, principal model.PrincipalID, command
 	case CommandCreateMatch:
 		return h.prepareCreate(principal, command)
 	case CommandJoinMatch:
-		return h.prepareJoin(principal, command)
+		return h.prepareJoin(ctx, principal, command)
 	case CommandStartAction:
 		return h.prepareStartAction(ctx, principal, command)
 	case CommandSubmitChoice:
 		return h.prepareSubmitChoice(ctx, principal, command)
 	default:
 		return preparedCommand{}, opError(CodeInvalidCommand, "unsupported command type")
+	}
+}
+
+func commandScope(commandType string) persistence.CommandScope {
+	switch commandType {
+	case CommandCreateMatch:
+		return persistence.CommandScopeCreateMatch
+	case CommandJoinMatch:
+		return persistence.CommandScopeJoinMatch
+	default:
+		return persistence.CommandScopeExistingSeat
 	}
 }
 

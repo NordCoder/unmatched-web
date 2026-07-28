@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -50,18 +51,21 @@ func (h *Host) buildBatch(command contracts.Command, prepared preparedCommand) (
 	}, state, nil
 }
 
-func (h *Host) loadAndAuthorize(principal model.PrincipalID, command contracts.Command, requireActor bool) (coreruntime.HostedState, model.PlayerID, error) {
+func (h *Host) loadAndAuthorize(ctx context.Context, principal model.PrincipalID, command contracts.Command, requireActor bool) (coreruntime.HostedState, model.PlayerID, error) {
 	if command.MatchID == "" {
 		return coreruntime.HostedState{}, "", opError(CodeInvalidCommand, "match ID is required")
 	}
-	state, err := h.State(command.MatchID)
+	state, err := h.StateContext(ctx, command.MatchID)
 	if err != nil {
 		return coreruntime.HostedState{}, "", err
 	}
 	if err := checkExpectedRevision(command, state.Game.Revision); err != nil {
 		return coreruntime.HostedState{}, "", err
 	}
-	playerID, ok := h.store.ResolveAuthority(command.MatchID, principal)
+	playerID, ok, err := h.store.ResolveAuthorityContext(ctx, command.MatchID, principal)
+	if err != nil {
+		return state, "", internalError("resolve principal authority", err)
+	}
 	if !ok {
 		return state, "", opError(CodeUnauthorized, "principal is not bound to this match")
 	}
