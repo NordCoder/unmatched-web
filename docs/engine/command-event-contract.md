@@ -3,15 +3,16 @@
 ## Status
 
 ```text
-status: draft-foundation
+status: normative-foundation
 parent_issue: #19
-correction_issue: #32
+correction_round_1: #32
+correction_round_2: #35
 architecture: architecture-contract.md
 state_model: state-model.md
 fixture_contract: deterministic-fixture-contract.md
 ```
 
-This contract defines the language-neutral transaction boundary between authenticated external principals, the authoritative command handler, durable authority/idempotency records and persisted match history.
+This contract defines the language-neutral transaction boundary between authenticated principals, command processing, immutable idempotency records, authority records and persisted gameplay events.
 
 ## 1. Identity vocabulary
 
@@ -21,9 +22,9 @@ This contract defines the language-neutral transaction boundary between authenti
 - `command_id` — client-generated retry identity scoped with the authenticated principal;
 - `match_id` — server-allocated match identity.
 
-A client cannot establish authority by sending a `principal_id` or `player_instance_id`. The server authenticates the principal and validates the durable principal-to-player binding.
+Clients cannot establish authority by supplying a principal or player identity. Existing-seat commands are authorized only after the server resolves an active durable principal-to-player binding.
 
-## 2. Common command request
+## 2. Command envelope
 
 ```yaml
 CommandRequest:
@@ -31,134 +32,104 @@ CommandRequest:
   command_schema_version:
   type:
   payload: {}
-  match_id: null
-  actor_player_id: null
-  expected_revision: null
+  match_id:        # omitted when forbidden by the command schema
+  actor_player_id: # omitted when forbidden by the command schema
+  expected_revision:
   client_metadata:
     client_instance_id:
     submitted_at:
     trace_id:
 ```
 
-`principal_id` is not a payload field; it is attached by the trusted authentication boundary.
-
-Client metadata is diagnostic and excluded from gameplay validation, normalized request identity and gameplay ordering.
-
-Lifecycle-specific requirements are:
+`principal_id` is attached by the trusted authentication boundary and is not a payload field. Client metadata is excluded from gameplay validation, request fingerprinting and gameplay ordering.
 
 | Scope | `match_id` | `actor_player_id` | `expected_revision` |
 | --- | --- | --- | --- |
-| `CreateMatch` | absent | absent | absent |
-| `JoinMatch` | required | absent | required |
-| Existing-seat commands | required | required | required |
+| `CreateMatch` | omitted | omitted | omitted |
+| `JoinMatch` | required | omitted | required |
+| existing-seat commands | required | required | required |
 
-A schema version must define whether absence is represented by omission or explicit `null`. Canonical normalization converts the accepted representation into the same explicit absent marker.
+For schema v1, omitted and JSON `null` are distinct. A forbidden or absent optional field is omitted; `null` is accepted only where the command schema explicitly permits it.
 
 ## 3. Lifecycle authorization
 
-### 3.1 CreateMatch
+### 3.1 `CreateMatch`
 
-`CreateMatch` establishes a new match and first seat. It requires an authenticated principal but no pre-existing match or player instance.
-
-Validation/transaction order:
-
-1. parse the envelope sufficiently to identify schema version, type and command ID;
+1. parse the envelope enough to identify schema, type and command ID;
 2. authenticate the principal;
-3. normalize the request and compute the fingerprint;
-4. lookup `(principal_id, command_id)` idempotency record;
-5. validate creation policy and normalized payload;
-6. allocate `match_id` and first `player_instance_id` through deterministic/injected providers;
-7. produce `MatchCreated` and first-seat `PlayerJoined` events;
-8. atomically persist authority binding, idempotency result, event batch and match head.
+3. normalize the request and compute its fingerprint;
+4. perform idempotency lookup for `(principal_id, command_id)`;
+5. validate creation policy and payload;
+6. allocate match/player IDs through deterministic or injected providers;
+7. produce `MatchCreated` and first-seat `PlayerJoined`;
+8. atomically persist authority binding, immutable command result, event batch and match head.
 
-A successful result returns the allocated match/player identities. They are result data, not client claims.
+No pre-existing match or player instance is required.
 
-### 3.2 JoinMatch
+### 3.2 `JoinMatch`
 
-`JoinMatch` authenticates an external principal and assigns a new match-scoped player instance before membership-only validation can apply.
-
-Validation/transaction order:
-
-1. parse and authenticate the principal;
-2. normalize target `match_id`, expected revision and payload;
-3. lookup idempotency record;
-4. load match and validate revision/lifecycle/join policy;
+1. parse and authenticate;
+2. normalize target match, expected revision and payload;
+3. perform idempotency lookup;
+4. load the match and validate revision/lifecycle/join policy;
 5. reject an incompatible existing principal or seat binding;
-6. allocate `player_instance_id` and seat;
-7. produce `PlayerJoined` event;
-8. atomically persist authority binding, idempotency result, event batch and match head.
+6. allocate the new match-scoped player identity and seat;
+7. produce `PlayerJoined`;
+8. atomically persist authority binding, immutable command result, event batch and match head.
 
-The joining client does not provide `actor_player_id`.
+The joining request does not contain `actor_player_id`.
 
 ### 3.3 Existing-seat commands
 
-For selection, setup, gameplay, interaction and concession commands:
+1. parse and authenticate;
+2. normalize and fingerprint;
+3. perform idempotency lookup;
+4. resolve exact `(principal_id, match_id, actor_player_id)` authority;
+5. validate revision, lifecycle and pending-interaction authority;
+6. validate legality, ownership, visibility, costs and command-specific invariants;
+7. produce either one deterministic rejection or one accepted event batch;
+8. persist the result atomically.
 
-1. parse and authenticate the principal;
-2. normalize the request and compute the fingerprint;
-3. lookup idempotency record;
-4. resolve exact `(principal_id, match_id, actor_player_id)` authority binding;
-5. validate expected revision;
-6. validate lifecycle and pending-interaction authority;
-7. validate legal action/target domain, source, zone, ownership, visibility, costs and command-specific invariants;
-8. produce a deterministic accepted batch or deterministic rejection;
-9. atomically persist the result.
+A client-supplied `actor_player_id` is only a claimed runtime reference until step 4 succeeds.
 
-A client-supplied `actor_player_id` is a claimed runtime reference until step 4 succeeds.
+## 4. Canonical request identity
 
-## 4. Canonical normalization and request fingerprint
-
-### 4.1 Fingerprint input
-
-The idempotency store key is:
+The idempotency key is:
 
 ```text
 (principal_id, command_id)
 ```
 
-Its record contains `fingerprint_schema_version` and a fingerprint over:
+The immutable record stores a versioned fingerprint over:
 
 ```yaml
 NormalizedCommandIdentity:
   fingerprint_schema_version:
   principal_id:
   lifecycle_scope: create_match | join_match | existing_seat
-  match_id: <value-or-explicit-absent>
-  actor_player_id: <value-or-explicit-absent>
+  match_id: <value-or-explicit-absent-marker>
+  actor_player_id: <value-or-explicit-absent-marker>
   command_schema_version:
   type:
   normalized_payload: {}
   expected_revision_policy: absent | exact
-  expected_revision: <value-or-explicit-absent>
+  expected_revision: <value-or-explicit-absent-marker>
 ```
 
-Excluded fields:
+Normalization:
 
-- client timestamps;
-- transport/session/client identifiers;
-- trace IDs;
-- retry count;
-- network address;
-- authentication token bytes;
-- server receipt time.
+- rejects unknown or duplicate fields;
+- applies schema-defined defaults before hashing;
+- preserves array order;
+- normalizes all strings and object keys to Unicode NFC;
+- rejects invalid Unicode and NFC-created duplicate keys;
+- permits only schema-declared safe-range integers;
+- uses RFC 8785 JCS bytes followed by SHA-256;
+- consumes no RNG and mutates no state.
 
-The initial fingerprint is lowercase `sha256` over canonical UTF-8 JSON bytes as defined in `deterministic-fixture-contract.md`. Fingerprint schema changes require a new explicit version and compatibility reader; existing records are never silently rehashed under different rules.
+The precise canonicalization contract and vectors are in `deterministic-fixture-contract.md` and `fixtures/foundation-v1.json`.
 
-### 4.2 Payload normalization
-
-Normalization occurs before gameplay validation and must be deterministic:
-
-- reject unknown fields unless the command schema explicitly permits them;
-- apply schema-defined defaults before hashing;
-- normalize enums and identifiers to their canonical exact representation;
-- preserve array order where semantically meaningful;
-- canonicalize unordered sets as sorted unique arrays only when the schema declares set semantics;
-- do not resolve hidden/current game facts into the payload fingerprint;
-- do not consume RNG or mutate state.
-
-Structurally unparseable or unauthenticated requests cannot form a principal-scoped durable idempotency record.
-
-## 5. Idempotency record and duplicate behavior
+## 5. Immutable idempotency record
 
 ```yaml
 CommandIdempotencyRecord:
@@ -167,66 +138,77 @@ CommandIdempotencyRecord:
   fingerprint_schema_version:
   request_fingerprint:
   lifecycle_scope:
-  match_id: null
-  actor_player_id: null
+  match_id:
+  actor_player_id:
   result_schema_version:
   result:
   committed_at_operational:
 ```
 
-`committed_at_operational` is audit metadata and is excluded from deterministic gameplay state.
+Exactly one immutable record may exist per `(principal_id, command_id)`.
 
-For the same `(principal_id, command_id)`:
+### 5.1 Same fingerprint
 
-### Same fingerprint
+Return the original durable semantic result:
 
-Return the exact durable semantic result of the first committed request:
+- accepted results return the same allocated IDs, revision and event range;
+- rejected results return the same rejection;
+- no validation, execution, RNG, ID allocation or new event batch occurs;
+- delivery may be marked `duplicate`.
 
-- accepted result returns the same allocated IDs, accepted revision and event sequence range;
-- rejected result returns the same rejection code and projection revision where applicable;
-- no validation, state mutation, RNG use or second event batch occurs;
-- response status may be represented as `duplicate`, but the embedded semantic result is identical.
+### 5.2 Different fingerprint: derived collision
 
-### Different fingerprint
+When the key exists but the presented fingerprint differs:
 
-Return `DUPLICATE_CONFLICT`:
+1. return a derived `DUPLICATE_CONFLICT` response;
+2. do not execute or validate the conflicting request beyond collision detection;
+3. do not create a second command-result or idempotency record;
+4. do not modify the original record;
+5. disclose none of the original payload, fingerprint, result or private data;
+6. emit no gameplay event and change no revision or sequence;
+7. classify repeated conflicting retries identically.
 
-- do not execute the incoming request;
-- do not expose the prior request payload or private result;
-- do not return an unrelated accepted result as if it belonged to the conflicting request;
-- emit no gameplay event;
-- keep the original idempotency record unchanged.
+This response is outside the durable-terminal-result rule because the command identity is already occupied by another normalized request. An optional security audit entry is operational only and is not a command result or deterministic evidence.
 
-### Non-results
+### 5.3 Results and non-results
 
-Infrastructure/transaction failures before durable commit are not command results and create no idempotency record. Retrying the same request may execute once.
+After authentication and successful canonical normalization, a new unoccupied command identity records exactly one accepted or deterministic rejected result.
 
-Authentication failure and structurally unparseable schema failure are not durably recorded in the principal command namespace because no trusted normalized principal/request identity exists. They may appear in protected operational audit logs.
+The following create no command-result record:
 
-After authentication and successful canonical normalization, every terminal accepted or deterministic rejected result is durably recorded. This includes membership, stale revision, lifecycle, legality, ownership, hidden-information and cost rejections. No such rejection is optionally re-evaluated under the same command ID.
+- authentication failure without trusted principal identity;
+- structurally unparseable input without a canonical fingerprint;
+- infrastructure or transaction failure before commit;
+- `DUPLICATE_CONFLICT`, which is derived from the occupied key.
 
-## 6. Command result
+## 6. Response classes
 
 ```yaml
-CommandResult:
-  result_schema_version:
+CommandResponse:
+  response_class: durable_result | derived_collision
   command_id:
-  delivery_status: first | duplicate
+  delivery_status: first | duplicate | collision
   semantic_status: accepted | rejected
-  match_id: null
-  actor_player_id: null
-  accepted_revision: null
-  event_sequence_range: null
-  rejection_code: null
-  projection_revision: null
+  match_id:
+  actor_player_id:
+  accepted_revision:
+  event_sequence_range:
+  rejection_code:
+  projection_revision:
   allocated_runtime_ids: {}
 ```
 
-`delivery_status: duplicate` does not change the semantic result. A conflict uses a rejected semantic result with `DUPLICATE_CONFLICT` and no prior private payload.
+Allowed combinations:
 
-## 7. Initial command catalog
+- `durable_result / first` — newly committed accepted or rejected result;
+- `durable_result / duplicate` — replay of the immutable original result;
+- `derived_collision / collision` — non-persisted `DUPLICATE_CONFLICT`.
 
-### Match lifecycle
+A derived collision never embeds the original semantic result.
+
+## 7. Command families
+
+Lifecycle:
 
 ```text
 CreateMatch
@@ -237,9 +219,7 @@ ConfirmSetup
 Concede
 ```
 
-Only `CreateMatch` and `JoinMatch` use lifecycle envelopes without an existing actor player instance. All other commands require a validated seat binding.
-
-### Turn/action
+Turn/action:
 
 ```text
 StartManeuver
@@ -250,7 +230,7 @@ DeclareAttack
 ChooseDefense
 ```
 
-### Interaction
+Interaction:
 
 ```text
 SubmitChoice
@@ -258,7 +238,7 @@ SubmitCommittedChoice
 DeclineOptionalChoice
 ```
 
-Each gameplay command references runtime instance IDs or revision-scoped legal-action descriptor IDs. It does not send arbitrary rules expressions or computed damage/legality claims from the client.
+Gameplay commands reference runtime instance IDs or revision-scoped legal-action IDs, never arbitrary rules expressions or client-computed damage.
 
 ## 8. Legal-action descriptors
 
@@ -276,9 +256,7 @@ LegalActionDescriptor:
   ui_metadata:
 ```
 
-The application layer validates principal-to-player authority before requesting descriptors. `legal_action_id` is scoped to revision and actor. The server regenerates or validates legality on command acceptance.
-
-UI metadata contains only projection-safe labels, icons or definition references. It is not executable behavior and cannot reveal hidden reasons an alternative is illegal.
+Descriptors are projection-safe facts. The server regenerates or validates legality on acceptance.
 
 ## 9. Event envelope
 
@@ -289,22 +267,20 @@ DomainEvent:
   match_id:
   sequence:
   revision:
-  type:
+  event_type:
   caused_by_command_id:
-  parent_event_id:
-  source_ref:
+  parent_event_id: # omitted when absent
+  source_ref:      # omitted when absent
   ruleset_version:
   public_payload: {}
-  private_payloads: {}
+  private_payloads_by_player: {}
 ```
 
-Private payloads are keyed by authorized `player_instance_id` values and stored durably. Principal/session identities are not gameplay payload owners and need not appear in events.
+Every exact fixture event supplies every mandatory field. Empty payloads are explicit `{}`. Optional fields are omitted rather than set to `null` unless their schema permits `null`.
 
-A public replay/export does not concatenate private payloads by default.
+Private payloads are keyed by authorized `player_instance_id`. Principal/session identities are not gameplay payload owners.
 
-## 10. Event batch and lifecycle atomicity
-
-One accepted command produces an ordered batch:
+## 10. Event batches
 
 ```yaml
 EventBatch:
@@ -314,16 +290,15 @@ EventBatch:
   first_sequence:
   last_sequence:
   events: []
-  terminal_projection_hints: []
 ```
 
-The batch is atomically persisted with the command result and match head. Lifecycle commands additionally persist required authority-record changes in the same application transaction.
+One accepted command commits one ordered atomic batch together with its command result and match head. Lifecycle batches also commit authority changes.
 
-Internal deterministic continuation should resolve in the same transaction until external input is required. A separate system continuation identity is allowed only when the match cannot be externally observed between logically atomic steps and the continuation remains replay/idempotency safe.
+Every event is explicit. Reducers cannot emit additional persisted events or infer undocumented state changes as side effects.
 
 ## 11. Event families
 
-### Match/setup
+Setup:
 
 ```text
 MatchCreated
@@ -337,9 +312,7 @@ SetupPlacementEstablished
 MatchStarted
 ```
 
-`MatchCreated` and `PlayerJoined` contain match-scoped runtime identities and public gameplay facts. They do not expose external principal identity or session data. The corresponding authority bindings are application/security records committed atomically with the event batch.
-
-### Turn/action
+Turn/action:
 
 ```text
 TurnStarted
@@ -351,7 +324,7 @@ TurnEndRequested
 TurnEnded
 ```
 
-### Card/zone
+Card/zone:
 
 ```text
 CardMoved
@@ -364,52 +337,13 @@ CardAttached
 CardControlChanged
 ```
 
-### Movement/battlefield
-
-```text
-MovementPathCommitted
-FighterMovedStep
-FighterPlaced
-MovementInterrupted
-ComponentDeployed
-ComponentMoved
-ConnectionStateChanged
-SpaceLocked
-```
-
-`ConnectionStateChanged` means a gameplay battlefield connection/path state change. It never means network/session connectivity.
-
-### Combat
-
-```text
-AttackDeclared
-DefenseCommitted
-NoDefenseChosen
-CombatCardsRevealed
-CombatParticipantReplaced
-CombatCardReplaced
-CombatValueChanged
-CombatDamageCalculated
-CombatEnded
-```
-
-### Damage/health
-
-```text
-DamageProposed
-DamagePrevented
-DamageRedirected
-DamageApplied
-HealthAssigned
-HealthRecovered
-FighterDefeated
-```
-
-### Effect/choice
+Effect/choice:
 
 ```text
 EffectQueued
 EffectStageStarted
+EffectStageChanged
+EffectDequeued
 InteractionOpened
 ChoiceSubmitted
 CommittedChoicesRevealed
@@ -420,41 +354,23 @@ DelayedObligationCreated
 DelayedObligationExpired
 ```
 
-### Random/audit/result
+Other existing combat, movement, health, random and game-result families remain permitted under versioned schemas. `ConnectionStateChanged` is reserved for a gameplay battlefield connection/path and never represents network presence.
 
-```text
-RandomResultEstablished
-GameEnded
-MatchQuarantined
-```
+## 12. Choice and replay sufficiency
 
-Names are provisional where Phase 4C has not frozen payload semantics. Envelope, identity, replay, visibility and idempotency rules are normative.
+A choice command identifies the interaction, choice and ordered selected values. The server validates ownership, cardinality, legal domain and visibility.
 
-## 12. Choice commands
+Persisted events must contain enough information to replay every state transition. For the normative snapshot-tail fixture this includes:
 
-A choice command contains:
+- selected values in authorized private payload;
+- complete card source/destination positions and resulting face state;
+- interaction closure;
+- effect stage/status change;
+- queue removal;
+- explicit `ActionCompleted`;
+- envelope-driven revision and history cursor progression.
 
-```yaml
-interaction_instance_id:
-choice_id:
-selected_values: []
-```
-
-The server checks current interaction identity, actor ownership, cardinality/distinctness, authoritative legal domain, required order, visibility and optional-decline permission.
-
-A choice result event persists selected runtime instance IDs and any authorized hidden payload. Reconnect resumes the same interaction ID and cursor; connectivity creates no replacement interaction.
-
-## 13. Movement and attack commands
-
-The client submits an ordered path of stable space IDs for movement. The server validates the complete path and may resolve it stepwise to permit entry-trigger interruptions.
-
-`MOVE` traverses a path; `PLACE` establishes a destination without implied traversal.
-
-`DeclareAttack` references attacker, defender, attack card and legal action ID. The server derives attack type, range policy, target legality, card usability and cost. The client does not submit damage or claim range.
-
-`ChooseDefense` references the current combat interaction and one legal defense card instance or an explicit no-defense choice.
-
-## 14. Rejection model
+## 13. Rejections
 
 Stable categories include:
 
@@ -477,43 +393,35 @@ DUPLICATE_CONFLICT
 MATCH_QUARANTINED
 ```
 
-Player-facing details must not leak hidden state or prior conflicting request payloads. Protected diagnostic detail belongs in operational logs.
+Errors must not leak hidden state or prior conflicting request data.
 
-`INVALID_SCHEMA` may be durably recorded only when authentication succeeded and canonical normalization completed sufficiently to establish the exact request fingerprint. Unparseable input is not recorded in the command namespace.
-
-## 15. Event application
+## 14. Event application
 
 ```text
 apply(GameState, DomainEvent) -> GameState
 ```
 
-The reducer is pure and deterministic. It cannot query external services, authority/presence registries, consume RNG, depend on wall-clock time, inspect binary assets, branch on fighter/card IDs or emit additional persisted events as an implicit side effect.
+The reducer is pure and deterministic. It cannot query services, consume RNG, depend on wall-clock time, inspect assets, branch on fighter/card IDs or create implicit persisted events.
 
-Event generation and effect resolution decide which events exist; application only applies recorded results.
+## 15. Compatibility and required evidence
 
-## 16. Compatibility and persistence
+Command, fingerprint, result and event schemas are independently versioned. Migrations preserve semantic replay or old readers remain available.
 
-- command schemas are versioned at the trust boundary;
-- fingerprint schemas are versioned independently and retained for old idempotency records;
-- command-result schemas are durable and versioned;
-- event schemas are versioned for replay;
-- definition/capability versions are stored with matches/events;
-- migrations preserve semantic replay or retain old readers;
-- renaming or reinterpreting a durable event without migration is incompatible.
+Normative artifacts:
 
-## 17. Required deterministic evidence
+```text
+docs/engine/fixtures/schema-v1.json
+docs/engine/fixtures/foundation-v1.json
+docs/engine/fixtures/foundation-v1-transition-audit.json
+```
 
-Fixtures under `deterministic-fixture-contract.md` must prove:
+They prove:
 
-- create and join require no pre-existing runtime player identity;
-- later commands require exact principal-to-seat binding;
-- same command ID and same fingerprint return the same durable result without duplicate events;
-- same command ID and different fingerprint return `DUPLICATE_CONFLICT` without execution;
-- deterministic rejections are stable under retry;
-- stale revision and illegal commands emit no gameplay event;
-- event sequences are total and gap-free;
-- persisted batches reproduce expected state hashes;
-- private payloads never appear in unauthorized projections/errors;
-- reconnect resumes the exact pending interaction;
-- random results and shuffled order are replayed, not regenerated;
-- fighter/card behavior dispatches through generic operations rather than identity checks.
+- lifecycle creation without pre-existing runtime identity;
+- same-key/same-fingerprint replay;
+- same-key/different-fingerprint derived collision with one immutable record;
+- duplicate-key rejection and NFC/JCS vectors;
+- isolated provider resets;
+- full event envelopes;
+- snapshot plus contiguous tail equality;
+- explicit action completion and projection equality.
