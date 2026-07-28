@@ -23,6 +23,7 @@ jobs:
 
       - name: Update roadmap and documentation map
         run: |
+          # The workflow self-deletes after applying the documentation-only update.
           python - <<'PY'
           from pathlib import Path
 
