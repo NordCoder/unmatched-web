@@ -6,11 +6,21 @@ import (
 
 	"github.com/NordCoder/unmatched-web/internal/domain/contracts"
 	"github.com/NordCoder/unmatched-web/internal/domain/effects"
+	"github.com/NordCoder/unmatched-web/internal/domain/operations"
 	"github.com/NordCoder/unmatched-web/internal/domain/query"
 )
 
+const actorPlayerIDBinding = "actor_player_id"
+
+var trustedHostBindingSpecs = map[string]query.ValueSpec{
+	actorPlayerIDBinding: {Type: query.TypePlayer, Visibility: query.Public, Optional: true},
+}
+
 func validateWave1Safety(d effects.Definition) error {
 	for name, spec := range d.CapturedBindings {
+		if _, reserved := trustedHostBindingSpecs[name]; reserved {
+			return fmt.Errorf("captured binding %s is reserved for the trusted host", name)
+		}
 		if err := query.ValidateClosedSpec(spec); err != nil {
 			return fmt.Errorf("captured binding %s: %w", name, err)
 		}
@@ -19,6 +29,9 @@ func validateWave1Safety(d effects.Definition) error {
 		}
 	}
 	for name, spec := range d.InputBindings {
+		if _, reserved := trustedHostBindingSpecs[name]; reserved {
+			return fmt.Errorf("input binding %s is reserved for the trusted host", name)
+		}
 		if err := query.ValidateClosedSpec(spec); err != nil {
 			return fmt.Errorf("input binding %s: %w", name, err)
 		}
@@ -34,11 +47,79 @@ func validateWave1Safety(d effects.Definition) error {
 			return fmt.Errorf("choice %s bind_empty is not supported in Wave 1", stage.Choice.Binding)
 		}
 	}
+	return validatePublicControlFlow(d)
+}
+
+func validatePublicControlFlow(d effects.Definition) error {
+	registry := operations.Default()
+	env := query.TypeEnv{
+		Captured: copyBindingSpecs(d.CapturedBindings),
+		Results:  map[string]query.ValueSpec{},
+		Choices:  map[string]query.ValueSpec{},
+		Input:    copyBindingSpecs(d.InputBindings),
+	}
+	for _, stage := range d.Stages {
+		if stage.Condition != nil {
+			spec, err := query.Infer(*stage.Condition, env)
+			if err != nil {
+				return fmt.Errorf("stage %s condition: %w", stage.ID, err)
+			}
+			if spec.Visibility != query.Public {
+				return fmt.Errorf("stage %s condition must be public", stage.ID)
+			}
+		}
+		for _, prerequisite := range stage.Prerequisites {
+			spec, err := query.Infer(prerequisite, env)
+			if err != nil {
+				return fmt.Errorf("stage %s prerequisite: %w", stage.ID, err)
+			}
+			if spec.Visibility != query.Public {
+				return fmt.Errorf("stage %s prerequisite must be public", stage.ID)
+			}
+		}
+		for _, operation := range stage.Costs {
+			if operation.ResultBinding == "" {
+				continue
+			}
+			spec, err := registry.Validate(operation, env)
+			if err != nil {
+				return err
+			}
+			env.Results[operation.ResultBinding] = spec
+		}
+		if stage.Choice != nil {
+			spec, err := effects.ChoiceSpec(d, stage.Choice.Binding, registry)
+			if err != nil {
+				return err
+			}
+			if stage.Choice.EmptyDomain == effects.EmptyReject || stage.Choice.EmptyDomain == effects.EmptyBindDefault {
+				env.Choices[stage.Choice.Binding] = spec
+			}
+		}
+		for _, operation := range stage.Operations {
+			if operation.ResultBinding == "" {
+				continue
+			}
+			spec, err := registry.Validate(operation, env)
+			if err != nil {
+				return err
+			}
+			env.Results[operation.ResultBinding] = spec
+		}
+	}
 	return nil
 }
 
+func copyBindingSpecs(source map[string]query.ValueSpec) map[string]query.ValueSpec {
+	result := make(map[string]query.ValueSpec, len(source))
+	for name, spec := range source {
+		result[name] = spec
+	}
+	return result
+}
+
 func capturedTransportSpecs(d effects.Definition) map[string]query.ValueSpec {
-	specs := make(map[string]query.ValueSpec, len(d.CapturedBindings)+len(d.InputBindings))
+	specs := make(map[string]query.ValueSpec, len(d.CapturedBindings)+len(d.InputBindings)+len(trustedHostBindingSpecs))
 	for name, spec := range d.CapturedBindings {
 		specs[name] = spec
 	}
@@ -47,6 +128,9 @@ func capturedTransportSpecs(d effects.Definition) map[string]query.ValueSpec {
 			continue
 		}
 		spec.Optional = true
+		specs[name] = spec
+	}
+	for name, spec := range trustedHostBindingSpecs {
 		specs[name] = spec
 	}
 	return specs
