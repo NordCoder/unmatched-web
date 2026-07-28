@@ -3,8 +3,10 @@
 ## Status
 
 ```text
-status: proposed
-owner_decision_required: true
+status: accepted
+accepted_at: 2026-07-28
+accepted_by: Owner
+owner_decision_required: false
 parent_issue: #19
 ```
 
@@ -103,11 +105,11 @@ Costs/risks:
 - more friction around common web/database operations;
 - risk that language complexity distracts from unresolved gameplay contracts.
 
-## Proposed decision
+## Decision
 
 Adopt **Option A: Go authoritative server + TypeScript PWA**, implemented initially as a modular monolith.
 
-Proposed boundaries:
+Accepted boundaries:
 
 ```text
 /apps/server            authoritative API, match host, persistence adapters
@@ -131,7 +133,7 @@ pure domain engine
 
 The domain engine must not import HTTP, WebSocket, SQL, filesystem or framework packages.
 
-## Persistence proposal
+## Persistence decision
 
 Use PostgreSQL as the first durable store for:
 
@@ -144,7 +146,7 @@ Use PostgreSQL as the first durable store for:
 
 Do not introduce Redis or a separate event broker until measured concurrency/recovery requirements justify it. Single-process in-memory match caching is an optimization above PostgreSQL, not the source of truth.
 
-## Transport proposal
+## Transport decision
 
 - authenticated HTTP endpoints for match lifecycle and commands;
 - WebSocket (or equivalent ordered server-push channel) for projection updates;
@@ -167,7 +169,7 @@ The concrete schema technology is a follow-up ADR after command/projection paylo
 
 ## Consequences
 
-If accepted:
+With this decision:
 
 - production server implementation starts in Go;
 - browser/PWA implementation starts in TypeScript;
@@ -192,12 +194,14 @@ This ADR does not select:
 
 Those choices require smaller ADRs and must not alter the server-authoritative boundary.
 
-## Acceptance criteria
+## Decision record
 
-The Owner may:
+Owner accepted Option A on 2026-07-28.
 
-- **ACCEPT** — authorize Go server + TypeScript PWA bootstrapping;
-- **REQUEST CHANGES** — identify a concrete constraint that changes the decision drivers;
-- **REJECT** — select Option B or C with the accepted operational tradeoff.
+Production bootstrapping is authorized, subject to the existing engine-foundation gates:
 
-No production framework bootstrap should be merged before this ADR is accepted. Language-neutral engine fixtures/contracts may continue in parallel.
+- no fighter/card-ID branches in the core runtime;
+- launch behavior remains data-driven;
+- architecture QA must pass before implementation PRs merge;
+- Phase 4C remains authoritative for shared runtime semantics;
+- smaller technology selections require follow-up ADRs where material.
