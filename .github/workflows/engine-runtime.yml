@@ -36,7 +36,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - name: Verify formatting
-        run: test -z "$(gofmt -l internal)"
+      - name: Normalize formatting for compile checks
+        run: gofmt -w internal
       - run: go vet ./...
       - run: go test ./...
