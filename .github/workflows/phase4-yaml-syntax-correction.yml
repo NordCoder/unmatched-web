@@ -1,9 +1,9 @@
 name: Phase 4 YAML Syntax Correction
 
 on:
-  push:
+  pull_request:
     branches:
-      - phase-4-final-integration
+      - main
     paths:
       - ".github/workflows/phase4-yaml-syntax-correction.yml"
 
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   apply-syntax-correction:
+    if: github.event.pull_request.head.ref == 'phase-4-final-integration'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout integration branch
