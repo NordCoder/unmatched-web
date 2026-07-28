@@ -28,6 +28,7 @@ type fixtureCase struct {
 	ChoiceOptionIndex    *int                       `json:"choice_option_index,omitempty"`
 	ExpectedResumeEvents []string                   `json:"expected_resume_events,omitempty"`
 	ExpectedFinalStatus  contracts.ResolutionStatus `json:"expected_final_status"`
+	ProveResumeMutation  bool                       `json:"prove_resume_mutation,omitempty"`
 	ExpectedFighterState *struct {
 		Fighter model.FighterID `json:"fighter"`
 		Key     string          `json:"key"`
@@ -82,6 +83,27 @@ func TestI1MachineReadableFixtures(t *testing.T) {
 			}
 			if !reflect.DeepEqual(canonical(t, replayed), canonical(t, serialized.state)) {
 				t.Fatal("full event replay diverged")
+			}
+			if tc.ProveResumeMutation {
+				omitted := restoreState(t, initialBytes)
+				omitted = reduceAll(t, engine, omitted, serialized.first.Events)
+				skipped := 0
+				for _, ev := range serialized.final.Events {
+					if ev.Type == "rules.fighter_state_set" {
+						skipped++
+						continue
+					}
+					omitted, err = engine.ApplyEvent(omitted, ev)
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				if skipped == 0 {
+					t.Fatal("fixture did not emit a resume-time mutation")
+				}
+				if reflect.DeepEqual(canonical(t, omitted), canonical(t, serialized.state)) {
+					t.Fatal("omitting resume mutation did not cause replay divergence")
+				}
 			}
 			repeat := runFixturePath(t, engine, tc, initialBytes, true)
 			if !reflect.DeepEqual(canonical(t, repeat.state), canonical(t, serialized.state)) {

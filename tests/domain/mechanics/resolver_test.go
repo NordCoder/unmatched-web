@@ -29,7 +29,7 @@ func TestOpaqueResumeAndProjectionAllowList(t *testing.T) {
 			t.Fatalf("projection leak %q: %s", forbidden, projection)
 		}
 	}
-	first, err := e.Resolve(base(), contracts.ResolutionInput{CommandID: "start", Procedure: model.ProcedureRef{ID: "p", Kind: "choice", Bindings: map[string]json.RawMessage{"actor_player_id": raw("p1")}}})
+	first, err := e.Resolve(base(), contracts.ResolutionInput{CommandID: "start", Procedure: model.ProcedureRef{ID: "p", Kind: "choice"}})
 	if err != nil || first.Status != contracts.ResolutionPending {
 		t.Fatalf("pending: %+v %v", first, err)
 	}

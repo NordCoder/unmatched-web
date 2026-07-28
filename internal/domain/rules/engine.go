@@ -36,6 +36,9 @@ func New(defs []effects.Definition) (*Engine, error) {
 	}
 	e := &Engine{defs: map[string]effects.Definition{}, ops: ops, caps: caps, choiceSpecs: map[string]map[string]query.ValueSpec{}}
 	for _, d := range defs {
+		if err := validateWave1Safety(d); err != nil {
+			return nil, fmt.Errorf("definition %s: %w", d.ID, err)
+		}
 		if err := effects.Validate(d, ops, caps); err != nil {
 			return nil, fmt.Errorf("definition %s: %w", d.ID, err)
 		}
@@ -66,6 +69,33 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 	if err != nil {
 		return reject("invalid_procedure_state"), nil
 	}
+	validatedCaptured, err := query.ValidateBindings(ps.Captured, capturedTransportSpecs(d))
+	if err != nil {
+		return rejectWithDiagnostic("invalid_captured_bindings", err), nil
+	}
+	effectiveInput := copyRaw(in.Context)
+	for name := range d.InputBindings {
+		if _, supplied := effectiveInput[name]; supplied {
+			continue
+		}
+		if captured, ok := validatedCaptured[name]; ok {
+			effectiveInput[name] = append(json.RawMessage(nil), captured...)
+		}
+	}
+	validatedInput, err := query.ValidateBindings(effectiveInput, d.InputBindings)
+	if err != nil {
+		return rejectWithDiagnostic("invalid_input_bindings", err), nil
+	}
+	for name, input := range validatedInput {
+		if captured, ok := validatedCaptured[name]; ok {
+			if !canonicalRawEqual(captured, input) {
+				return rejectWithDiagnostic("binding_mismatch", fmt.Errorf("binding %s differs between procedure and input", name)), nil
+			}
+			continue
+		}
+		validatedCaptured[name] = append(json.RawMessage(nil), input...)
+	}
+	ps.Captured = validatedCaptured
 	working, err := operations.CloneState(state)
 	if err != nil {
 		return contracts.ResolutionOutcome{}, err
@@ -99,7 +129,7 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 	}
 	for ps.Cursor < len(d.Stages) {
 		s := d.Stages[ps.Cursor]
-		ctx := query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: in.Context}
+		ctx := query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: validatedInput}
 		switch ps.Phase {
 		case effects.PhaseEnter:
 			if s.Condition != nil {
@@ -139,7 +169,7 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 			attempts := make([]attempt, 0, len(s.Costs))
 			paid := true
 			for i, o := range s.Costs {
-				a, x := e.attempt(candidate, query.Context{State: candidate, Captured: ps.Captured, Results: tempResults, Choices: ps.Choices, Input: in.Context}, in, o, "cost")
+				a, x := e.attempt(candidate, query.Context{State: candidate, Captured: ps.Captured, Results: tempResults, Choices: ps.Choices, Input: validatedInput}, in, o, "cost")
 				if x != nil {
 					return contracts.ResolutionOutcome{}, x
 				}
@@ -222,9 +252,7 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 					ps.Phase = effects.PhaseOperations
 					continue
 				case effects.EmptyBindEmpty:
-					ps.Choices[s.Choice.Binding] = json.RawMessage(`[]`)
-					ps.Phase = effects.PhaseOperations
-					continue
+					return contracts.ResolutionOutcome{}, fmt.Errorf("choice %s bind_empty is unsupported in Wave 1", s.Choice.Binding)
 				case effects.EmptyComplete:
 					ps.Phase = effects.PhaseOperations
 					continue
@@ -273,7 +301,7 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 						continue
 					}
 				}
-				a, x := e.attempt(working, query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: in.Context}, in, o, "ordinary")
+				a, x := e.attempt(working, query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: validatedInput}, in, o, "ordinary")
 				if x != nil {
 					return contracts.ResolutionOutcome{}, x
 				}
@@ -307,7 +335,7 @@ func (e *Engine) Resolve(state model.GameState, in contracts.ResolutionInput) (c
 					}
 					applied, total := 0, len(q.Operations)
 					for _, o := range q.Operations {
-						a, x := e.attempt(working, query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: in.Context}, in, o, "queue")
+						a, x := e.attempt(working, query.Context{State: working, Captured: ps.Captured, Results: ps.Results, Choices: ps.Choices, Input: validatedInput}, in, o, "queue")
 						if x != nil {
 							return contracts.ResolutionOutcome{}, x
 						}
@@ -379,15 +407,21 @@ type projectedCombat struct {
 	DefenderID model.FighterID `json:"defender_id"`
 	Stage      string          `json:"stage"`
 }
+type projectedFighter struct {
+	ID           model.FighterID    `json:"fighter_instance_id"`
+	DefinitionID model.DefinitionID `json:"definition_id"`
+	OwnerID      model.PlayerID     `json:"owner_player_id,omitempty"`
+	ControllerID model.PlayerID     `json:"controller_player_id,omitempty"`
+}
 type projection struct {
-	MatchID       model.MatchID                           `json:"match_id"`
-	Revision      uint64                                  `json:"revision"`
-	EventSequence uint64                                  `json:"event_sequence"`
-	Lifecycle     model.Lifecycle                         `json:"lifecycle"`
-	Player        model.PlayerState                       `json:"player"`
-	Fighters      map[model.FighterID]model.RuntimeObject `json:"fighters"`
-	Action        *projectedAction                        `json:"action,omitempty"`
-	Combat        *projectedCombat                        `json:"combat,omitempty"`
+	MatchID       model.MatchID      `json:"match_id"`
+	Revision      uint64             `json:"revision"`
+	EventSequence uint64             `json:"event_sequence"`
+	Lifecycle     model.Lifecycle    `json:"lifecycle"`
+	Player        model.PlayerState  `json:"player"`
+	Fighters      []projectedFighter `json:"fighters"`
+	Action        *projectedAction   `json:"action,omitempty"`
+	Combat        *projectedCombat   `json:"combat,omitempty"`
 }
 
 func (e *Engine) Project(s model.GameState, p model.PlayerID) (json.RawMessage, error) {
@@ -395,7 +429,18 @@ func (e *Engine) Project(s model.GameState, p model.PlayerID) (json.RawMessage, 
 	if !ok {
 		return nil, fmt.Errorf("player not found")
 	}
-	out := projection{MatchID: s.MatchID, Revision: s.Revision, EventSequence: s.EventSequence, Lifecycle: s.Lifecycle, Player: player, Fighters: s.Fighters}
+	fighterIDs := make([]string, 0, len(s.Fighters))
+	for id := range s.Fighters {
+		fighterIDs = append(fighterIDs, string(id))
+	}
+	sort.Strings(fighterIDs)
+	fighters := make([]projectedFighter, 0, len(fighterIDs))
+	for _, rawID := range fighterIDs {
+		id := model.FighterID(rawID)
+		fighter := s.Fighters[id]
+		fighters = append(fighters, projectedFighter{ID: id, DefinitionID: fighter.DefinitionID, OwnerID: fighter.OwnerID, ControllerID: fighter.ControllerID})
+	}
+	out := projection{MatchID: s.MatchID, Revision: s.Revision, EventSequence: s.EventSequence, Lifecycle: s.Lifecycle, Player: player, Fighters: fighters}
 	if s.Action != nil {
 		out.Action = &projectedAction{ID: s.Action.ID, Kind: s.Action.Kind, ActorID: s.Action.ActorID, Status: s.Action.Status}
 	}

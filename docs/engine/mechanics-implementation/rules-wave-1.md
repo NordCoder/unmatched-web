@@ -1,6 +1,6 @@
 # Rules Mechanics Wave 1 — sound I1 resolver foundation
 
-Status: correction Candidate for Issue #46 / PR #40, continuing exact Head `02422fd975195eb099a93ebdfe28fbeaffe883d6`.
+Status: manual Wave 1 safety-closure Candidate for Issue #46 / PR #40, continuing exact Head `a7021602a8e8cab2b7920eac09098031186c9fad`.
 
 Capabilities: `CAP-001`, `CAP-002`, `CAP-003`, `CAP-004`, `CAP-018`.
 
@@ -8,7 +8,7 @@ Capabilities: `CAP-001`, `CAP-002`, `CAP-003`, `CAP-004`, `CAP-018`.
 
 The Rules package remains a deterministic domain interpreter. It receives immutable `model.GameState` and a serializable `model.ProcedureRef`, then returns explicit events, a pending interaction, or a deterministic rejection. It imports no adapter, storage, transport, clock, network, or fighter/card-specific dispatch.
 
-`RulesEngine.Project` is an allow-list and never serializes procedure bindings, resolver internals, pending authoritative options, or raw action/combat procedures.
+`RulesEngine.Project` is an allow-list and never serializes procedure bindings, resolver internals, pending authoritative options, raw action/combat procedures, or canonical `RuntimeObject.State`. Fighter projection uses a sorted explicit public DTO containing only identity, definition, owner, and controller metadata.
 
 ## Authoritative state references
 
@@ -44,11 +44,11 @@ code: string?
 value: operation-specific ValueSpec?
 ```
 
-`set_fighter_state`, for example, exposes a typed patch object whose nested `value` type is derived from the operation argument. Runtime trust boundaries verify selected choice values and public event payload structure against validated specs.
+`set_fighter_state`, for example, exposes a typed patch object whose nested `value` type is derived from the operation argument. Runtime trust boundaries enforce external captured/input values before evaluation. Binding sets are closed: unknown and missing bindings, wrong nested values, undeclared object fields, open `any` contracts, and conflicting captured/input schemas are rejected. Validated values are canonical-copied before evaluator use and procedure serialization. Current Core transport duplication of action context into both procedure bindings and `ResolutionInput.Context` is validated for equality and preserved across pause/resume.
 
 ## Choice and empty-domain semantics
 
-Single-choice value type comes from `domain.Element`; `Choice.ValueType` is assertion-only. Choice visibility is never less restrictive than domain visibility.
+Wave 1 is deliberately **single-select only**. Single-choice value type comes from `domain.Element`; `Choice.ValueType` is assertion-only. Choice visibility is never less restrictive than domain visibility.
 
 Supported policies:
 
@@ -57,10 +57,9 @@ reject
 bind_default
 skip_stage
 complete_without_choice
-bind_empty  # multi-select list values only
 ```
 
-`bind_default` requires an exact typed default. `skip_stage` and `complete_without_choice` do not establish a binding; conservative dataflow validation rejects any continuing expression that assumes the binding exists.
+`Choice.Multi` and `bind_empty` fail definition loading as explicitly unsupported. Multi-select cardinality, payload, ordering, duplicate handling, and list binding are deferred to a separate capability. `bind_default` requires an exact typed default. `skip_stage` and `complete_without_choice` do not establish a binding; conservative dataflow validation rejects any continuing expression that assumes the binding exists.
 
 ## Serializable procedure and pure replay
 
@@ -80,7 +79,7 @@ pristine initial bytes
 -> compare direct, serialized, full replay, and repeated final states
 ```
 
-It also asserts that the original fixture object remains byte-identical.
+It also asserts that the original fixture object remains byte-identical. A dedicated pause/resume fixture mutates fighter state only after choice acceptance; a negative proof omits that resume mutation and requires replay divergence.
 
 ## Unified operation dispositions
 
@@ -117,9 +116,11 @@ Focused regressions cover:
 
 - unknown/private state path rejection and public-event taint prevention;
 - recursive nested result paths and terminal type assertions;
-- choice domain type, visibility, typed default, scalar empty rejection, and presence dataflow;
+- choice domain type, visibility, typed default, explicit multi-select/bind-empty rejection, and presence dataflow;
+- strict external captured/input binding validation, including adversarial undeclared fields and Core context duplication/resume;
+- fighter projection denial for arbitrary canonical state;
 - reducer non-aliasing and repeated deterministic reduction;
-- full initial-plus-resume event replay from pristine bytes;
+- full initial-plus-resume event replay from pristine bytes, including a resume-only mutation divergence proof;
 - ordinary, cost, and queue disposition equivalence;
 - rolled-back costs, impossible and partial queue effects, and canceled non-execution;
 - existing opaque projection/resume, ordered stages, dependencies, provenance, and checkpoint ordering.
