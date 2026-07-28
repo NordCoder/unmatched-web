@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "status": "analysis_draft",
+  "issue": 25,
+  "sources": {
+    "canonical_corpus_sha": "106ae552ce597cde954c0a1b22374ef446974ce2",
+    "engine_foundation_sha": "bc075caef767aa1ccf616260bca6c5d48c239734",
+    "phase4c_assignment_sha": "be78417eefeb23cd334c796ba42f192272b8c9a2",
+    "fighters": 74,
+    "unique_action_card_definitions": 926,
+    "owner_requirement_aliases": 52
+  },
+  "coverage": {
+    "expected_primary_aliases": 52,
+    "mapped_primary_aliases": 52,
+    "duplicate_primary_aliases": [],
+    "unmapped_primary_aliases": []
+  },
+  "dispatch_invariant": "Core dispatches by capability, operation, query, timing window, or procedure kind; never by fighter/card identity.",
+  "capabilities": [
+    {
+      "id": "CAP-001",
+      "slug": "staged-resolution-procedures",
+      "kernel": "resolver",
+      "primary_aliases": ["C-REQ-013", "D-REQ-001", "D-REQ-002"],
+      "cross_domain_aliases": [],
+      "depends_on": [],
+      "wave": 1,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-002",
+      "slug": "interactions-visibility",
+      "kernel": "interaction",
+      "primary_aliases": ["B-REQ-005", "D-REQ-017"],
+      "cross_domain_aliases": ["A-REQ-013", "C-REQ-006"],
+      "depends_on": ["CAP-001"],
+      "wave": 2,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-003",
+      "slug": "reaction-cancellation-windows",
+      "kernel": "timing",
+      "primary_aliases": ["B-REQ-010", "D-REQ-008"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001", "CAP-002"],
+      "wave": 2,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-004",
+      "slug": "history-provenance-ledger",
+      "kernel": "history",
+      "primary_aliases": ["B-REQ-004", "B-REQ-007", "C-REQ-010", "D-REQ-014"],
+      "cross_domain_aliases": ["A-REQ-011", "D-REQ-007"],
+      "depends_on": [],
+      "wave": 1,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-005",
+      "slug": "authoritative-random-procedures",
+      "kernel": "random",
+      "primary_aliases": ["D-REQ-009"],
+      "cross_domain_aliases": ["D-REQ-010"],
+      "depends_on": ["CAP-001", "CAP-002"],
+      "wave": 5,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-006",
+      "slug": "fighter-presence-roster",
+      "kernel": "fighter",
+      "primary_aliases": ["A-REQ-005", "A-REQ-014", "B-REQ-003", "C-REQ-007"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001"],
+      "wave": 3,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-007",
+      "slug": "occupancy-footprints-classes",
+      "kernel": "battlefield",
+      "primary_aliases": ["B-REQ-001", "B-REQ-002"],
+      "cross_domain_aliases": [],
+      "depends_on": [],
+      "wave": 3,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-008",
+      "slug": "battlefield-components-paths",
+      "kernel": "battlefield",
+      "primary_aliases": ["A-REQ-003", "B-REQ-006", "D-REQ-007"],
+      "cross_domain_aliases": ["D-REQ-008"],
+      "depends_on": [],
+      "wave": 3,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-009",
+      "slug": "relocation-transitions-results",
+      "kernel": "movement",
+      "primary_aliases": ["A-REQ-004", "A-REQ-011"],
+      "cross_domain_aliases": ["D-REQ-007"],
+      "depends_on": ["CAP-004", "CAP-007", "CAP-008"],
+      "wave": 3,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-010",
+      "slug": "combat-legality-play-modes",
+      "kernel": "combat",
+      "primary_aliases": ["A-REQ-008", "B-REQ-008", "D-REQ-005", "D-REQ-006", "D-REQ-011"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-013"],
+      "wave": 4,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-011",
+      "slug": "combat-participant-rebinding",
+      "kernel": "combat",
+      "primary_aliases": ["A-REQ-012", "C-REQ-003"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001", "CAP-010"],
+      "wave": 4,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-012",
+      "slug": "damage-health-transaction",
+      "kernel": "damage",
+      "primary_aliases": ["A-REQ-006", "A-REQ-010", "C-REQ-008", "C-REQ-012"],
+      "cross_domain_aliases": ["B-REQ-002"],
+      "depends_on": ["CAP-001", "CAP-002", "CAP-004"],
+      "wave": 4,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-013",
+      "slug": "continuous-modifier-layer",
+      "kernel": "modifier",
+      "primary_aliases": ["C-REQ-011", "D-REQ-004"],
+      "cross_domain_aliases": ["D-REQ-005", "D-REQ-006"],
+      "depends_on": ["CAP-018"],
+      "wave": 4,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-014",
+      "slug": "boost-resolution",
+      "kernel": "boost",
+      "primary_aliases": ["A-REQ-007", "D-REQ-010"],
+      "cross_domain_aliases": ["B-REQ-004"],
+      "depends_on": ["CAP-004", "CAP-005", "CAP-013"],
+      "wave": 4,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-015",
+      "slug": "ordered-auxiliary-zones",
+      "kernel": "zones",
+      "primary_aliases": ["A-REQ-009", "C-REQ-001", "C-REQ-002", "D-REQ-012"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001", "CAP-018"],
+      "wave": 2,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-016",
+      "slug": "structured-zone-search-disclosure",
+      "kernel": "zones",
+      "primary_aliases": ["A-REQ-013", "C-REQ-006"],
+      "cross_domain_aliases": ["B-REQ-005", "D-REQ-017"],
+      "depends_on": ["CAP-002", "CAP-005", "CAP-018"],
+      "wave": 2,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-017",
+      "slug": "action-resource-permissions",
+      "kernel": "turn",
+      "primary_aliases": ["B-REQ-009", "C-REQ-004", "D-REQ-003", "D-REQ-015", "D-REQ-016"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001", "CAP-002", "CAP-004"],
+      "wave": 5,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-018",
+      "slug": "derived-query-expressions",
+      "kernel": "query",
+      "primary_aliases": ["C-REQ-005"],
+      "cross_domain_aliases": [],
+      "depends_on": [],
+      "wave": 1,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-019",
+      "slug": "hand-policy",
+      "kernel": "turn",
+      "primary_aliases": ["D-REQ-013"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-013"],
+      "wave": 5,
+      "status": "deterministic"
+    },
+    {
+      "id": "CAP-020",
+      "slug": "external-adaptation-policy",
+      "kernel": "policy",
+      "primary_aliases": ["A-REQ-015"],
+      "cross_domain_aliases": [],
+      "depends_on": ["CAP-001", "CAP-002"],
+      "wave": 7,
+      "status": "blocked"
+    }
+  ]
+}
