@@ -1,0 +1,131 @@
+schema_version: 1
+fighter_id: chupacabra
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- id: blood-in-the-air
+  name: Blood in the Air
+  quantity: 3
+  inclusion: fixed
+  usable_by: [chupacabra]
+  type: attack
+  printed_value: 4
+  boost: 4
+  tags: []
+  effects:
+  - id: blood-boost
+    trigger: during_combat
+    optional: true
+    condition: {state: won_combat_this_turn, equals: true}
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- {id: feeding, name: Feeding, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: attack, printed_value: 4, boost: 2, tags: [], effects: [{id: feeding, trigger: after_combat, condition: {chupacabra_health_lte: 7}, operations: [{op: GAIN_ACTION, count: 1}, {op: RECOVER, target: chupacabra, amount: 1}]}]}
+- id: ambush
+  name: Ambush
+  quantity: 2
+  inclusion: fixed
+  usable_by: [chupacabra]
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: []
+  effects:
+  - id: ambush
+    trigger: during_combat
+    stages:
+    - id: random-discard
+      operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 1, controller: opponent, bind: discarded_card}]
+    - id: add-discarded-boost
+      operations: [{op: ADD_VALUE, target: this_card, amount_from: bound.discarded_card.boost_or_0}]
+- {id: the-more-they-struggle, name: The More They Struggle, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: attack, printed_value: 0, boost: 3, tags: [], effects: [{id: struggle, trigger: during_combat, operations: [{op: SET_VALUE, target: this_card, value_rule: twice_opposing_effective_printed_value}]}]}
+- {id: wounded-beast, name: Wounded Beast, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: wounded, trigger: during_combat, condition: {chupacabra_health_lte: 7}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+- id: ravenous-lunge
+  name: Ravenous Lunge
+  quantity: 3
+  inclusion: fixed
+  usable_by: [chupacabra]
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: ravenous
+    trigger: after_combat
+    branches:
+    - {condition: {combat_result: won}, operations: [{op: RECOVER, target: chupacabra, amount: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: RECOVER, target: chupacabra, amount: 1}]}
+- {id: feint, name: Feint, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: feint, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}
+- id: tooth-and-tail
+  name: Tooth and Tail
+  quantity: 3
+  inclusion: fixed
+  usable_by: [chupacabra]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - id: tooth-and-tail
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-targets
+      choices:
+      - id: damage-targets
+        owner: controller
+        visibility: public
+        optional: true
+        domain: {choose_distinct: {from: fighters_adjacent_to_chupacabra, min: 0, max: 2}}
+        bind: targets
+    - id: damage
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.targets, amount: 1, bind: actually_damaged_targets}]
+    - id: recover
+      operations: [{op: RECOVER, target: chupacabra, amount_rule: count_bound_actually_damaged_targets}]
+- {id: natural-toughness, name: Natural Toughness, quantity: 2, inclusion: fixed, usable_by: [chupacabra], type: defense, printed_value: 3, boost: 3, tags: [], effects: [{id: toughness-return, trigger: after_combat, condition: {combat_result: lost}, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: hand, selector: this_card}]}]}
+- {id: traveler-of-the-night, name: Traveler of the Night, quantity: 3, inclusion: fixed, usable_by: [chupacabra], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{id: traveler, trigger: scheme, operations: [{op: MOVE, target: chupacabra, max_distance: 4, overrides: [may_move_through_opposing_fighters]}, {op: GAIN_ACTION, count: 1}]}]}
+- id: unsettle
+  name: Unsettle
+  quantity: 2
+  inclusion: fixed
+  usable_by: [chupacabra]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - id: unsettle
+    trigger: scheme
+    stages:
+    - id: choose-opponent
+      choices: [{id: target-player, owner: controller, visibility: public, optional: false, domain: opponents_with_fighter_in_chupacabra_zone, bind: target_player}]
+    - id: choose-amplification
+      choices: [{id: amplify, owner: controller, visibility: public, optional: true, domain: pay_two_damage_to_chupacabra, bind: amplified}]
+    - id: resolve-discard
+      branches:
+      - condition: {bound.amplified: true}
+        costs: [{op: DEAL_EFFECT_DAMAGE, target: chupacabra, amount: 2}]
+        operations: [{op: DISCARD, from: bound.target_player.hand, selector: target_player_chosen, count: 2, controller: bound.target_player}]
+      - condition: {bound.amplified: false}
+        operations: [{op: DISCARD, from: bound.target_player.hand, selector: target_player_chosen, count: 1, controller: bound.target_player}]
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: chupa-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: chupa-physical-review, authority: physical_component_transcription, url: "https://www.youtube.com/watch?v=6fP2amMnphI", checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: chupa-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/chupacabra, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+- {id: chupa-tracker, authority: reference, url: "https://www.the-unmatched.club/tools/tracker?h=chupacabra", checked_at: '2026-07-27', supports: [names_quantities_cross_check]}
+normalization_notes:
+- All 11 definitions reconcile to 30 cards.
+- Tooth and Tail uses explicit choose-distinct and operation-result bindings under D-REQ-001.
+- Natural Toughness returns during the printed AFTER COMBAT window when Chupacabra lost the combat.
+- Unsettle is staged so the target player and amplification choice are bound before discard count resolves.

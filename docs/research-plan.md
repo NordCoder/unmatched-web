@@ -158,41 +158,94 @@ The representative sample can be expressed without ad-hoc undocumented engine be
 
 **Gate result:** PASS. See [`fighters/phase-4a-validation.md`](fighters/phase-4a-validation.md).
 
-Passing 4A validates the schema/framework; it does not make the complete published fighter roster `developer-ready`.
+Passing 4A validated the schema/framework; the complete-roster gate was closed separately by Phase 4B.
 
 ---
 
 ## Phase 4B — Complete fighter and deck corpus
 
-**Status:** planned.
+**Status:** **complete — final Phase 4 gate passed 2026-07-28.**
 
-### Work
+### Completed work
 
-Expand the verified Phase 4A schema to every released competitive fighter in `sets/registry.yaml`.
+1. Integrated the ten Phase 4A representatives and all four reconciled Phase 4B ownership groups into one canonical corpus.
+2. Established exactly **74 unique competitive fighter identities**, including one canonical Bruce Lee lineage and no evidence-alias duplicates.
+3. Integrated **74 fighter manifests** and **74 paired card manifests**.
+4. Completed fresh independent QA for all five physical-card correction scopes before integration.
+5. Reconciled fixed and constructed decks, including Daredevil 22, Elektra 20, Black Widow 31, Geralt 36→30 and Buffy 35→30.
+6. Preserved action cards, auxiliary decks, external definitions, positioned components and non-card components as distinct data categories.
+7. Preserved four-axis verification status rather than inflating every fighter to `verified`.
+8. Added a reproducible machine validator and persisted its result in [`fighters/phase-4-final-validation.json`](fighters/phase-4-final-validation.json).
 
-Use UmDb as the primary normalized deck index, but verify set-specific behavior and disputed wording against higher-authority sources. Never import `/decks/...` fan decks into the official corpus; published UmDb entries live under `/umdb/...`.
+### Final validation
 
-### Validation
+```text
+canonical fighter identities: 74
+fighter manifests: 74
+card manifests: 74
+unique action-card definitions: 926
+available action-card copies: 2214
+owner requirements defined/referenced: 52/52
+unresolved requirement references: 0
+validation errors: 0
+validation warnings: 0
+status totals: 28 verified / 45 partial / 1 blocked
+```
 
-For every fighter:
-
-- expected card count reconciles with deck construction;
-- quantities sum correctly;
-- all card users are valid fighters;
-- every effect maps to a known mechanic primitive/composite or an explicit corpus-proven extension;
-- all referenced resources/zones/state are defined;
-- all known official fighter/card rulings are linked;
-- unsupported/incomplete released content is explicitly blocked rather than guessed.
+Deadpool remains the single blocked fighter because the digital-adaptation policy is intentionally unresolved. Partial fighters have deterministic published behavior but still require shared runtime capabilities or retain explicit source qualifications.
 
 ### Gate
 
-Every released competitive fighter is `verified` or has an explicit `blocked` record describing the missing authoritative data.
+- all 74 competitive fighters present: **PASS**;
+- all deck constructions reconciled: **PASS**;
+- all card-image P1/P2 corrections closed: **PASS**;
+- all owner requirements resolvable by ID: **PASS**;
+- evidence-only aliases separated from canonical IDs: **PASS**;
+- physical-evidence qualifications preserved: **PASS**.
+
+**Gate result:** PASS. See [`fighters/phase-4-final-validation.md`](fighters/phase-4-final-validation.md) and [`qa/phase-4-card-image/correction-integration-qa.md`](qa/phase-4-card-image/correction-integration-qa.md).
+
+Passing Phase 4 completes the canonical published fighter/card corpus. It does **not** make the whole project developer-ready because owner requirements still need consolidation into one generic runtime contract.
+
+---
+
+## Phase 4C — Shared runtime requirements consolidation
+
+**Status:** next major phase.
+
+### Goal
+
+Consolidate the 52 corpus-proven `A/B/C/D-REQ-*` definitions into canonical generic runtime capabilities. Aliases may remain for provenance, but one gameplay mechanic must not acquire multiple engine implementations.
+
+### Parallel workstreams
+
+1. Resolution, choices, history, delayed obligations, reconnect and RNG persistence.
+2. Fighter presence, occupancy, footprints and positioned battlefield objects.
+3. Movement, targeting, attack legality and combat participant replacement.
+4. Damage, health assignment and continuous/dynamic modifiers.
+5. Card zones, auxiliary decks, resources and action permissions.
+
+### Output
+
+- canonical requirement registry with owner aliases;
+- developer-facing state/command/event/choice implications;
+- persistence and visibility requirements;
+- deterministic test scenarios;
+- migrated manifest references or a temporary complete alias map.
+
+### Gate
+
+- owner requirements deduplicated;
+- launch-scope runtime behavior deterministic;
+- no undocumented character-specific semantics;
+- no separate implementation of the same generic capability;
+- launch-roster requirements implementation-ready.
 
 ---
 
 ## Phase 5 — Battlefield corpus
 
-**Status:** planned.
+**Status:** planned; one MVP battlefield graph may proceed in parallel with Phase 4C.
 
 Battlefields require more than images or names; the engine needs graph data.
 
@@ -239,7 +292,7 @@ There are no unresolved **P0/P1 semantic ambiguities** affecting legal moves, hi
 
 ## Phase 7 — Freeze the developer-facing rules contract
 
-**Status:** planned.
+**Status:** planned; stable engine-foundation work may begin earlier where the relevant contract is already deterministic.
 
 ### Output
 
@@ -260,7 +313,7 @@ This phase documents **what the engine must represent**, not a premature languag
 
 ### Gate
 
-All requirements in [`specification-readiness.md`](specification-readiness.md) pass. Only then should implementation planning become authoritative.
+All requirements in [`specification-readiness.md`](specification-readiness.md) pass. Only then should full implementation planning become authoritative.
 
 ---
 

@@ -1,0 +1,99 @@
+schema_version: 1
+id: houdini
+display_name: Harry Houdini
+set_ids: [houdini-vs-genie]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-004, B-REQ-007, B-REQ-010]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: houdini, display_name: Houdini, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: bess, display_name: Bess, role: sidekick, count: 1, attack_type: melee, starting_health: 5, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: master-escape-artist
+  controller: owner
+  effects:
+    - id: boosted-maneuver-teleport
+      trigger: maneuver_after_boost
+      controller: controller
+      cancellation: protected
+      stages:
+        - id: decide
+          when: {boosted_fighter: houdini}
+          choices:
+            - id: use_teleport
+              owner: controller
+              visibility: public
+              optional: true
+              domain: {kind: boolean, meaning: replace_maneuver_movement_with_placement}
+              bind: use_teleport
+          costs: []
+          operations: []
+        - id: choose-destination
+          when: {bound: use_teleport, equals: true}
+          choices:
+            - id: destination
+              owner: controller
+              visibility: public
+              optional: false
+              domain: {kind: space, selector: any_selectable_space_for_place}
+              bind: destination
+          costs: []
+          operations: []
+        - id: place
+          when: {bound: destination, exists: true}
+          choices: []
+          costs: []
+          operations: [{op: PLACE, target: houdini, destination: {bound: destination}, replacement_for: maneuver_movement}]
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/houdini.yaml
+  construction: fixed
+
+rulings: []
+interpretations: []
+
+sources:
+  - id: houdini-official-product
+    authority: official
+    url: https://restorationgames.com/shop/unmatched-houdini-genie/
+    checked_at: 2026-07-27
+    supports: [set_membership]
+  - id: houdini-official-rulebook
+    authority: official
+    url: https://restorationgames.com/wp-content/uploads/2022/09/UM-HvG_Rules-two-page.pdf
+    checked_at: 2026-07-27
+    supports: [fighter_ability]
+  - id: houdini-umdb
+    authority: published_umdb
+    url: https://unmatched.cards/umdb/decks/harry-houdini
+    checked_at: 2026-07-27
+    supports: [fighter_stats, ability, deck_construction]
+  - id: houdini-rulings-index
+    authority: secondary_cross_check
+    url: https://www.the-unmatched.club/heroes/houdini
+    checked_at: 2026-07-27
+    supports: [ability_cross_check, boosted_with_cross_check]
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

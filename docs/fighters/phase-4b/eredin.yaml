@@ -1,0 +1,82 @@
+schema_version: 1
+id: eredin
+display_name: Eredin
+set_ids: [witcher-realms-fall]
+status: partial
+verification:
+  evidence: qualified
+  semantics: qualified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-011, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: eredin, display_name: Eredin, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: red-rider, display_name: Red Rider, role: sidekick, count: 4, attack_type: melee, starting_health: 1, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: king-of-the-wild-hunt
+  controller: owner
+  effects:
+    - id: enraged-state
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      continuous: true
+      stages:
+        - id: apply
+          when:
+            expr:
+              op: all
+              selector: {fighters: {definition_id: red-rider, controller: self}}
+              predicate: {status: defeated}
+          operations:
+            - {op: ADD_VALUE, target: controller_combat_cards, amount: 1}
+            - {op: TRIGGER_COMPOSITE, kind: continuous_attribute_modifier, target: eredin, attribute: move_value, set_value: 3, source_lifetime: while_condition_true}
+
+resources: []
+persistent_state:
+  - key: enraged
+    type: boolean
+    reset: never
+    mutable: false
+    derivation:
+      expr:
+        op: all
+        selector: {fighters: {definition_id: red-rider, controller: self}}
+        predicate: {status: defeated}
+
+deck:
+  manifest: ../../cards/phase-4b/eredin.yaml
+  construction: fixed
+
+rulings:
+  - id: enraged-is-derived
+    summary: Enraged is true only while every Red Rider is defeated; returning any Rider removes the condition and its continuous modifiers immediately.
+    source_refs: [eredin-rulings]
+
+sources:
+  - {id: witcher-rf-rules-eredin, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/10/UM-W-RF-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Eredin fighter rules, ongoing schemes]}
+  - {id: eredin-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/eredin, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus, Icy Guile wording]}
+  - {id: eredin-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/heroes/eredin, checked_at: 2026-07-27, supports: [Enraged ruling index]}
+  - {id: core-combat-continuation, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [combat-card resolution after fighter defeat]}
+  - {id: worker-c-normalization-eredin, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-c-modern/docs/phase-4b/worker-c-report.md, checked_at: 2026-07-27, supports: [Icy Guile self-defeat interpretation]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - Foul Purpose and Implacable require generic declaration-time combat legality/type overrides.
+  - Enraged value and move changes are source-lifetime derived modifiers, not permanent state mutation.

@@ -1,0 +1,272 @@
+schema_version: 1
+fighter_id: ghost-rider
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: spirit-of-vengeance
+    name: Spirit of Vengeance
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: attack
+    printed_value: 5
+    boost: 2
+    tags: []
+    effects:
+      - id: spirit-of-vengeance-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - {id: pay, when: {bound: use_effect, equals: true}, choices: [], costs: [{id: hellfire_cost, op: SPEND_RESOURCE, resource: hellfire, amount: 1, bind: hellfire_paid}], operations: []}
+          - {id: draw, when: {result: hellfire_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+  - id: control-the-demon
+    name: Control the Demon
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: versatile
+    printed_value: 0
+    boost: 1
+    tags: []
+    effects:
+      - id: control-the-demon-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: add-value, when: always, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_ref: {resource: hellfire, field: current}}]}
+  - id: penance-stare
+    name: Penance Stare
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: penance-stare-base
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: add-boost, when: always, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_ref: {card: opposing_combat_card, field: boost_or_0}}]}
+      - id: penance-stare-second
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_second, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_second}], costs: [], operations: []}
+          - {id: pay, when: {bound: use_second, equals: true}, choices: [], costs: [{id: hellfire_cost, op: SPEND_RESOURCE, resource: hellfire, amount: 2, bind: hellfire_paid}], operations: []}
+          - {id: add-boost, when: {result: hellfire_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: ADD_VALUE, target: this_card, amount_ref: {card: opposing_combat_card, field: boost_or_0}}]}
+  - id: i-finally-escaped-hell
+    name: I Finally Escaped Hell
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: i-finally-escaped-hell-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - {id: pay, when: {bound: use_effect, equals: true}, choices: [], costs: [{id: hellfire_cost, op: SPEND_RESOURCE, resource: hellfire, amount: 1, bind: hellfire_paid}], operations: []}
+          - {id: move, when: {result: hellfire_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: MOVE, target: ghost-rider, max_distance: 2}]}
+  - id: i-brought-the-devil-with-me
+    name: I Brought the Devil With Me
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: i-brought-the-devil-action
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - {id: pay, when: {bound: use_effect, equals: true}, choices: [], costs: [{id: hellfire_cost, op: SPEND_RESOURCE, resource: hellfire, amount: 2, bind: hellfire_paid}], operations: []}
+          - {id: gain-action, when: {result: hellfire_paid, equals: succeeded}, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}
+  - id: blaze-of-glory
+    name: Blaze of Glory
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: blaze-of-glory-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-amount
+            when: always
+            choices:
+              - {id: hellfire_amount, owner: controller, visibility: public, optional: false, domain: {kind: integer, min: 0, max_ref: {resource: hellfire, field: current}}, bind: hellfire_amount}
+            costs: []
+            operations: []
+          - id: spend
+            when: {bound: hellfire_amount, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: SPEND_RESOURCE, resource: hellfire, amount: {bound: hellfire_amount}, bind: spent_hellfire}]
+          - id: damage
+            when: {result: spent_hellfire, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_in_ghost-rider_zone, amount_ref: {result: spent_hellfire, field: amount}}]
+  - id: the-wicked-will-burn
+    name: The Wicked Will Burn
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: wicked-will-gain
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: gain, when: {current_space_differs_from: {state: turn_start_space}}, choices: [], costs: [], operations: [{op: GAIN_RESOURCE, resource: hellfire, amount: 2}]}
+  - id: deal-with-the-devil
+    name: Deal With the Devil
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: deal-with-the-devil-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-amount
+            when: always
+            choices:
+              - {id: hellfire_amount, owner: controller, visibility: public, optional: true, domain: {kind: integer, min: 0, max_ref: {resource: hellfire, field: current}}, bind: hellfire_amount}
+            costs: []
+            operations: []
+          - id: pay
+            when: {bound: hellfire_amount, exists: true}
+            choices: []
+            costs: [{id: hellfire_cost, op: SPEND_RESOURCE, resource: hellfire, amount: {bound: hellfire_amount}, bind: hellfire_paid}]
+            operations: []
+          - id: add-value
+            when: {result: hellfire_paid, equals: succeeded}
+            choices: []
+            costs: []
+            operations: [{op: ADD_VALUE, target: this_card, amount_ref: {bound: hellfire_amount}}]
+  - id: stoke-the-flames
+    name: Stoke the Flames
+    quantity: 3
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: stoke-the-flames-gain
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: gain, when: {combat_result: lost}, choices: [], costs: [], operations: [{op: GAIN_RESOURCE, resource: hellfire, amount_ref: {combat: current, field: combat_damage_taken}}]}
+  - id: feint
+    name: Feint
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+  - id: hell-rides-with-me
+    name: Hell Rides With Me
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: hell-rides-with-me-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: capture-adjacent-and-choose
+            when: always
+            choices:
+              - {id: adjacent_fighter, owner: controller, visibility: public, optional: true, domain: {kind: fighter, selector: fighter_adjacent_to_ghost-rider_at_effect_start, count: 1}, bind: adjacent_fighter}
+            costs: []
+            operations: []
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: ghost-rider, max_distance: 4}
+              - {op: MOVE, target: {bound: adjacent_fighter}, max_distance: 4, skip_if_unbound: true}
+              - {op: GAIN_RESOURCE, resource: hellfire, amount: 2}
+              - {op: GAIN_ACTION, count: 1}
+  - id: chains-of-hellfire
+    name: Chains of Hellfire
+    quantity: 2
+    inclusion: fixed
+    usable_by: [ghost-rider]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: chains-refill
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: refill, when: always, choices: [], costs: [], operations: [{op: GAIN_RESOURCE, resource: hellfire, amount_expr: {subtract: [5, {resource: hellfire, field: current}]}}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: ghost-rider-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/ghost-rider, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction, hellfire_costs]}
+  - {id: ghost-rider-official-product, authority: official, url: https://restorationgames.com/shop/marvel-redemption-row/, checked_at: 2026-07-27, supports: [set_membership]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass

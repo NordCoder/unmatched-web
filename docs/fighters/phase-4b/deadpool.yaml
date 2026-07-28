@@ -1,0 +1,56 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: deadpool
+display_name: Deadpool
+set_ids: [deadpool-solo]
+status: blocked
+verification: {evidence: qualified, semantics: verified, integration: requires_shared_extension, policy: blocked}
+requires: [A-REQ-008, A-REQ-015]
+movement: 2
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: deadpool, display_name: Deadpool, role: hero, count: 1, attack_type: melee, starting_health: 10, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: maximum-effort
+  controller: owner
+  effects:
+    - id: post-attack-heal
+      trigger: after_attacking
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: recover
+          when: always
+          choices: []
+          costs: []
+          operations: [{op: RECOVER, target: deadpool, amount: 1}]
+    - id: logan-name-bonus
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-015]
+      stages:
+        - id: apply-logan-bonus
+          when: {external_predicate: opponent_real_name_is_logan, requires: A-REQ-015}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: deadpool_attack, amount: 5}]
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/deadpool.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: deadpool-release, authority: official_component, url: https://mondoshop.com/blogs/news/april-pools-day, checked_at: 2026-07-27, supports: [official_release, fighter_identity]}
+  - {id: deadpool-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/deadpool, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, ability_text, physical_social_effects]}
+  - {id: deadpool-reference, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [general_resolution]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: blocked
+  fan_content: none

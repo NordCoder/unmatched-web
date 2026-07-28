@@ -1,0 +1,234 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: yennenga
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-011, A-REQ-012]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: rain-of-arrows
+    name: Rain of Arrows
+    quantity: 3
+    usable_by: [yennenga]
+    type: attack
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: rain-of-arrows-volley
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: volley, when: always, choices: [], costs: [], operations: [{op: TRIGGER_COMPOSITE, definition: volley, value: 3}]}
+  - id: surprise-volley
+    name: Surprise Volley
+    quantity: 3
+    usable_by: any
+    type: attack
+    printed_value: 3
+    boost: 3
+    requires: [A-REQ-012]
+    effects:
+      - id: surprise-volley-effect
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-012]
+        stages:
+          - id: choose-archer
+            when: always
+            choices:
+              - {id: choose-defeated-archer, owner: controller, visibility: public, optional: true, domain: {kind: fighter, owner: self, fighter_id: archer, state: defeated}, bind: returned_archer}
+            costs: []
+            operations: []
+          - id: choose-return-space
+            when: {choice_bound: returned_archer}
+            choices:
+              - {id: choose-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: {ref: combat.opposing_fighter}}, bind: return_space}
+            costs: []
+            operations:
+              - {op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: {kind: starting_health}, bind_result: archer_return}
+          - id: replace-current-attacker
+            when: {result: {ref: result.archer_return.success, equals: true}}
+            choices: []
+            costs: []
+            operations:
+              - {op: REPLACE_COMBAT_PARTICIPANT, combat: {ref: combat.current}, role: attacker, fighter: {ref: choice.returned_archer}, preserve: [combat_id, defender, committed_cards, timing_window], requires: A-REQ-012}
+          - id: gain-action-if-no-selection
+            when: {choice_unbound: returned_archer}
+            choices: []
+            costs: []
+            operations: [{op: GAIN_ACTION, count: 1}]
+          - id: gain-action-if-return-failed
+            when: {all: [{result_exists: {ref: result.archer_return}}, {result: {ref: result.archer_return.success, equals: false}}]}
+            choices: []
+            costs: []
+            operations: [{op: GAIN_ACTION, count: 1}]
+  - id: shield-formation
+    name: Shield Formation
+    quantity: 2
+    usable_by: [yennenga]
+    type: defense
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: shield-formation-effect
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: opponent-may-discard
+            when: always
+            choices:
+              - {id: discard-or-decline, owner: combat_opponent, visibility: private, optional: true, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1, when: {choice_bound: discarded_card}}]
+          - id: choose-archer-if-no-discard
+            when: {choice_unbound: discarded_card, selector_nonempty: {kind: fighter, owner: self, fighter_id: archer, state: defeated}}
+            choices:
+              - {id: choose-defeated-archer, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: archer, state: defeated}, bind: returned_archer}
+              - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: yennenga}, bind: return_space}
+            costs: []
+            operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_archer}, destination: {ref: choice.return_space}, health_rule: {kind: starting_health}}]
+  - {id: master-of-the-hunt, name: Master of the Hunt, quantity: 2, usable_by: [yennenga], type: scheme, printed_value: null, boost: 3, effects: [{id: master-actions, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: gain-actions, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 2}]}]}]}
+  - id: one-with-the-land
+    name: One With the Land
+    quantity: 2
+    usable_by: [yennenga]
+    type: scheme
+    printed_value: null
+    boost: 2
+    effects:
+      - id: one-with-land-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-friendly, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {selector: {kind: fighter, owner: self}}, max_distance: 2}]}
+          - {id: recover-friendly, when: always, choices: [], costs: [], operations: [{op: RECOVER, target: {selector: {kind: fighter, owner: self}}, amount: 1}]}
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: stallion-charge
+    name: Stallion Charge
+    quantity: 3
+    usable_by: [yennenga]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    requires: [A-REQ-011]
+    effects:
+      - id: stallion-charge-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        requires: [A-REQ-011]
+        stages:
+          - id: move-yennenga
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: yennenga, max_distance: 5, overrides: [may_move_through_opposing_fighters], bind_result: stallion_movement, requires: A-REQ-011}
+          - id: damage-crossed-fighters
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - op: DEAL_EFFECT_DAMAGE
+                target:
+                  selector:
+                    kind: fighter
+                    relation: opposing
+                    space_in: {ref: result.stallion_movement.traversed_spaces}
+                    distinct_instances: true
+                amount: 1
+                requires: A-REQ-011
+  - id: jaws-of-the-beast
+    name: Jaws of the Beast
+    quantity: 3
+    usable_by: [yennenga]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    effects:
+      - id: jaws-value
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: add-zone-count
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - op: ADD_VALUE
+                target: this_card
+                amount:
+                  expr: count
+                  selector: {kind: zone, containing_fighter: {ref: combat.opposing_fighter}}
+  - {id: point-blank, name: Point Blank, quantity: 3, usable_by: [yennenga], type: versatile, printed_value: 2, boost: 2, effects: [{id: point-blank-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: {relation: {adjacent: [{ref: combat.opposing_fighter}, yennenga]}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 2}]}]}]}
+  - {id: momentous-shift, name: Momentous Shift, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 2, effects: [{id: momentous-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {history: {own_combat_fighter_started_turn_in_different_space: true}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}]}
+  - {id: divide-and-conquer, name: Divide and Conquer, quantity: 2, usable_by: [archer], type: versatile, printed_value: 2, boost: 1, effects: [{id: divide-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {zone_relation: {fighter: {ref: combat.own_fighter}, not_same_zone_as: yennenga}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]}]}
+  - id: pin-the-prey
+    name: Pin the Prey
+    quantity: 2
+    usable_by: [archer]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    effects:
+      - id: pin-prey-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: move-opponent, when: always, choices: [], costs: [], operations: [{op: MOVE, target: {ref: combat.opposing_fighter}, max_distance: 4, controller: owner}]}
+          - id: opponent-discards
+            when: always
+            choices:
+              - {id: choose-discard, owner: combat_opponent, visibility: private, optional: false, domain: {zone: hand, owner: combat_opponent}, bind: discarded_card}
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {ref: choice.discarded_card}, count: 1}]
+  - id: skirmish
+    name: Skirmish
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 4
+    boost: 2
+    effects:
+      - id: skirmish-move
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: {combat: {result: won}}
+            choices:
+              - {id: choose-combat-fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, relation: in_current_combat}, bind: chosen_fighter}
+            costs: []
+            operations: [{op: MOVE, target: {ref: choice.chosen_fighter}, max_distance: 2}]
+
+external_definitions:
+  - id: volley
+    kind: bonus_attack
+    controller: owner
+    attacker: same_as_parent_attack
+    defender: same_as_parent_attack
+    value: source_defined_fixed_value
+    spends_action: false
+    skip_if_parent_attacker_or_defender_defeated: true
+    canceled_if_parent_after_combat_effect_canceled: true
+interpretations: []
+sources:
+  - {id: yennenga-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/yennenga, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: yennenga-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [volley, combat_timing]}
+  - {id: yennenga-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [volley_defeat_rule, current_combat_attacker_replacement]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

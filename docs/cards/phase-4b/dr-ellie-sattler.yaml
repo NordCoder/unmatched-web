@@ -1,0 +1,322 @@
+schema_version: 1
+fighter_id: dr-ellie-sattler
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-006]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: you-never-had-control-thats-the-illusion
+    name: You Never Had Control, That's the Illusion
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: [insight]
+    effects:
+      - id: illusion-insight-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: count-and-return
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: ADD_VALUE, target: this_card, amount_ref: {requirement: B-REQ-006, token_type: insight, selector: battlefield, aggregate: count}}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: battlefield_all, to: insight-supply, count: all}
+  - id: hey-hey-hey
+    name: Hey! Hey! Hey!
+    quantity: 1
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: hey-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-fighter
+            when: always
+            choices:
+              - {id: friendly_fighter, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: other_friendly_fighter, count: 1}, bind: friendly_fighter}
+            costs: []
+            operations: []
+          - {id: move, when: {bound: friendly_fighter, exists: true}, choices: [], costs: [], operations: [{op: MOVE, target: {bound: friendly_fighter}, max_distance: 4}]}
+  - id: must-go-faster
+    name: Must Go Faster
+    quantity: 1
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: must-go-faster-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: {combat_result: won}, choices: [{id: use_effect, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_effect}], costs: [], operations: []}
+          - id: choose-sattler-space
+            when: {bound: use_effect, equals: true}
+            choices:
+              - {id: sattler_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: sattler_destination}
+            costs: []
+            operations: []
+          - id: choose-malcolm-space
+            when: {bound: use_effect, equals: true, fighter_undefeated: dr-ian-malcolm}
+            choices:
+              - {id: malcolm_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: any_selectable_space_for_place}, bind: malcolm_destination}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: use_effect, equals: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: PLACE, target: dr-ellie-sattler, destination: {bound: sattler_destination}, skip_if_unbound: true}
+              - {op: PLACE, target: dr-ian-malcolm, destination: {bound: malcolm_destination}, skip_if_unbound: true}
+  - id: violently-if-necessary
+    name: Violently, If Necessary
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: [insight]
+    effects:
+      - id: violently-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: damage, when: {requirement: B-REQ-006, insight_on_battlefield: true}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_on_or_adjacent_to_space_with_insight, amount: 2, selector_requirement: B-REQ-006}]}
+  - id: feint
+    name: Feint
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+  - id: chaotician
+    name: Chaotician
+    quantity: 1
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: [insight]
+    effects:
+      - id: chaotician-place-insight
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {resource_gt: {insight-supply: 0}}
+            choices:
+              - {id: insight_destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: battlefield_space}, bind: insight_destination}
+            costs: []
+            operations: []
+          - {id: place-token, when: {bound: insight_destination, exists: true}, choices: [], costs: [], operations: [{op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: insight-supply, to: {bound: insight_destination}, count: 1}]}
+  - id: life-finds-a-way
+    name: Life Finds a Way
+    quantity: 2
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: life-finds-a-way-recover
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: discard-top, when: always, choices: [], costs: [], operations: [{op: DISCARD, controller: opponent, from_zone: deck_top, selector: {count: 1}, bind: discarded_card}]}
+          - id: recover
+            when: {result: discarded_card, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: RECOVER, target: dr-ellie-sattler, amount_ref: {result: discarded_card, field: boost_or_0}}
+              - {op: RECOVER, target: dr-ian-malcolm, amount_ref: {result: discarded_card, field: boost_or_0}}
+  - id: woman-inherits-the-earth
+    name: Woman Inherits the Earth
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: [insight]
+    effects:
+      - id: woman-inherits-resolve
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 1}
+              - {op: RECOVER, target: dr-ellie-sattler, amount_ref: {requirement: B-REQ-006, token_type: insight, selector: battlefield, aggregate: count}}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: battlefield_all, to: insight-supply, count: all}
+  - id: regroup
+    name: Regroup
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 1
+    tags: []
+    effects:
+      - id: regroup-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: won, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: not-won, when: {combat_result: not_won}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: sexism-in-survival-situations
+    name: Sexism in Survival Situations
+    quantity: 2
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: sexism-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {opposing_combat_fighter_role: hero}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 4}]}]
+      - id: sexism-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_move, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_move}], costs: [], operations: []}
+          - {id: move, when: {bound: use_move, equals: true}, choices: [], costs: [], operations: [{op: MOVE, target: dr-ellie-sattler, max_distance: 1}]}
+  - id: i-think-were-back-in-business
+    name: I Think We're Back in Business
+    quantity: 3
+    inclusion: fixed
+    usable_by: [dr-ellie-sattler]
+    type: versatile
+    printed_value: 0
+    boost: 3
+    tags: []
+    effects:
+      - id: back-in-business-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: always, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value_ref: {player: controller, field: hand_size}}]}]
+  - id: the-concept-of-attraction
+    name: The Concept of Attraction
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: [insight]
+    effects:
+      - id: attraction-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: {requirement: B-REQ-006, insight_on_battlefield: true}
+            choices:
+              - {id: insight_space, owner: controller, visibility: public, optional: true, domain: {kind: space, selector: space_with_insight_token, requirement: B-REQ-006}, bind: insight_space}
+            costs: []
+            operations: []
+          - {id: place, when: {bound: insight_space, exists: true}, choices: [], costs: [], operations: [{op: PLACE, target: own_combat_fighter, destination: {bound: insight_space}}]}
+  - id: lock-the-doors
+    name: Lock the Doors!
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: lock-the-doors-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}
+              - {op: MOVE, target: own_combat_fighter, max_distance: 2}
+  - id: the-future-ex-mrs-malcolm
+    name: The Future Ex-Mrs. Malcolm
+    quantity: 1
+    inclusion: fixed
+    usable_by: [dr-ian-malcolm]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: [insight]
+    effects:
+      - id: future-ex-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 2}
+              - {op: MOVE_BATTLEFIELD_TOKEN, requirement: B-REQ-006, token_type: insight, from: insight-supply, to: {fighter: dr-ian-malcolm, field: current_space}, count: 1, skip_if_unavailable: true}
+              - {op: GAIN_ACTION, count: 1}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: sattler-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/dr-ellie-sattler, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction, insight_cards]}
+  - {id: sattler-official-product, authority: official, url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: sattler-rulings-index, authority: official_ruling_index, url: https://www.the-unmatched.club/heroes/dr-sattler, checked_at: 2026-07-27, supports: [insight_cross_check]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

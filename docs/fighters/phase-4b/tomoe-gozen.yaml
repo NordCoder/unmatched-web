@@ -1,0 +1,63 @@
+schema_version: 1
+id: tomoe-gozen
+display_name: Tomoe Gozen
+set_ids: [suns-origin]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-013]
+movement: 2
+
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: tomoe-gozen, display_name: Tomoe Gozen, role: hero, count: 1, attack_type: ranged, starting_health: 14, starts_on_board: true, summonable: false}
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: attack-of-opportunity
+  controller: owner
+  effects:
+    - id: damage-hero-leaving-zone
+      trigger: left_zone
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: damage
+          when: {fighter_role: opposing_hero, zone_owner: tomoe-gozen}
+          operations: [{op: DEAL_EFFECT_DAMAGE, target: triggering_fighter, amount: 1}]
+
+resources: []
+persistent_state: []
+
+deck:
+  manifest: ../../cards/phase-4b/tomoe-gozen.yaml
+  construction: fixed
+
+rulings:
+  - id: leaving-zone-is-event-semantic
+    summary: The ability applies whenever an opposing hero actually leaves Tomoe's zone through movement, placement, or removal, can trigger multiple times in one effect, does not trigger merely because Tomoe moved, and never applies to sidekicks.
+    source_refs: [suns-origin-rules-tomoe]
+
+sources:
+  - {id: suns-origin-rules-tomoe, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [Attack of Opportunity, Sun's Origin fighter rules]}
+  - {id: tomoe-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/tomoe-gozen, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+  - {id: tomoe-crosscheck, authority: secondary_crosscheck, url: https://www.unmatchedarena.com/heroes/tomoe-gozen, checked_at: 2026-07-27, supports: [component transcription crosscheck]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - Attack of Opportunity consumes the existing left_zone relocation transition fact; C-EXT-009 remains withdrawn and no duplicate zone-event primitive is requested.
+  - Witness My Last Battle requires generic declaration-time combat legality rather than a Tomoe-only branch.

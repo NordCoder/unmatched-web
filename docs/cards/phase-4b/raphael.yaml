@@ -1,0 +1,111 @@
+schema_version: 1
+fighter_id: raphael
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- {id: batter-up, name: Batter Up!, quantity: 3, inclusion: fixed, usable_by: [casey-jones], type: attack, printed_value: 3, boost: 2, tags: [], effects: [{id: batter-move, trigger: after_combat, condition: {combat_result: won}, operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3}]}]}
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - id: turtle-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- id: unbridled-rage
+  name: Unbridled Rage
+  quantity: 2
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 3
+  boost: 4
+  tags: []
+  effects:
+  - id: rage-value
+    trigger: during_combat
+    requires: [D-REQ-001]
+    choices:
+    - id: discard-cards
+      owner: controller
+      visibility: private
+      optional: true
+      domain: {choose_distinct: {from: own_hand_defense_or_versatile_cards, min: 0, max: all}}
+      bind: cards
+    operations: [{op: DISCARD, from: hand, selector: bound.cards}, {op: ADD_VALUE, target: this_card, amount_rule: two_per_bound_card}]
+- {id: crowd-control, name: Crowd Control, quantity: 3, inclusion: fixed, usable_by: any, type: attack, printed_value: 2, boost: 1, tags: [], effects: [{id: crowd, trigger: after_combat, operations: [{op: DRAW, count_rule: count_adjacent_opposing_fighters_to_own_combat_fighter}, {op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
+- id: lets-do-this
+  name: Let's Do This!
+  quantity: 3
+  inclusion: fixed
+  usable_by: [raphael]
+  type: attack
+  printed_value: 1
+  boost: 3
+  tags: []
+  effects:
+  - id: lets-draw
+    trigger: after_combat
+    branches:
+    - {condition: {combat_result: won}, operations: [{op: DRAW, count: 2}]}
+    - {condition: {combat_result_not: won}, operations: [{op: DRAW, count: 1}]}
+- {id: sai, name: Sai, quantity: 2, inclusion: fixed, usable_by: [raphael], type: versatile, printed_value: 4, boost: 2, tags: [], effects: []}
+- {id: relentless, name: Relentless, quantity: 2, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: relentless, trigger: after_combat, operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: deck, selector: this_card}, {op: SHUFFLE, zone: deck}, {op: DRAW, count: 1}]}]}
+- id: break-something
+  name: Break Something
+  quantity: 3
+  inclusion: fixed
+  usable_by: [raphael]
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - id: break-cancel
+    trigger: immediately
+    requires: [D-REQ-001]
+    stages:
+    - id: selective-cancel
+      operations:
+      - op: CANCEL_EFFECTS
+        target_scope: opposing_combat_card_during_and_after_combat_effects
+        bind: canceled_effect_count
+    - id: remember-result
+      operations: [{op: SET_STATE, key: break_something_canceled_this_combat, value_rule: bound.canceled_effect_count_gt_0}]
+  - id: break-fallback
+    trigger: after_combat
+    condition: {state: break_something_canceled_this_combat, equals: false}
+    choices: [{id: target, owner: controller, visibility: public, optional: false, domain: adjacent_opposing_fighters, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 2}]
+- {id: payback-time, name: Payback Time!, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 1, tags: [], effects: [{id: payback, trigger: during_combat, condition: {state: lost_combat_this_turn, equals: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+- {id: slapshot, name: Slapshot, quantity: 3, inclusion: fixed, usable_by: [casey-jones], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: slapshot, trigger: during_combat, condition: {casey_jones_adjacent_to_opposing_combat_fighter: true}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [raphael], type: defense, printed_value: 5, boost: 2, tags: [], effects: []}
+- {id: raphael-is-cool-but-rude, name: Raphael Is Cool But Rude, quantity: 2, inclusion: fixed, usable_by: [raphael], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: rude, trigger: scheme, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_friendly_fighter, amount: 1}, {op: DRAW, count: 1}]}]}
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: tmnt-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [fighter_and_deck_rules], durability: durable}
+- {id: tmnt-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: raphael-club, authority: reference, url: https://www.the-unmatched.club/heroes/raphael, checked_at: '2026-07-27', supports: [complete_visual_deck_transcription]}
+normalization_notes:
+- All 12 definitions reconcile to 30 cards.
+- Break Something binds the actual cancellation result across timing windows under D-REQ-001; no opaque cancellation composite remains.
+- Relentless uses explicit SHUFFLE.
+- Adventures enemy/scenario behavior is excluded.

@@ -1,0 +1,292 @@
+schema_version: 1
+fighter_id: bullseye
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [B-REQ-008]
+
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: worlds-greatest-assassin
+    name: World's Greatest Assassin
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 4
+    boost: 3
+    tags: []
+    effects:
+      - id: worlds-greatest-assassin-ignore
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: ignore, when: {won_combat_earlier_this_turn: true}, choices: [], costs: [], operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}
+  - id: i-never-miss
+    name: I Never Miss
+    quantity: 4
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: i-never-miss-choice
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            when: always
+            choices:
+              - {id: mode, owner: controller, visibility: private, optional: false, domain: {kind: enum, values: [boost_attack, draw_one]}, bind: mode}
+            costs: []
+            operations: []
+          - id: boost
+            when: {bound: mode, equals: boost_attack}
+            choices: []
+            costs: []
+            operations: [{op: BOOST, target: this_card, source: hand, count: 1}]
+          - id: draw
+            when: {bound: mode, equals: draw_one}
+            choices: []
+            costs: []
+            operations: [{op: DRAW, count: 1}]
+  - id: for-my-next-trick
+    name: For My Next Trick
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: for-my-next-trick-resolve
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: bullseye, max_distance: 1}
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
+  - id: i-planned-to-be-here
+    name: I Planned To Be Here
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: i-planned-to-be-here-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {bullseye_current_space_equals_turn_start_space: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - id: ricochet
+    name: Ricochet
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: ricochet-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-target
+            when: {opposing_combat_fighter_defeated: false}
+            choices:
+              - {id: damage_target, owner: controller, visibility: public, optional: false, domain: {kind: fighter, selector: fighter_in_opposing_combat_fighter_current_zone}, bind: damage_target}
+            costs: []
+            operations: []
+          - id: damage
+            when: {bound: damage_target, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: {bound: damage_target}, amount: 1}]
+  - id: master-strategist
+    name: Master Strategist
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: master-strategist-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: bullseye, distance: 4, distance_mode: exactly, overrides: [may_move_through_opposing_fighters]}]}
+  - id: right-between-the-eyes
+    name: Right Between The Eyes
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: right-between-the-eyes-discard
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-discard
+            when: {won_combat_earlier_this_turn: true}
+            choices:
+              - {id: opponent_discard, owner: combat_opponent, visibility: private, optional: false, domain: {kind: card, zone: combat_opponent_hand, count: 1}, bind: opponent_discard}
+            costs: []
+            operations: []
+          - id: discard
+            when: {bound: opponent_discard, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, controller: combat_opponent, from_zone: hand, selector: {bound: opponent_discard}, count: 1}]
+  - id: im-better-and-ill-prove-it
+    name: I'm Better And I'll Prove It
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: im-better-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: set-value, when: {won_combat_earlier_this_turn: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}
+  - id: arrogant-but-effective
+    name: Arrogant But Effective
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: arrogant-but-effective-result
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: change-result-and-move
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: SET_STATE, key_ref: {scope: combat, key: winner}, value: controller}
+              - {op: MOVE, target: bullseye, max_distance: 2}
+  - id: feint
+    name: Feint
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: feint-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+  - id: tactical-retreat
+    name: Tactical Retreat
+    quantity: 3
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: defense
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: tactical-retreat-place
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-space
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: space_sharing_no_zones_with_bullseye_pre_effect_space}, bind: destination}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: destination, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: PLACE, target: bullseye, destination: {bound: destination}}]
+  - id: study-the-target
+    name: Study The Target
+    quantity: 2
+    inclusion: fixed
+    usable_by: [bullseye]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: study-the-target-base
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+      - id: study-the-target-bonus
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: bonus
+            when: {won_combat_earlier_this_turn: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
+
+external_definitions: []
+interpretations: []
+
+sources:
+  - {id: bullseye-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/bullseye, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: bullseye-official-product, authority: official, url: https://restorationgames.com/shop/marvel-hells-kitchen-unmatched/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: bullseye-rulings-index, authority: secondary_cross_check, url: https://www.the-unmatched.club/heroes/bullseye, checked_at: 2026-07-27, supports: [card_cross_check]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

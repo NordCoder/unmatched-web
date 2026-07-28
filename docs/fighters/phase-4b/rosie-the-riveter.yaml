@@ -1,0 +1,138 @@
+schema_version: 1
+id: rosie-the-riveter
+display_name: Rosie the Riveter
+set_ids: [stars-and-stripes]
+status: partial
+verification:
+  evidence: qualified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-003, D-REQ-004, D-REQ-005, D-REQ-012]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: rosie-the-riveter, display_name: Rosie the Riveter, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: wendy-the-welder, display_name: Wendy the Welder, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+setup:
+  hooks: []
+  state_initialization: []
+ability:
+  id: freedom-xk-ii-mech-suit
+  controller: owner
+  effects:
+  - id: activate-upgrade
+    trigger: start_turn
+    requires: [D-REQ-012]
+    operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: activate_next}]
+  - id: reset-upgrades
+    trigger: end_turn
+    condition: {resource: upgrade-tokens, active_count: 4}
+    requires: [D-REQ-012]
+    operations: [{op: CHANGE_STATE, resource: upgrade-tokens, transition: deactivate_all_in_order}]
+  - id: merlin-engine-maneuver
+    trigger: static
+    continuous: true
+    condition: {resource: upgrade-tokens, token_active: merlin-engine}
+    requires: [D-REQ-004]
+    modifier:
+      kind: maneuver_only_extra_distance
+      target: rosie-the-riveter
+      amount: 1
+      optional: true
+      applies_to: owner_controlled_maneuver_movement_only
+      excludes: [effect_move, forced_move, opponent_controlled_move, place]
+  - id: cavity-magnetron-draw
+    trigger: after_attack
+    optional: true
+    condition: {resource: upgrade-tokens, token_active: cavity-magnetron, attacker: rosie-the-riveter}
+    operations: [{op: DRAW, count: 1}]
+  - id: sedgley-fist-gun-attack
+    trigger: static
+    continuous: true
+    condition: {resource: upgrade-tokens, token_active: sedgley-fist-gun, attacker: rosie-the-riveter}
+    operations: [{op: ADD_VALUE, target: rosie_attack, amount: 1}]
+  - id: whizbang-ranged
+    trigger: static
+    continuous: true
+    condition: {resource: upgrade-tokens, token_active: whizbang}
+    requires: [D-REQ-005]
+    modifier: {kind: fighter_attack_type, target: rosie-the-riveter, value: ranged}
+resources:
+- id: upgrade-tokens
+  kind: token_pool
+  visibility: public
+  initial: 4
+  runtime_state:
+    requires: [D-REQ-012]
+    kind: ordered_token_row
+    initial_order: [merlin-engine, cavity-magnetron, sedgley-fist-gun, whizbang]
+    initial_active: []
+    transitions:
+      activate_next: activate_leftmost_inactive
+      deactivate_next: deactivate_leftmost_active_then_move_to_right_end
+      activate_all: activate_all_in_current_row_order
+      deactivate_all_in_order: repeatedly_deactivate_next_until_none_active
+    queries:
+      count_active: count_active_tokens
+      is_active: token_identity_is_active
+  definitions:
+  - {id: merlin-engine, printed_name: Merlin Engine, printed_order: 1, active_effect: maneuver_only_optional_plus_one_space, source_refs: [stars-rules]}
+  - {id: cavity-magnetron, printed_name: Cavity Magnetron, printed_order: 2, active_effect: optional_draw_one_after_rosie_attacks, source_refs: [rosie-upgrade-image, rosie-physical-transcription]}
+  - {id: sedgley-fist-gun, printed_name: Sedgley Fist Gun, printed_order: 3, active_effect: rosie_attacks_plus_one, source_refs: [rosie-upgrade-image, rosie-physical-transcription]}
+  - {id: whizbang, printed_name: Whizbang, printed_order: 4, active_effect: rosie_becomes_ranged, source_refs: [rosie-upgrade-image, rosie-physical-transcription]}
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/rosie-the-riveter.yaml
+  construction: fixed
+rulings:
+- id: upgrade-activation
+  summary: The four upgrades begin inactive in printed order; activation/deactivation operate on the ordered row.
+  source_ref: stars-rules
+- id: merlin-engine
+  summary: Merlin Engine adds an optional space only when Rosie maneuvers; it does not change ordinary movement value or effect/forced movement.
+  source_ref: stars-rules
+sources:
+- id: stars-rules
+  authority: official_set_rules
+  url: https://restorationgames.com/wp-content/uploads/2025/08/UM-Stars-Stripes_Rulebook-FLAT.pdf
+  checked_at: '2026-07-27'
+  supports: [initial_upgrade_order, ordered_row_procedure, all_inactive_setup, merlin_engine]
+  durability: durable
+- id: stars-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-stars-and-stripes/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: rosie-upgrade-image
+  authority: official_component_image
+  url: https://restorationgames.com/wp-content/uploads/2026/05/Rosie-Upgrades-1024x354.png
+  checked_at: '2026-07-27'
+  supports: [upgrade_component_identities, physical_component_layout]
+  durability: durable
+- id: rosie-physical-transcription
+  authority: physical_component_transcription
+  url: project_owner_supplied_component_photograph
+  checked_at: '2026-07-27'
+  supports: [cavity_magnetron_effect, sedgley_fist_gun_effect, whizbang_effect]
+  durability: transient
+- id: rosie-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/rosie-the-riveter
+  checked_at: '2026-07-27'
+  supports: [fighter_ability_cross_check, card_visual_corpus]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: QUALIFIED
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Initial order and Merlin Engine are publisher-hosted rulebook facts; the other three effect mappings are explicitly retained as transient physical-component transcription, not promoted to rulebook evidence.
+- Ordered upgrades are explicit state transitions/queries under D-REQ-012; no source_defined upgrade handler remains.
+- Merlin Engine never modifies forced/effect MOVE.

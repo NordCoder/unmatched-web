@@ -1,0 +1,87 @@
+schema_version: 1
+id: donatello
+display_name: Donatello
+set_ids: [tmnt-adventures]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: donatello, display_name: Donatello, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+  - {id: metalhead, display_name: Metalhead, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: inventive
+  controller: owner
+  effects:
+  - id: inventive-maneuver
+    trigger: maneuver_draw_replacement
+    optional: true
+    operations:
+    - {op: DRAW, count: 2}
+    - {op: MOVE_CARD, from_zone: hand, to_zone: deck, selector: controller_chosen_card, position: bottom}
+    dependency: bottom_one_card_if_replacement_draw_chosen
+  - id: invention-persistence
+    trigger: own_invention_played_cleanup
+    operations: [{op: MOVE_CARD, from_zone: resolution, to_zone: inventions, selector: played_card}]
+resources:
+- id: inventions
+  kind: card_zone
+  visibility: public
+  initial: empty
+  ownership_rule: card_instance_owner_is_preserved
+  use_rule: cards_are_not_in_discard_and_are_not_normally_playable_from_this_zone
+  source_lifetime: invention_static_effects_apply_while_source_card_remains_in_zone
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/donatello.yaml
+  construction: fixed
+rulings:
+- id: donatello-canceled-invention
+  summary: A played Invention still tucks under Donatello and grants its ongoing bonus even if its played effect is canceled.
+  source_ref: tmnt-set-rules
+- id: donatello-discarded-invention
+  summary: An Invention discarded without being played does not tuck; tucked Inventions are not in discard.
+  source_ref: tmnt-set-rules
+sources:
+- id: tmnt-set-rules
+  authority: official_set_rules
+  url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, inventive_rule, invention_persistence, deck_allocation]
+  durability: durable
+- id: tmnt-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: tmnt-physical-review
+  authority: physical_component_transcription
+  url: https://www.youtube.com/watch?v=fRie8VT5Tp8
+  checked_at: '2026-07-27'
+  supports: [component_cross_check]
+  durability: transient
+- id: donatello-arena
+  authority: reference
+  url: https://www.unmatchedarena.com/heroes/donatello
+  checked_at: '2026-07-27'
+  supports: [deck_transcription]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Inventions are first-class public card zones with preserved ownership and source lifetime.
+- Pair-level partial status is caused by deck interactions whose later choice domains depend on earlier movement/look results; those are normalized under D-REQ-001.

@@ -1,0 +1,56 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: little-red-riding-hood
+display_name: Little Red Riding Hood
+set_ids: [little-red-vs-beowulf]
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-008, A-REQ-009]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: little-red-riding-hood, display_name: Little Red Riding Hood, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+    - {id: huntsman, display_name: Huntsman, role: sidekick, count: 1, attack_type: ranged, starting_health: 9, starts_on_board: true, summonable: false}
+setup:
+  hooks:
+    - stage: BEFORE_STARTING_HAND
+      requires: [A-REQ-009]
+      choices: []
+      operations:
+        - {op: PLACE_AUXILIARY_IN_ZONE, object: basket-reference, zone: discard, position: top, requires: A-REQ-009}
+  state_initialization: []
+ability:
+  id: whats-that-in-my-basket
+  controller: owner
+  effects:
+    - id: basket-symbol
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-009]
+      stages:
+        - id: derive-basket-item
+          when: always
+          choices: []
+          costs: []
+          operations:
+            - {op: DERIVE_ATTRIBUTE, target: basket_item, from: {zone: discard, position: top, field: printed_symbol}, requires: A-REQ-009}
+resources:
+  - {id: basket-reference, kind: auxiliary_component, visibility: public, initial: 1, counted_in_action_deck: false}
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/little-red-riding-hood.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: little-red-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, basket_reference, setup]}
+  - {id: little-red-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/little-red, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, printed_symbols]}
+  - {id: little-red-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [wild_basket_single_item]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

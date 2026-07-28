@@ -1,0 +1,139 @@
+schema_version: 1
+fighter_id: leonardo
+status: partial
+verification: {evidence: verified, semantics: qualified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- {id: katana, name: Katana, quantity: 2, inclusion: fixed, usable_by: [leonardo], type: attack, printed_value: 6, boost: 2, tags: [], effects: []}
+- id: for-sensei
+  name: For Sensei
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 4
+  boost: 1
+  tags: []
+  effects:
+  - id: for-sensei-move
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-order
+      choices:
+      - {id: combat-fighter-order, owner: controller, visibility: public, optional: false, domain: permutations_of_current_combat_fighters, bind: move_order}
+    - id: move-first
+      choices:
+      - {id: first-distance, owner: controller, visibility: public, optional: true, domain: legal_move_up_to_one_for_bound_move_order_0, bind: first_move}
+      operations: [{op: MOVE, target: "bound.move_order[0]", distance_from: bound.first_move}]
+    - id: move-second
+      choices:
+      - {id: second-distance, owner: controller, visibility: public, optional: true, domain: legal_move_up_to_one_for_bound_move_order_1_after_prior_stage, bind: second_move}
+      operations: [{op: MOVE, target: "bound.move_order[1]", distance_from: bound.second_move}]
+  - id: for-sensei-action
+    trigger: after_combat
+    optional: true
+    costs: [{op: DISCARD, from: hand, selector: controller_chosen, count: 1}]
+    operations: [{op: GAIN_ACTION, count: 1}]
+    dependency: gain_action_only_if_discard_cost_paid
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [leonardo]
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: turtle-power-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- {id: fearless-leader, name: Fearless Leader, quantity: 3, inclusion: fixed, usable_by: any, type: attack, printed_value: 3, boost: 2, tags: [], effects: [{id: fearless-value, trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: two_per_other_friendly_fighter_adjacent_to_opposing_combat_fighter}]}]}
+- {id: quick-strike, name: Quick Strike, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{id: quick-draw, trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
+- {id: spatial-awareness, name: Spatial Awareness, quantity: 3, inclusion: fixed, usable_by: [splinter], type: versatile, printed_value: 3, boost: 3, tags: [], effects: [{id: spatial, trigger: after_combat, condition: {opposing_combat_fighter_zone_count_lt_splinter_zone_count: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}, {op: DRAW, count: 1}]}]}
+- id: eat-sleep-and-breathe-ninjutsu
+  name: Eat, Sleep, and Breathe Ninjutsu
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - id: ninjutsu-reposition
+    trigger: after_combat
+    requires: [D-REQ-001]
+    stages:
+    - id: capture-targets
+      bindings: [{id: targets, from: fighters_adjacent_to_own_combat_fighter_at_stage_start}]
+    - id: choose-resolution-order
+      choices: [{id: target-order, owner: controller, visibility: public, optional: false, domain: permutations_of_bound_targets, bind: order}]
+    - id: reposition-each
+      repeat_for_each: bound.order
+      choices:
+      - {id: destination, owner: controller, visibility: public, optional: false, domain: another_legal_space_in_current_targets_zone, bind: destination}
+      operations: [{op: PLACE, target: current_repeat_item, destination_rule: bound.destination}]
+- {id: wise-beyond-his-years, name: Wise Beyond His Years, quantity: 3, inclusion: fixed, usable_by: [leonardo], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: wise, trigger: after_combat, condition: {opposing_combat_fighter_zone_count_lt_leonardo_zone_count: true}, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 2}]}]}
+- id: i-have-a-plan
+  name: I Have a Plan
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 1
+  tags: []
+  effects:
+  - id: plan
+    trigger: immediately
+    optional: true
+    costs: [{op: DISCARD, from: hand, selector: controller_chosen, count: 1}]
+    operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]
+    dependency: cancel_and_ignore_only_if_discard_cost_paid
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [leonardo], type: defense, printed_value: 5, boost: 3, tags: [], effects: []}
+- id: protective-father
+  name: Protective Father
+  quantity: 2
+  inclusion: fixed
+  usable_by: [splinter]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - id: protective-swap
+    trigger: scheme
+    optional: true
+    choices: [{id: friendly-fighter, owner: controller, visibility: public, optional: false, domain: friendly_fighters_other_than_splinter, bind: fighter}]
+    operations: [{op: SWAP, a: splinter, b: bound.fighter, bind: swap_succeeded}]
+    stages:
+    - id: recovery-after-swap
+      condition: {bound.swap_succeeded: true}
+      operations: [{op: RECOVER, target: splinter, amount: 2}, {op: RECOVER, target: bound.fighter, amount: 2}]
+  - {id: protective-action, trigger: scheme, operations: [{op: GAIN_ACTION, count: 1}]}
+- {id: leonardo-leads, name: Leonardo Leads, quantity: 2, inclusion: fixed, usable_by: [leonardo], type: scheme, printed_value: null, boost: 4, tags: [], effects: [{id: leads, trigger: scheme, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3}, {op: DRAW, count: 1}]}]}
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: tmnt-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [deck_allocation, for_sensei_text], durability: durable}
+- {id: tmnt-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: tmnt-physical, authority: physical_component_transcription, url: "https://www.youtube.com/watch?v=fRie8VT5Tp8", checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: leonardo-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/leonardo, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+normalization_notes:
+- All 12 definitions reconcile to 30 cards.
+- For Sensei uses the explicit medium-confidence project ordering normalization recorded in the fighter manifest.
+- Both multi-fighter reposition effects are staged under D-REQ-001; no source_defined positioning composite remains.
+- Adventures enemy/scenario behavior is excluded.

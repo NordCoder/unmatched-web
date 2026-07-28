@@ -1,0 +1,71 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: invisible-man
+display_name: Invisible Man
+set_ids: [cobble-and-fog]
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-003, A-REQ-005]
+movement: 2
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: invisible-man, display_name: Invisible Man, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+setup:
+  hooks:
+    - stage: POST_PLACEMENT_CONFIGURATION
+      requires: [A-REQ-003]
+      choices:
+        - {id: place-fog-1, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man}, bind: fog_space_1}
+        - {id: place-fog-2, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}]}, bind: fog_space_2}
+        - {id: place-fog-3, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: invisible-man, excludes: [{ref: choice.fog_space_1}, {ref: choice.fog_space_2}]}, bind: fog_space_3}
+      operations:
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_1}, requires: A-REQ-003}
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_2}, requires: A-REQ-003}
+        - {op: PLACE_COMPONENT, component_pool: fog, destination: {ref: choice.fog_space_3}, requires: A-REQ-003}
+  state_initialization: []
+ability:
+  id: fog
+  controller: owner
+  effects:
+    - id: fog-defense
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: add-fog-defense
+          when: {combat: {defender: invisible-man}, position: {fighter: invisible-man, on_component_type: fog}}
+          choices: []
+          costs: []
+          operations: [{op: ADD_VALUE, target: {selector: {kind: combat_card, owner: self, role: defense, fighter: invisible-man}}, amount: 1}]
+    - id: fog-step
+      trigger: movement_adjacency
+      controller: owner
+      cancellation: source_defined
+      requires: [A-REQ-003]
+      stages:
+        - id: add-movement-only-adjacency
+          when: {moving_fighter: invisible-man}
+          choices: []
+          costs: []
+          operations:
+            - {op: ADD_DYNAMIC_ADJACENCY, scope: movement_only, between: {selector: {kind: space, containing_component_type: fog}}, requires: A-REQ-003}
+resources:
+  - {id: fog, kind: component_pool, visibility: public, initial: 3, max: 3, lifecycle: [board]}
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/invisible-man.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: invisible-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/05/UM-Cobble_and_Fog-rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, fog_setup]}
+  - {id: invisible-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/invisible-man, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: invisible-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [fog_movement_only_adjacency, fog_occupancy, vanish_dormancy]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

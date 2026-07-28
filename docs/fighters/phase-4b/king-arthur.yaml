@@ -1,0 +1,48 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: king-arthur
+display_name: King Arthur
+set_ids: [battle-of-legends-vol-1]
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-006, A-REQ-013]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: king-arthur, display_name: King Arthur, role: hero, count: 1, attack_type: melee, starting_health: 18, starts_on_board: true, summonable: false}
+    - {id: merlin, display_name: Merlin, role: sidekick, count: 1, attack_type: ranged, starting_health: 7, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: noble-sacrifice
+  controller: owner
+  effects:
+    - id: arthur-attack-boost
+      trigger: combat_card_commit
+      controller: owner
+      cancellation: source_defined
+      stages:
+        - id: choose-boost-card
+          when: {combat: {attacker: king-arthur}}
+          choices:
+            - {id: choose-boost-card, owner: controller, visibility: committed_hidden, optional: true, domain: {zone: hand, owner: self}, bind: boost_card}
+          costs: []
+          operations:
+            - {op: BOOST, target: {selector: {kind: combat_card, owner: self, role: attack, fighter: king-arthur}}, source: {ref: choice.boost_card}}
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/king-arthur.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: arthur-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2019/07/UM-Battle_of_Legends_vol1_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: arthur-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/king-arthur, checked_at: 2026-07-27, supports: [deck_identity, card_metadata]}
+  - {id: arthur-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [boost_cancellation, holy_grail_health_semantics]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

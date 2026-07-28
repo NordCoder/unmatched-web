@@ -1,0 +1,213 @@
+schema_version: 1
+fighter_id: blackbeard
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-016]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- id: avast-ye
+  name: Avast Ye!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [blackbeard]
+  type: attack
+  printed_value: 5
+  boost: 3
+  tags: []
+  effects:
+  - id: avast-discard
+    trigger: immediately
+    requires: [D-REQ-016]
+    stages:
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]
+    - id: ransom-resolution
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}
+      - {condition: {bound.payment: declined}, operations: [{op: DISCARD, from: opponent_hand, selector: random, count: 1, controller: opponent}]}
+  - id: avast-zone-damage
+    trigger: after_combat
+    requires: [D-REQ-016]
+    stages:
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]
+    - id: ransom-resolution
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}
+      - {condition: {bound.payment: declined}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_blackbeard_zone, amount: 1}]}
+- id: give-no-quarter
+  name: Give No Quarter
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - {id: give-no-quarter-value, trigger: during_combat, condition: {another_friendly_fighter_adjacent_to_opposing_combat_fighter: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}
+  - id: give-no-quarter-action
+    trigger: after_combat
+    requires: [D-REQ-016]
+    stages:
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]
+    - id: ransom-resolution
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}
+      - {condition: {bound.payment: declined}, operations: [{op: GAIN_ACTION, count: 1}]}
+- {id: light-the-fuse, name: Light the Fuse, quantity: 3, inclusion: fixed, usable_by: [seadog], type: attack, printed_value: 2, boost: 3, tags: [], effects: [{id: light-the-fuse, trigger: after_combat, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2}, {op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
+- id: brace-of-primed-pistols
+  name: A Brace of Primed Pistols
+  quantity: 2
+  inclusion: fixed
+  usable_by: [blackbeard]
+  type: attack
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - id: primed-pistols
+    trigger: after_combat
+    requires: [D-REQ-016]
+    stages:
+    - id: choose-target
+      choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters_in_blackbeard_zone, bind: target}]
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 2}, bind: payment}]
+    - id: ransom-resolution
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 2}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 2}]}
+      - {condition: {bound.payment: declined}, operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 3}]}
+- id: queen-annes-revenge
+  name: Queen Anne's Revenge
+  quantity: 2
+  inclusion: fixed
+  usable_by: [blackbeard]
+  type: versatile
+  printed_value: 7
+  boost: 3
+  tags: []
+  effects:
+  - id: queen-annes-revenge
+    trigger: during_combat
+    cancellation: protected
+    requires: [D-REQ-016]
+    stages:
+    - id: choose-payment
+      choices:
+      - id: ransom-count
+        owner: combat_opponent
+        visibility: public
+        optional: true
+        domain: {integer_range: [0, treasury_doubloon_count]}
+        bind: paid_count
+    - id: transfer-and-reduce
+      operations:
+      - {op: SPEND_RESOURCE, resource: treasury-doubloons, amount_from: bound.paid_count}
+      - {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount_from: bound.paid_count}
+      - {op: ADD_VALUE, target: this_card, amount_rule: negative_two_times_bound_paid_count}
+- id: parley
+  name: Parley
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: parley
+    trigger: immediately
+    requires: [D-REQ-016]
+    stages:
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 2}, bind: payment}]
+    - id: ransom-resolution
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 2}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 2}]}
+      - {condition: {bound.payment: declined}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+- id: fearsome-and-calculating
+  name: Fearsome and Calculating
+  quantity: 3
+  inclusion: fixed
+  usable_by: [blackbeard]
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - id: fearsome-and-calculating
+    trigger: immediately
+    requires: [D-REQ-016]
+    stages:
+    - id: ransom-offer
+      choices: [{id: ransom-payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]
+    - id: unpaid-inspection
+      condition: {bound.payment: declined}
+      operations: [{op: LOOK_AT, source: opponent_hand, selector: all, viewer: controller}]
+      choices: [{id: discard-card, owner: controller, visibility: private, optional: false, domain: opponent_hand_cards, bind: card}]
+    - id: resolve
+      branches:
+      - {condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}
+      - {condition: {bound.payment: declined}, operations: [{op: DISCARD, from: opponent_hand, selector: bound.card, count: 1}]}
+- {id: show-a-leg, name: Show a Leg!, quantity: 2, inclusion: fixed, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: show-a-leg, trigger: after_combat, operations: [{op: SUMMON, pool: seadog, destination_rule: space_in_blackbeard_zone}]}]}
+- id: no-prey-no-pay
+  name: No Prey, No Pay
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - id: no-prey-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+  - {id: no-prey-draw, trigger: after_combat, condition: {combat_result: won}, operations: [{op: DRAW, count: 1}]}
+- {id: intimidating-visage, name: Intimidating Visage, quantity: 2, inclusion: fixed, usable_by: [blackbeard], type: defense, printed_value: 4, boost: 1, tags: [], effects: [{id: intimidating-visage, trigger: after_combat, condition: {blackbeard_adjacent_to_opposing_fighter: true}, operations: [{op: RECOVER, target: blackbeard, amount: 2}]}]}
+- {id: plunder, name: Plunder, quantity: 3, inclusion: fixed, usable_by: [blackbeard], type: scheme, printed_value: null, boost: 2, tags: [], effects: [{id: plunder, trigger: scheme, operations: [{op: MOVE, target: each_friendly_fighter, max_distance: 3, overrides: [may_move_through_opposing_fighters]}, {op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1, condition: {resource_gte: 1}}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1, condition: {prior_spend_succeeded: true}}]}]}
+- id: scourge-of-the-seven-seas
+  name: Scourge of the Seven Seas
+  quantity: 2
+  inclusion: fixed
+  usable_by: [blackbeard]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - id: scourge-recover
+    trigger: scheme
+    requires: [D-REQ-016]
+    stages: [{id: offer, choices: [{id: payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]}, {id: resolve, branches: [{condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}, {condition: {bound.payment: declined}, operations: [{op: RECOVER, target: blackbeard, amount: 2}]}]}]
+  - id: scourge-summon
+    trigger: scheme
+    requires: [D-REQ-016]
+    stages: [{id: offer, choices: [{id: payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]}, {id: resolve, branches: [{condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}, {condition: {bound.payment: declined}, operations: [{op: SUMMON, pool: seadog, destination_rule: any_space}]}]}]
+  - id: scourge-action
+    trigger: scheme
+    requires: [D-REQ-016]
+    stages: [{id: offer, choices: [{id: payer, owner: eligible_opponents, visibility: public, optional: true, domain: {action: pay_from_shared_resource, resource: treasury-doubloons, amount: 1}, bind: payment}]}, {id: resolve, branches: [{condition: {bound.payment: accepted}, operations: [{op: SPEND_RESOURCE, resource: treasury-doubloons, amount: 1}, {op: GAIN_RESOURCE, resource: blackbeard-doubloons, amount: 1}]}, {condition: {bound.payment: declined}, operations: [{op: GAIN_ACTION, count: 1}]}]}]
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: blackbeard-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: blackbeard-physical-review, authority: physical_component_transcription, url: "https://www.youtube.com/watch?v=6fP2amMnphI", checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: blackbeard-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/blackbeard, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+- {id: blackbeard-club, authority: reference, url: https://www.the-unmatched.club/heroes/blackbeard, checked_at: '2026-07-27', supports: [multiplayer_ransom_ruling]}
+normalization_notes:
+- All 12 definitions reconcile to 30 cards.
+- Every ransom is an explicit staged multi-actor payment window under D-REQ-016; no source_defined ransom/transfer composite remains.
+- Shared-Treasury transfers use ordinary SPEND_RESOURCE plus GAIN_RESOURCE.

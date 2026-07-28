@@ -1,0 +1,91 @@
+schema_version: 1
+id: blackbeard
+display_name: Blackbeard
+set_ids: [battle-of-legends-vol-3]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-016]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: blackbeard, display_name: Blackbeard, role: hero, count: 1, attack_type: ranged, starting_health: 13, starts_on_board: true, summonable: false}
+  - id: seadog
+    display_name: Sea Dog
+    role: sidekick
+    count: 2
+    attack_type: melee
+    starting_health: 1
+    starts_on_board: true
+    summonable: true
+    runtime_identity: Each Sea Dog token is a distinct one-health fighter instance and can be summoned again after defeat when a source allows it.
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: privateer-turned-pirate
+  controller: owner
+  effects:
+  - id: start-turn-buy-action
+    trigger: start_turn
+    optional: true
+    condition: {resource: blackbeard-doubloons, gte: 1}
+    operations:
+    - {op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1}
+    - {op: GAIN_RESOURCE, resource: treasury-doubloons, amount: 1}
+    - {op: GAIN_ACTION, count: 1}
+    dependency: action_only_if_transfer_completed
+  - id: combat-damage-payment
+    trigger: after_combat_damage
+    condition: {damaged_fighter: blackbeard, combat_damage_gt: 0, resource: blackbeard-doubloons, gte: 1}
+    operations:
+    - {op: SPEND_RESOURCE, resource: blackbeard-doubloons, amount: 1}
+    - {op: GAIN_RESOURCE, resource: treasury-doubloons, amount: 1}
+resources:
+- {id: blackbeard-doubloons, kind: token_pool, visibility: public, initial: 2}
+- {id: treasury-doubloons, kind: token_pool, visibility: public, initial: 1}
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/blackbeard.yaml
+  construction: fixed
+rulings:
+- id: blackbeard-ransom-payer
+  summary: Any opponent may pay a displayed ransom from the Treasury; paid doubloons move to Blackbeard and the marked effect is ignored.
+  source_ref: blackbeard-club
+sources:
+- id: blackbeard-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+  checked_at: '2026-07-27'
+  supports: [release_membership, component_identity]
+  durability: durable
+- id: blackbeard-physical-review
+  authority: physical_component_transcription
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-27'
+  supports: [fighter_and_deck_cross_check]
+  durability: transient
+- id: blackbeard-arena
+  authority: reference
+  url: https://www.unmatchedarena.com/heroes/blackbeard
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, deck_transcription]
+- id: blackbeard-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/blackbeard
+  checked_at: '2026-07-27'
+  supports: [fighter_ability, multiplayer_ransom_ruling]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Sea Dogs are distinct summonable fighter instances.
+- Deterministic transfers controlled by Blackbeard use ordinary SPEND_RESOURCE plus GAIN_RESOURCE; only multi-actor ransom arbitration remains under D-REQ-016.

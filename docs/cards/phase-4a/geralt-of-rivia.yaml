@@ -162,7 +162,7 @@ cards:
             - {op: SHUFFLE, zone: deck}
 
   - id: gear-sword-of-steel
-    name: GEAR: Sword of Steel
+    name: "GEAR: Sword of Steel"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:sword]
@@ -179,7 +179,7 @@ cards:
             operations: [{op: GAIN_ACTION, count: 1}]
 
   - id: gear-sword-of-silver
-    name: GEAR: Sword of Silver
+    name: "GEAR: Sword of Silver"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:sword]
@@ -193,7 +193,7 @@ cards:
         operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
 
   - id: gear-wolf-medallion
-    name: GEAR: Wolf Medallion
+    name: "GEAR: Wolf Medallion"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:armor]
@@ -209,7 +209,7 @@ cards:
         operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]
 
   - id: gear-armor-of-the-forgotten-wolf
-    name: GEAR: Armor of the Forgotten Wolf
+    name: "GEAR: Armor of the Forgotten Wolf"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:armor]
@@ -224,7 +224,7 @@ cards:
         operations: [{op: END_TURN}]
 
   - id: gear-blizzard
-    name: GEAR: Blizzard
+    name: "GEAR: Blizzard"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:potion, ongoing_scheme]
@@ -248,7 +248,7 @@ cards:
         operations: [{op: MOVE_CARD, from_zone: ongoing-schemes, to_zone: discard, selector: this_card}]
 
   - id: gear-tawny-owl
-    name: GEAR: Tawny Owl
+    name: "GEAR: Tawny Owl"
     quantity: 2
     inclusion: choose_group
     tags: [gear, gear:potion, ongoing_scheme]

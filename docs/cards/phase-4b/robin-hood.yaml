@@ -1,0 +1,122 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: robin-hood
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: a-hunters-eye, name: "A Hunter's Eye", quantity: 3, usable_by: [robin-hood], type: attack, printed_value: 5, boost: 4, effects: []}
+  - id: steal-from-the-rich
+    name: Steal from the Rich
+    quantity: 3
+    usable_by: [robin-hood]
+    type: scheme
+    printed_value: null
+    boost: 3
+    effects:
+      - id: steal-from-rich-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw-first, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+          - id: choose-opponent
+            when: always
+            choices:
+              - {id: choose-opponent, owner: controller, visibility: public, optional: false, domain: {kind: player, relation: opponent}, bind: chosen_opponent}
+            costs: []
+            operations: []
+          - id: opponent-discard-choice
+            when: always
+            choices:
+              - {id: discard-or-decline, owner: {ref: choice.chosen_opponent}, visibility: private, optional: true, domain: {zone: hand, owner: {ref: choice.chosen_opponent}}, bind: discarded_card}
+            costs: []
+            operations:
+              - {op: DISCARD, from_zone: {zone: hand, owner: {ref: choice.chosen_opponent}}, selector: {ref: choice.discarded_card}, count: 1, when: {choice_bound: discarded_card}}
+          - {id: draw-if-declined, when: {choice_unbound: discarded_card}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: disarming-shot
+    name: Disarming Shot
+    quantity: 2
+    usable_by: [robin-hood]
+    type: attack
+    printed_value: 4
+    boost: 3
+    effects:
+      - id: disarming-shot-draw
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: draw-damage-count
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: {ref: combat.damage_dealt_to_opposing_fighter}}
+  - {id: piercing-shot, name: Piercing Shot, quantity: 2, usable_by: [robin-hood], type: attack, printed_value: 2, boost: 3, effects: [{id: piercing-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]}]}
+  - {id: highway-robbery, name: Highway Robbery, quantity: 4, usable_by: [outlaw], type: attack, printed_value: 2, boost: 2, effects: [{id: highway-robbery-effect, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel-and-ignore, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}, {op: IGNORE_VALUE, target: opposing_combat_card}]}]}]}
+  - id: defenders-of-sherwood
+    name: Defenders of Sherwood
+    quantity: 2
+    usable_by: any
+    type: defense
+    printed_value: 3
+    boost: 2
+    effects:
+      - id: defenders-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - {id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+          - id: choose-outlaw
+            when: {selector_nonempty: {kind: fighter, owner: self, fighter_id: outlaw, state: defeated}}
+            choices:
+              - {id: choose-defeated-outlaw, owner: controller, visibility: public, optional: false, domain: {kind: fighter, owner: self, fighter_id: outlaw, state: defeated}, bind: returned_outlaw}
+              - {id: choose-return-space, owner: controller, visibility: public, optional: false, domain: {kind: space, in_zone_of: robin-hood}, bind: return_space}
+            costs: []
+            operations: [{op: RETURN_FIGHTER, target: {ref: choice.returned_outlaw}, destination: {ref: choice.return_space}, health_rule: full_sidekick_health}]
+  - {id: feint, name: Feint, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, effects: [{id: feint-cancel, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: regroup, name: Regroup, quantity: 3, usable_by: any, type: versatile, printed_value: 1, boost: 2, effects: [{id: regroup-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: won, when: {combat: {result: won}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}, {id: not-won, when: {combat: {result: not_won}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - {id: wily-fighting, name: Wily Fighting, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: wily-damage, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, adjacent_to: {ref: combat.own_fighter}}}, amount: 1}]}]}]}
+  - {id: snark, name: Snark, quantity: 3, usable_by: any, type: versatile, printed_value: 3, boost: 1, effects: [{id: snark-draw, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: draw, when: {relation: {adjacent: [{ref: combat.own_fighter}, {ref: combat.opposing_fighter}]}}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]}]}
+  - id: ambush
+    name: Ambush
+    quantity: 2
+    usable_by: any
+    type: attack
+    printed_value: 2
+    boost: 3
+    effects:
+      - id: ambush-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: random-discard
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {kind: random}, count: 1, bind_result: discarded_card}
+          - id: add-boost
+            when: {result_exists: {ref: result.discarded_card.card}}
+            choices: []
+            costs: []
+            operations: [{op: ADD_VALUE, target: this_card, amount: {ref: result.discarded_card.card.boost}}]
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: robin-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/robin-hood, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, card_text]}
+  - {id: robin-set-rules, authority: official_set_rules, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/, checked_at: 2026-07-27, supports: [set_rules, combat_resolution]}
+  - {id: robin-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [multiplayer_opponent_relation]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: pass
+  fan_content: none

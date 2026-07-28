@@ -1,0 +1,247 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+fighter_id: little-red-riding-hood
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-008, A-REQ-009]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: what-large-hands-you-have
+    name: What Large Hands You Have
+    quantity: 2
+    usable_by: [little-red-riding-hood]
+    type: attack
+    printed_value: 2
+    boost: 3
+    printed_symbol: wolf
+    effects:
+      - id: large-hands-return
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-use
+            when: always
+            choices:
+              - {id: use-return, owner: controller, visibility: public, optional: true, domain: [resolve_return], bind: use_effect}
+            costs: []
+            operations: []
+          - id: bind-basket-item
+            when: {choice_bound: use_effect}
+            choices:
+              - id: choose-effective-basket-item
+                owner: controller
+                visibility: public
+                optional: false
+                domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}
+                bind: effective_basket_item
+                min: 1
+                max: 1
+                distinct: false
+                order_matters: false
+            costs: []
+            operations: []
+          - {id: return-top-discard, when: {choice: {ref: choice.effective_basket_item, equals: pelt}}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: {position: top}}]}
+          - {id: return-this-card, when: {choice: {ref: choice.effective_basket_item, not_equals: pelt}}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: resolving, to_zone: hand, selector: this_card}]}
+  - id: the-wolfs-skin
+    name: The Wolf's Skin
+    quantity: 3
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 2
+    printed_symbol: knife
+    effects:
+      - id: wolfs-skin-draw
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - {id: draw, when: {choice: {ref: choice.effective_basket_item, equals: wolf}}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+  - id: what-a-terrible-big-mouth-you-have
+    name: What a Terrible Big Mouth You Have
+    quantity: 2
+    usable_by: [little-red-riding-hood]
+    type: defense
+    printed_value: 2
+    boost: 2
+    printed_symbol: knife
+    effects:
+      - id: big-mouth-damage
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - {id: damage, when: {choice: {ref: choice.effective_basket_item, equals: wolf}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: {ref: combat.opposing_card.printed_value}}]}
+  - id: what-big-ears-you-have
+    name: What Big Ears You Have
+    quantity: 2
+    usable_by: [little-red-riding-hood]
+    type: attack
+    printed_value: 4
+    boost: 2
+    printed_symbol: wolf
+    requires: [A-REQ-008, A-REQ-009]
+    combat_legality:
+      printed_mode: attack
+      additional_mode:
+        mode: defense
+        when: {basket_item_can_resolve_as: knife, requires: A-REQ-009}
+        requires: A-REQ-008
+    effects: []
+  - id: what-big-eyes-you-have
+    name: What Big Eyes You Have
+    quantity: 2
+    usable_by: [little-red-riding-hood]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    printed_symbol: wolf
+    effects:
+      - id: big-eyes-effect
+        trigger: immediately
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - {id: cancel-effects, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}
+          - {id: ignore-value, when: {choice: {ref: choice.effective_basket_item, equals: pelt}}, choices: [], costs: [], operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}
+  - {id: whats-that-in-my-basket, name: "What's That in My Basket?", quantity: 4, usable_by: [little-red-riding-hood], type: versatile, printed_value: 4, boost: 3, printed_symbol: wild, effects: []}
+  - id: never-leave-the-path
+    name: Never Leave the Path
+    quantity: 2
+    usable_by: [little-red-riding-hood]
+    type: scheme
+    printed_value: null
+    boost: 1
+    printed_symbol: wolf
+    effects:
+      - id: never-leave-path-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - id: wolf-place
+            when: {choice: {ref: choice.effective_basket_item, equals: wolf}}
+            choices:
+              - {id: choose-any-space, owner: controller, visibility: public, optional: false, domain: {kind: space, scope: any_legal}, bind: destination}
+            costs: []
+            operations: [{op: PLACE, target: little-red-riding-hood, destination: {ref: choice.destination}}, {op: GAIN_ACTION, count: 1}]
+          - {id: knife-damage, when: {choice: {ref: choice.effective_basket_item, equals: knife}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {selector: {kind: fighter, relation: opposing, zone_relation: same_zone_as_little_red}}, amount: 2}]}
+          - {id: pelt-draw, when: {choice: {ref: choice.effective_basket_item, equals: pelt}}, choices: [], costs: [], operations: [{op: DRAW, count: 3}]}
+  - {id: into-the-woods-wolf, name: Into the Woods, quantity: 1, usable_by: [little-red-riding-hood], type: scheme, printed_value: null, boost: 2, printed_symbol: wolf, effects: [{id: woods-wolf-effect, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: little-red-riding-hood, max_distance: 3}]}, {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+  - {id: into-the-woods-pelt, name: Into the Woods, quantity: 1, usable_by: [little-red-riding-hood], type: scheme, printed_value: null, boost: 2, printed_symbol: pelt, effects: [{id: woods-pelt-effect, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: little-red-riding-hood, max_distance: 3}]}, {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+  - {id: into-the-woods-knife, name: Into the Woods, quantity: 1, usable_by: [little-red-riding-hood], type: scheme, printed_value: null, boost: 2, printed_symbol: knife, effects: [{id: woods-knife-effect, trigger: scheme, controller: owner, cancellation: cancelable, stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: little-red-riding-hood, max_distance: 3}]}, {id: gain-action, when: always, choices: [], costs: [], operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+  - {id: long-have-i-sought-you, name: Long Have I Sought You, quantity: 3, usable_by: [huntsman], type: attack, printed_value: 4, boost: 2, printed_symbol: knife, effects: [{id: sought-value, trigger: during_combat, controller: owner, cancellation: cancelable, stages: [{id: set-value, when: {relation: {adjacent: [huntsman, {ref: combat.opposing_fighter}]}}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}]}
+  - id: a-grimm-tale
+    name: A Grimm Tale
+    quantity: 2
+    usable_by: [huntsman]
+    type: scheme
+    printed_value: null
+    boost: 3
+    printed_symbol: pelt
+    effects:
+      - id: grimm-tale-effect
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - {id: wolf-recover, when: {choice: {ref: choice.effective_basket_item, equals: wolf}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 4}]}
+          - {id: other-recover, when: {choice: {ref: choice.effective_basket_item, not_equals: wolf}}, choices: [], costs: [], operations: [{op: RECOVER, target: little-red-riding-hood, amount: 2}]}
+  - id: stones-in-the-belly
+    name: Stones in the Belly
+    quantity: 3
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    printed_symbol: pelt
+    effects:
+      - id: stones-effect
+        trigger: during_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - id: random-discard
+            when: {choice: {ref: choice.effective_basket_item, equals: knife}}
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, from_zone: {zone: hand, owner: combat_opponent}, selector: {kind: random}, count: 1, bind_result: discarded_card}]
+          - id: add-boost
+            when: {result_exists: {ref: result.discarded_card.card}}
+            choices: []
+            costs: []
+            operations: [{op: ADD_VALUE, target: this_card, amount: {ref: result.discarded_card.card.boost}}]
+  - id: once-upon-a-time
+    name: Once Upon a Time
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 2
+    boost: 1
+    printed_symbol: pelt
+    effects:
+      - id: once-upon-effect
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: bind-basket-item
+            when: always
+            choices:
+              - {id: choose-effective-basket-item, owner: controller, visibility: public, optional: false, domain: {expr: basket_item_domain, top_object: {zone: discard, position: top}, wild_options: [wolf, pelt, knife], requires: A-REQ-009}, bind: effective_basket_item, min: 1, max: 1, distinct: false, order_matters: false}
+            costs: []
+            operations: []
+          - {id: damage, when: {choice: {ref: choice.effective_basket_item, equals: knife}}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: {ref: combat.opposing_fighter}, amount: 3}]}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: little-red-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/little-red, checked_at: 2026-07-27, supports: [card_identity, quantities, usable_by, type, printed_value, boost, printed_symbols, card_text]}
+  - {id: little-red-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2020/11/UM-Little_Red_Riding_HoodvBeowulf-Rules-two-page.pdf, checked_at: 2026-07-27, supports: [basket_reference, basket_symbols, combat_timing]}
+  - {id: little-red-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [wild_single_item_binding, conditional_card_mode]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

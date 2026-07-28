@@ -1,0 +1,57 @@
+schema_version: 1
+reconciliation_contract: phase-4b-v1
+id: yennenga
+display_name: Yennenga
+set_ids: [battle-of-legends-vol-2]
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: not_applicable}
+requires: [A-REQ-010, A-REQ-011, A-REQ-012]
+movement: 2
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: yennenga, display_name: Yennenga, role: hero, count: 1, attack_type: ranged, starting_health: 15, starts_on_board: true, summonable: false}
+    - {id: archer, display_name: Archer, role: sidekick, count: 2, attack_type: ranged, starting_health: 2, starts_on_board: true, summonable: false}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: shield-of-the-archers
+  controller: owner
+  effects:
+    - id: allocate-yennenga-damage
+      trigger: before_damage_application
+      controller: owner
+      cancellation: protected
+      requires: [A-REQ-010]
+      stages:
+        - id: choose-damage-allocation
+          when: {pending_damage: {target: yennenga, amount_gt: 0}}
+          choices:
+            - id: allocate-to-archers
+              owner: controller
+              visibility: public
+              optional: true
+              domain:
+                kind: damage_allocation
+                eligible_recipients: {kind: fighter, owner: self, fighter_id: archer, zone_relation: {same_zone_as: yennenga}}
+                per_recipient_max: {ref: recipient.remaining_health}
+              bind: archer_allocations
+          costs: []
+          operations:
+            - {op: ALLOCATE_PENDING_DAMAGE, source: {ref: event.pending_damage}, allocations: {ref: choice.archer_allocations}, remainder_target: yennenga, preserve_damage_identity: true, requires: A-REQ-010}
+resources: []
+persistent_state: []
+deck: {manifest: ../../cards/phase-4b/yennenga.yaml, construction: fixed}
+interpretations: []
+sources:
+  - {id: yennenga-set-rules, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2021/11/UM-Battle_of_Legends_vol2_Rules-two-page.pdf, checked_at: 2026-07-27, supports: [topology, movement, ability]}
+  - {id: yennenga-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/yennenga, checked_at: 2026-07-27, supports: [deck_identity, card_metadata, volley_cards]}
+  - {id: yennenga-rulings, authority: official_ruling, url: https://how-to-play.s3.us-east-2.amazonaws.com/295564/rules/295564_rules.pdf, checked_at: 2026-07-27, supports: [damage_allocation_cap, volley_defeat_rule, current_combat_attacker_replacement]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_extensions
+  fan_content: none

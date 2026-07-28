@@ -1,0 +1,280 @@
+schema_version: 1
+fighter_id: t-rex
+status: partial
+verification: {evidence: qualified, semantics: qualified, integration: requires_shared_extension, policy: not_applicable}
+requires: [B-REQ-001]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: commanding-impact
+    name: Commanding Impact
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: attack
+    printed_value: 5
+    boost: 2
+    tags: []
+    effects:
+      - id: commanding-impact-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]
+  - id: reckless-lunge
+    name: Reckless Lunge
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: attack
+    printed_value: 3
+    boost: 4
+    tags: []
+    effects:
+      - id: reckless-lunge-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 3}
+              - {op: DEAL_EFFECT_DAMAGE, target: t-rex, amount: 3}
+  - id: 15-000-pounds-of-muscle
+    name: 15,000 Pounds of Muscle
+    quantity: 2
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: attack
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: muscle-ignore
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: ignore, when: always, choices: [], costs: [], operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]
+      - id: muscle-self-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: damage, when: always, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: t-rex, amount: 2}]}]
+  - id: when-dinosaurs-ruled-the-earth
+    name: When Dinosaurs Ruled the Earth
+    quantity: 4
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: attack
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: dinosaurs-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: dinosaurs-after
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: {combat_result: won}
+            choices: []
+            costs: []
+            operations:
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
+              - {op: DEAL_EFFECT_DAMAGE, target: t-rex, amount: 2}
+  - id: terrifying-roar
+    name: Terrifying Roar
+    quantity: 2
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: terrifying-roar-lock
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: prevent
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: PREVENT_OPERATION, target_operation: {op: MOVE, scope: all_fighters_rest_of_turn}}
+              - {op: PREVENT_OPERATION, target_operation: {op: PLACE, scope: all_fighters_rest_of_turn}}
+  - id: momentous-shift
+    name: Momentous Shift
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: []
+    effects:
+      - id: momentous-shift-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: set-value
+            when: {interpretation_ref: t-rex-momentous-shift-overlap, evaluates: true}
+            choices: []
+            costs: []
+            operations: [{op: SET_VALUE, target: this_card, value: 5}]
+  - id: thrash
+    name: Thrash
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: thrash-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: thrash-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: damage, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_in_t-rex_zone, amount: 1, spatial_requirement: B-REQ-001}]}]
+  - id: youre-just-making-her-angry
+    name: You're Just Making Her Angry
+    quantity: 2
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: defense
+    printed_value: 1
+    boost: 1
+    tags: []
+    effects:
+      - id: angry-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+      - id: angry-return
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: return, when: {combat_result: won}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: combat_cleanup_source, to_zone: hand, selector: this_card}]}]
+  - id: closer-than-she-appears
+    name: Closer Than She Appears
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: closer-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: resolve
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: t-rex, max_distance: 1, requirement: B-REQ-001}
+              - {op: DRAW, count: 1}
+              - {op: GAIN_ACTION, count: 1}
+  - id: 65-million-years-of-gut-instinct
+    name: 65 Million Years of Gut Instinct
+    quantity: 2
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: gut-instinct-return
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-card
+            when: always
+            choices:
+              - {id: return_card, owner: controller, visibility: public, optional: false, domain: {kind: card, zone: own_discard, excluding_definition: 65-million-years-of-gut-instinct, count: 1}, bind: return_card}
+            costs: []
+            operations: []
+          - {id: return, when: {bound: return_card, exists: true}, choices: [], costs: [], operations: [{op: MOVE_CARD, from_zone: discard, to_zone: hand, selector: {bound: return_card}}]}
+  - id: ripples-in-the-water
+    name: Ripples in the Water
+    quantity: 3
+    inclusion: fixed
+    usable_by: [t-rex]
+    type: scheme
+    printed_value: null
+    boost: 2
+    tags: []
+    effects:
+      - id: ripples-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-footprint
+            when: always
+            choices:
+              - {id: destination_footprint, owner: controller, visibility: public, optional: false, domain: {kind: fighter_footprint, selector: legal_t_rex_footprint_with_at_least_one_space_in_t_rex_zone, requirement: B-REQ-001}, bind: destination_footprint}
+            costs: []
+            operations: []
+          - id: place
+            when: {bound: destination_footprint, exists: true}
+            choices: []
+            costs: []
+            operations: [{op: PLACE, target: t-rex, destination: {bound: destination_footprint}, requirement: B-REQ-001, bind: placement_result}]
+          - id: discard
+            when: {result: placement_result, completed_or_failed: true}
+            choices: []
+            costs: []
+            operations: [{op: DISCARD, controller: each_opponent_with_fighter_adjacent_to_t-rex, from_zone: hand, selector: random, count: 1, spatial_requirement: B-REQ-001}]
+
+external_definitions: []
+interpretations:
+  - id: t-rex-momentous-shift-overlap
+    affects: [momentous-shift]
+    status: project_normalization
+    confidence: medium
+    behavior: Momentous Shift is satisfied only when T. Rex currently occupies no space that belonged to its turn-start footprint; start {A,B} to current {B,C} is not satisfied.
+    source_refs: [t-rex-umdb, t-rex-secondary-faq, t-rex-project-normalization]
+    replacement_condition: replace_if_authoritative_ruling_found
+sources:
+  - {id: t-rex-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/t-rex, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, large_fighter_rules, momentous_shift_text]}
+  - {id: t-rex-official-product, authority: official, url: https://restorationgames.com/shop/jurassic-park-dr-sattler-vs-trex/, checked_at: 2026-07-27, supports: [set_membership]}
+  - {id: t-rex-secondary-faq, authority: secondary_cross_check, url: https://gridbeast.gg/unmatched-rules-faq/, checked_at: 2026-07-27, supports: [momentous_shift_conflicting_interpretation]}
+  - {id: t-rex-project-normalization, authority: project_normalization, url: https://github.com/NordCoder/unmatched-web/blob/phase-4b-worker-b-licensed/docs/phase-4b/worker-b-report.md, checked_at: 2026-07-27, supports: [momentous_shift_overlap_behavior]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: qualified
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass

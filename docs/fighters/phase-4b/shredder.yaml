@@ -1,0 +1,119 @@
+schema_version: 1
+id: shredder
+display_name: Shredder
+set_ids: [tmnt-shredder-krang-hero-decks]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-005, D-REQ-007, D-REQ-015]
+movement: 3
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: shredder, display_name: Shredder, role: hero, count: 1, attack_type: melee, starting_health: 15, starts_on_board: true, summonable: false}
+  - {id: bebop-and-rocksteady, display_name: Bebop & Rocksteady, role: sidekick, count: 1, attack_type: melee, starting_health: 7, starts_on_board: true, summonable: true}
+setup: {hooks: [], state_initialization: []}
+ability:
+  id: master-of-the-clan
+  controller: owner
+  effects:
+  - id: deploy-foot-soldier
+    trigger: start_turn
+    requires: [D-REQ-007]
+    choices:
+    - {id: choose-foot-soldier-path, owner: controller, visibility: public, optional: false, domain: eligible_paths_adjacent_to_friendly_fighter, bind: path}
+    operations: [{op: CHANGE_STATE, resource: foot-soldiers, transition: deploy_one, destination_path_ref: bound.path}]
+  - id: foot-soldier-attack-network
+    trigger: static
+    continuous: true
+    requires: [D-REQ-005, D-REQ-007]
+    modifier:
+      kind: attack_legality_via_path_component
+      attacker: shredder
+      component_resource: foot-soldiers
+      eligibility_rule: published_foot_soldier_attack_network
+  - id: boosted-maneuver-removal
+    trigger: opponent_boosted_maneuver
+    optional: true
+    requires: [D-REQ-007]
+    operations:
+    - op: CHANGE_STATE
+      resource: foot-soldiers
+      transition: remove_tokens_on_paths_traversed_by_opponent_hero
+      destination_state: supply
+resources:
+- id: foot-soldiers
+  kind: token_pool
+  visibility: public
+  initial: 24
+  runtime_state:
+    requires: [D-REQ-007]
+    per_token_states: [supply, deployed]
+    initial_state: supply
+    deployed_anchor: path_ref
+    occupancy_rule: at_most_one_foot_soldier_per_path
+    transitions:
+      deploy_one: supply_to_deployed_on_path_ref
+      remove_one: deployed_to_supply
+    path_lifecycle_rule:
+      disappearing_path: token_remains_deployed_on_original_path_ref
+      while_path_absent:
+        counts_as_deployed: true
+        participates_in_shredder_adjacency_effects: false
+        participates_in_normal_path_effects: false
+      if_path_returns: resume_normal_path_token_semantics
+      if_path_never_returns: remain_deployed_but_dormant_for_path_effects
+persistent_state: []
+deck:
+  manifest: ../../cards/phase-4b/shredder.yaml
+  construction: fixed
+rulings:
+- id: shredder-sidekick-revival
+  summary: Back to Work may recover or return the single Bebop & Rocksteady sidekick.
+  source_ref: shredder-club
+- id: shredder-path-token-rulings
+  summary: Only an opposing hero moving during a boosted maneuver may remove traversed Foot Soldiers; sidekicks and effect movement cannot.
+  source_ref: shredder-rules
+- id: shredder-removable-paths
+  summary: On Heorot a Foot Soldier remains deployed while its path is absent, is dormant for adjacency/path effects but still counts as deployed for Perplexing Tactics, and resumes normal behavior if the path returns. Point Pleasant uses the same absence behavior but a removed path does not return.
+  source_ref: shredder-removable-path-verdict
+sources:
+- id: shredder-krang-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/
+  checked_at: '2026-07-27'
+  supports: [official_competitive_hero_deck_release]
+  durability: durable
+- id: shredder-club
+  authority: reference
+  url: https://www.the-unmatched.club/heroes/shredder
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, bebop_and_rocksteady_identity, card_visual_corpus]
+- id: shredder-rules
+  authority: reference
+  url: https://www.the-unmatched.club/rules/shredder
+  checked_at: '2026-07-27'
+  supports: [foot_soldier_rulings]
+- id: shredder-removable-path-verdict
+  authority: official_ruling_transcription
+  url: https://www.the-unmatched.club/tools/disputes/2aa122db-53b9-4875-862e-766540449240
+  checked_at: '2026-07-27'
+  supports: [foot_soldier_disappearing_path_lifecycle]
+  durability: transient
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- Bebop & Rocksteady are one independently damageable 7-health sidekick.
+- Foot Soldiers are path-resident resource instances, never fighters.
+- The manually supplied official Archive verdict is marked transcription and transient rather than masquerading as publisher-hosted text.
+- Adventures villain deck, initiative, threat and scenario AI are excluded.

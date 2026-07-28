@@ -1,0 +1,119 @@
+schema_version: 1
+fighter_id: shredder
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001, D-REQ-005, D-REQ-007, D-REQ-015]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
+cards:
+- {id: swarming-strike, name: Swarming Strike, quantity: 3, inclusion: fixed, usable_by: [shredder], type: attack, printed_value: 5, boost: 3, tags: [], effects: [{id: swarming-value, trigger: during_combat, operations: [{op: ADD_VALUE, target: this_card, amount_rule: count_active_foot_soldiers_adjacent_to_own_combat_fighter}]}]}
+- id: gruff-escort
+  name: Gruff Escort
+  quantity: 2
+  inclusion: fixed
+  usable_by: [bebop-and-rocksteady]
+  type: attack
+  printed_value: 4
+  boost: 2
+  tags: []
+  effects:
+  - id: gruff
+    trigger: after_combat
+    requires: [D-REQ-001, D-REQ-007]
+    stages:
+    - id: choose-paths
+      choices:
+      - id: paths
+        owner: controller
+        visibility: public
+        optional: false
+        domain: {choose_distinct: {from: eligible_unoccupied_paths, count: 2}}
+        bind: paths
+    - id: deploy
+      operations: [{op: CHANGE_STATE, resource: foot-soldiers, transition: deploy_many, destination_path_refs: bound.paths}]
+    - id: move-shredder
+      operations: [{op: MOVE, target: shredder, max_distance: 2}]
+- {id: savagery, name: Savagery, quantity: 3, inclusion: fixed, usable_by: any, type: attack, printed_value: 4, boost: 2, tags: [], effects: [{id: savagery, trigger: after_combat, condition: {combat_result: won}, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_fighter_adjacent_to_own_combat_fighter, amount: 1}]}]}
+- {id: gang-up, name: Gang Up, quantity: 2, inclusion: fixed, usable_by: [bebop-and-rocksteady], type: attack, printed_value: 3, boost: 2, tags: [], effects: [{id: gang-up, trigger: during_combat, condition: {active_foot_soldiers_adjacent_to_opposing_combat_fighter_gte: 2}, operations: [{op: SET_VALUE, target: this_card, value: 6}]}]}
+- id: disrupting-strike
+  name: Disrupting Strike
+  quantity: 2
+  inclusion: fixed
+  usable_by: [shredder]
+  type: versatile
+  printed_value: 3
+  boost: 1
+  tags: []
+  effects:
+  - {id: disrupting, trigger: immediately, operations: [{op: SET_VALUE, target: opposing_combat_card, value_rule: effective_printed_value, lock: true, scope: current_combat}]}
+- {id: think-hard, name: Think Hard, quantity: 2, inclusion: fixed, usable_by: [bebop-and-rocksteady], type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: think-hard, trigger: after_combat, operations: [{op: DRAW, count_rule: count_active_foot_soldiers_adjacent_to_opposing_combat_fighter}]}]}
+- {id: long-shot, name: Long Shot, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: long-shot, trigger: during_combat, condition: {opposing_combat_fighter_not_adjacent_to_own_combat_fighter: true}, operations: [{op: SET_VALUE, target: this_card, value: 5}]}]}
+- {id: master-of-the-foot, name: Master of the Foot, quantity: 2, inclusion: fixed, usable_by: [shredder], type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: master-foot, trigger: after_combat, operations: [{op: DEAL_EFFECT_DAMAGE, target: each_opposing_fighter_adjacent_to_at_least_one_active_foot_soldier, amount: 1}]}]}
+- {id: perplexing-tactics, name: Perplexing Tactics, quantity: 3, inclusion: fixed, usable_by: [shredder], type: versatile, printed_value: 2, boost: 3, tags: [], effects: [{id: perplexing-cancel, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}, {id: perplexing-ignore, trigger: immediately, condition: {deployed_foot_soldier_count_gte: 10}, operations: [{op: IGNORE_VALUE, target: opposing_combat_card}]}]}
+- id: all-according-to-plan
+  name: All According to Plan
+  quantity: 2
+  inclusion: fixed
+  usable_by: [shredder]
+  type: defense
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: according-to-plan
+    trigger: after_combat
+    requires: [D-REQ-015]
+    stages:
+    - id: grant-opponent-action
+      operations: [{op: GAIN_ACTION, count: 1, controller: combat_opponent}]
+    - id: register-obligation
+      operations:
+      - op: SET_STATE
+        key: delayed_turn_obligations
+        value:
+          owner: card_controller
+          subject_player: combat_opponent
+          lifetime: subject_players_current_turn_end
+          satisfaction_event: subject_player_plays_scheme
+          if_unsatisfied_at_expiry: {op: DISCARD, from: subject_player.hand, selector: subject_player_chosen, count: 2, controller: subject_player}
+          source_card: all-according-to-plan
+- {id: masterful-defense, name: Masterful Defense, quantity: 2, inclusion: fixed, usable_by: [shredder], type: defense, printed_value: 2, boost: 3, tags: [], effects: [{id: masterful-recover, trigger: after_combat, operations: [{op: RECOVER, target: shredder, amount_rule: count_active_foot_soldiers_adjacent_to_shredder}]}]}
+- {id: obedient-subjects, name: Obedient Subjects, quantity: 2, inclusion: fixed, usable_by: [shredder], type: scheme, printed_value: null, boost: 3, tags: [], effects: [{id: obedient, trigger: scheme, operations: [{op: GAIN_ACTION, count_rule: count_active_foot_soldiers_adjacent_to_shredder}]}]}
+- id: back-to-work
+  name: Back to Work!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [shredder]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - id: back-to-work
+    trigger: scheme
+    branches:
+    - condition: {fighter: bebop-and-rocksteady, defeated: false}
+      operations:
+      - {op: RECOVER, target: bebop-and-rocksteady, amount: 3}
+      - {op: PLACE, target: bebop-and-rocksteady, destination_rule: closest_legal_space_to_shredder}
+    - condition: {fighter: bebop-and-rocksteady, defeated: true}
+      operations: [{op: RETURN_FIGHTER, fighter: bebop-and-rocksteady, health: 3, destination_rule: closest_legal_space_to_shredder}]
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: hero-decks-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles-shredder-krang-hero-decks/, checked_at: '2026-07-27', supports: [official_competitive_release], durability: durable}
+- {id: shredder-club, authority: reference, url: https://www.the-unmatched.club/heroes/shredder, checked_at: '2026-07-27', supports: [competitive_card_visual_corpus, sidekick_identity]}
+- {id: shredder-rules, authority: reference, url: https://www.the-unmatched.club/rules/shredder, checked_at: '2026-07-27', supports: [current_rulings]}
+normalization_notes:
+- All 13 competitive Hero Deck definitions reconcile to 30 cards.
+- Gruff Escort uses explicit path choices and resource transitions under D-REQ-007; dormant Foot Soldiers are excluded from adjacency counts but remain deployed for Perplexing Tactics.
+- All According to Plan creates a persisted cross-player obligation under D-REQ-015.
+- Disrupting Strike uses generic locked SET_VALUE; Back to Work preserves closest-to-Shredder placement in both undefeated and defeated branches.
+- No Adventures villain/scenario behavior or source_defined constructs remain.

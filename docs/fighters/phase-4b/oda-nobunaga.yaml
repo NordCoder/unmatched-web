@@ -1,0 +1,81 @@
+schema_version: 1
+id: oda-nobunaga
+display_name: Oda Nobunaga
+set_ids: [suns-origin]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: not_applicable
+requires: [C-REQ-003, C-REQ-010, C-REQ-013]
+movement: 2
+
+topology:
+  type: hero_with_sidekicks
+  loss_rule: primary_hero_defeated
+  fighters:
+    - {id: oda-nobunaga, display_name: Oda Nobunaga, role: hero, count: 1, attack_type: melee, starting_health: 13, starts_on_board: true, summonable: false}
+    - id: honor-guard
+      display_name: Honor Guard
+      role: sidekick
+      count: 2
+      attack_type: melee
+      starting_health: 6
+      starts_on_board: true
+      summonable: false
+      runtime_identity: Each Honor Guard is an independently damageable fighter with its own health and runtime instance state.
+
+setup: {hooks: [], state_initialization: []}
+
+ability:
+  id: master-strategist
+  controller: owner
+  effects:
+    - id: friendly-zone-combat-bonus
+      trigger: static
+      controller: owner
+      cancellation: source_defined
+      continuous: true
+      stages:
+        - id: apply
+          when:
+            all:
+              - {ref: current_combat_card.user, relation: friendly_to, value: oda-nobunaga}
+              - {ref: current_combat_card.user, not_equals: oda-nobunaga}
+              - {ref: current_combat_card.user, zone_relation: same_zone_as, value: oda-nobunaga}
+          operations: [{op: ADD_VALUE, target: current_played_combat_card, amount: 1}]
+
+resources: []
+persistent_state:
+  - key: turn_start_space_by_fighter
+    type: fighter_instance_space_map
+    reset: turn_start
+    key_domain: controller_fighter_instances
+
+deck:
+  manifest: ../../cards/phase-4b/oda-nobunaga.yaml
+  construction: fixed
+
+rulings:
+  - id: flanked-definition
+    summary: An opposing fighter is flanked when adjacent to two or more fighters under Oda's controller; teammate fighters do not count toward Oda's flanking predicate.
+    source_refs: [suns-origin-rules-oda]
+
+sources:
+  - {id: suns-origin-rules-oda, authority: official_set_rules, url: https://restorationgames.com/wp-content/uploads/2024/01/UM-SO-Set-Rules.pdf, checked_at: 2026-07-27, supports: [flanked definition, Sun's Origin fighter rules]}
+  - {id: oda-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/oda-nobunaga, checked_at: 2026-07-27, supports: [fighter metadata, published deck corpus]}
+
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+
+normalization_notes:
+  - The two Honor Guards retain independent health/runtime identity.
+  - Momentous Shift requires turn-start space history keyed by runtime fighter instance.
+  - Master Strategist is evaluated against the fighter actually using the current combat card; a teammate may qualify, Oda himself never does.

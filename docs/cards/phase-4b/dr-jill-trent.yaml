@@ -1,0 +1,152 @@
+schema_version: 1
+fighter_id: dr-jill-trent
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [C-REQ-013]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - id: battle-of-wits
+    name: Battle of Wits
+    quantity: 3
+    usable_by: [dr-jill-trent]
+    type: attack
+    printed_value: 2
+    boost: 4
+    tags: []
+    effects:
+      - id: battle-of-wits-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: reveal
+            operations:
+              - {op: REVEAL, source: own_deck_top, selector: {count: 1}, bind_result: own_revealed}
+              - {op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: opponent_revealed}
+          - id: compare
+            when: {expr: {op: gt, left: {ref: own_revealed.boost_or_0}, right: {ref: opponent_revealed.boost_or_0}}}
+            operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 3}]
+  - id: utility-belt
+    name: Utility Belt
+    quantity: 3
+    usable_by: [dr-jill-trent]
+    type: versatile
+    printed_value: 3
+    boost: 3
+    tags: []
+    effects:
+      - id: utility-belt-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-mode
+            choices: [{id: mode, owner: controller, visibility: private, optional: false, domain: [recover_jill, move_jill, draw], bind: mode}]
+          - {id: recover, when: {ref: mode, equals: recover_jill}, operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]}
+          - {id: move, when: {ref: mode, equals: move_jill}, operations: [{op: MOVE, target: dr-jill-trent, distance: 1}]}
+          - {id: draw, when: {ref: mode, equals: draw}, operations: [{op: DRAW, count: 1}]}
+  - {id: hypnotist, name: Hypnotist, quantity: 2, usable_by: [dr-jill-trent], type: defense, printed_value: 3, boost: 1, tags: [], effects: [{id: hypnotist-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, when: {active_gadget: hypnoray-blaster}, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]}]}
+  - {id: ace-fighter, name: Ace Fighter, quantity: 2, usable_by: [daisy], type: versatile, printed_value: 5, boost: 3, tags: [], effects: [{id: ace-fighter-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DRAW, count: 1}]}]}]}
+  - id: sisters-in-arms
+    name: Sisters in Arms
+    quantity: 2
+    usable_by: [daisy]
+    type: versatile
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: sisters-hypnoray
+        trigger: during_combat
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: reveal
+            when: {attacker: daisy, daisy_adjacent_to_jill: true, active_gadget: hypnoray-blaster, own_card_printed_value_lower_than_opponent: true}
+            operations: [{op: REVEAL, source: opponent.deck_top, selector: {count: 1}, bind_result: revealed}]
+          - id: boost
+            when: {ref: revealed, exists: true}
+            operations: [{op: ADD_VALUE, target: this_card, amount: {ref: revealed.boost_or_0}}]
+      - id: sisters-tonic
+        trigger: after_combat
+        controller: owner
+        cancellation: protected
+        stages:
+          - id: resolve
+            when: {attacker: daisy, daisy_adjacent_to_jill: true, active_gadget: ultrabiotic-tonic, own_card_printed_value_higher_than_opponent: true}
+            operations: [{op: RECOVER, target: dr-jill-trent, amount: 1}]
+  - id: helpful-assistant
+    name: Helpful Assistant
+    quantity: 2
+    usable_by: [daisy]
+    type: scheme
+    printed_value: null
+    boost: 3
+    tags: []
+    effects:
+      - id: helpful-assistant-scheme
+        trigger: scheme
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: choose-cards
+            choices:
+              - {id: cards, owner: controller, visibility: public, optional: false, domain: {selector: {zone: discard, owner: self, card_filter: {usable_by: dr-jill-trent}}, max: 3}, bind: returned_cards}
+          - id: return-shuffle-draw
+            operations:
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {ref: returned_cards}}
+              - {op: SHUFFLE, zone: deck}
+              - {op: DRAW, count: 1}
+  - {id: energizing-spray, name: Energizing Spray, quantity: 2, usable_by: any, type: attack, printed_value: 5, boost: 1, tags: [], effects: [{id: energizing-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: GAIN_ACTION, count: 1}]}]}]}
+  - {id: gyroscopic-jetpack, name: Gyroscopic Jetpack, quantity: 3, usable_by: any, type: versatile, printed_value: 4, boost: 2, tags: [], effects: [{id: jetpack-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: MOVE, target: own_combat_fighter, max_distance: 2, may_move_through_opposing: true}]}]}]}
+  - {id: laser-pen, name: Laser Pen, quantity: 3, usable_by: any, type: versatile, printed_value: 2, boost: 2, tags: [], effects: [{id: laser-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount: 1}]}]}]}
+  - {id: stasis-diffuser, name: Stasis Diffuser, quantity: 2, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: stasis-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: SET_VALUE, target: opposing_combat_card, value_from: opposing_combat_card.printed_value, lock: true, scope: current_combat}]}]}]}
+  - id: insightful-deduction
+    name: Insightful Deduction
+    quantity: 2
+    usable_by: any
+    type: versatile
+    printed_value: 3
+    boost: 2
+    tags: [staged_resolution]
+    effects:
+      - id: insightful-after
+        trigger: after_combat
+        controller: owner
+        cancellation: cancelable
+        stages:
+          - id: reveal
+            operations: [{op: REVEAL, source: opponent.deck_top, selector: {max_count: 3}, bind_result: revealed_cards}]
+          - id: choose-bottom
+            choices:
+              - {id: bottom-card, owner: controller, visibility: public, optional: false, domain: {ref: revealed_cards}, bind: bottom_card}
+          - id: order-rest
+            choices:
+              - {id: top-order, owner: controller, visibility: public, optional: false, domain: {expr: {op: subtract_set, left: {ref: revealed_cards}, right: [{ref: bottom_card}]}}, bind: top_order}
+          - id: apply-order
+            operations:
+              - {op: MOVE_CARD, from_zone: opponent.deck_top, to_zone: opponent.deck_bottom, selector: {ref: bottom_card}}
+              - {op: REORDER, zone: opponent.deck_top, selector: {ref: top_order}, order: {ref: top_order}}
+  - {id: caught-red-handed, name: Caught Red-Handed, quantity: 2, usable_by: any, type: versatile, printed_value: 1, boost: 2, tags: [], effects: [{id: caught-after, trigger: after_combat, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: DISCARD, controller: opponent, from: hand, selector: chosen_by_opponent, count: {expr: {op: if, condition: {combat_result: won}, then: 2, else: 1}}, partial_resolution: true}]}]}]}
+  - {id: indestructible-cloth, name: Indestructible Cloth, quantity: 2, usable_by: any, type: defense, printed_value: 5, boost: 2, tags: [], effects: [{id: cloth-immediately, trigger: immediately, controller: owner, cancellation: cancelable, stages: [{id: resolve, operations: [{op: PREVENT_DAMAGE, target: own_combat_fighter, scope: effect_damage_for_current_combat}]}]}]}
+
+external_definitions: []
+sources:
+  - {id: jill-deck-index, authority: published_deck_index, url: https://unmatched.cards/umdb/decks/dr-jill-trent, checked_at: 2026-07-27, supports: [published card metadata and effects]}
+  - {id: jill-rulings, authority: secondary_crosscheck, url: https://www.the-unmatched.club/rules/dr-jill-trent, checked_at: 2026-07-27, supports: [current Jill rulings]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: pass
+  semantic_structure: pass
+  integration: requires_shared_extension
+  fan_content: pass
+normalization_notes:
+  - Insightful Deduction uses ordered public stages because later choices depend on a publicly revealed card set.
+  - Sisters in Arms reads the single authoritative active_gadget state.

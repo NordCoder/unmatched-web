@@ -1,0 +1,225 @@
+schema_version: 1
+fighter_id: donatello
+status: partial
+verification: {evidence: verified, semantics: verified, integration: requires_shared_extension, policy: ready}
+requires: [D-REQ-001]
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
+card_zones:
+- {id: deck, owner: self}
+- {id: hand, owner: self}
+- {id: discard, owner: self}
+- {id: inventions, owner: self, visibility: public, ownership_rule: card_instance_owner_is_preserved, use_rule: not_normally_playable_from_this_zone, source_lifetime: static_invention_effects_apply_while_source_card_remains_here}
+- {id: out-of-play, owner: self, visibility: public, ownership_rule: card_instance_owner_is_preserved, use_rule: cards_here_are_outside_deck_hand_discard_and_inventions}
+cards:
+- id: thinking-ahead
+  name: Thinking Ahead
+  quantity: 3
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: thinking-ahead
+    trigger: after_combat
+    condition: {combat_result: won}
+    optional: true
+    choices: [{id: discard-card, owner: controller, visibility: public, optional: false, domain: own_discard_cards, bind: card}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: bound.card, position: bottom}]
+- id: turtle-power
+  name: Turtle Power!
+  quantity: 2
+  inclusion: fixed
+  usable_by: any
+  type: attack
+  printed_value: 3
+  boost: 3
+  tags: []
+  effects:
+  - id: turtle-boost
+    trigger: during_combat
+    optional: true
+    choices: [{id: boost-card, owner: controller, visibility: private, optional: false, domain: own_hand_cards, bind: card}]
+    operations: [{op: BOOST, target: this_card, card_or_blind_source: bound.card}]
+- id: electro-grenade
+  name: Electro Grenade
+  quantity: 1
+  inclusion: fixed
+  usable_by: [donatello]
+  type: attack
+  printed_value: 2
+  boost: 3
+  tags: [invention]
+  effects:
+  - id: grenade-value
+    trigger: during_combat
+    choices: [{id: discard-cards, owner: controller, visibility: public, optional: true, domain: {choose_distinct: {from: own_discard_attack_or_versatile_cards, min: 0, max: 4}}, bind: cards}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: bound.cards}, {op: ADD_VALUE, target: this_card, amount_rule: count_bound_cards}]
+  - {id: grenade-static, trigger: static, continuous: true, condition: {this_card_in_zone: inventions}, operations: [{op: ADD_VALUE, target: controller_attack_cards, amount: 1}]}
+- {id: quick-strike, name: Quick Strike, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 1, tags: [], effects: [{id: quick-draw, trigger: after_combat, operations: [{op: DRAW, count: 1}]}]}
+- {id: short-circuit, name: Short Circuit, quantity: 3, inclusion: fixed, usable_by: any, type: versatile, printed_value: 3, boost: 2, tags: [], effects: [{id: short-circuit, trigger: immediately, operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card_after_combat_effects}]}]}
+- id: untested-enhancements
+  name: Untested Enhancements
+  quantity: 3
+  inclusion: fixed
+  usable_by: [metalhead]
+  type: versatile
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: enhancements
+    trigger: during_combat
+    stages:
+    - {id: discard-bottom, operations: [{op: DISCARD, from: deck, selector: bottom, count: 1, bind: card}]}
+    - {id: add-boost, operations: [{op: ADD_VALUE, target: this_card, amount_from: bound.card.boost_or_0}]}
+- id: shift-focus
+  name: Shift Focus
+  quantity: 3
+  inclusion: fixed
+  usable_by: [donatello]
+  type: versatile
+  printed_value: 2
+  boost: 2
+  tags: []
+  effects:
+  - id: shift-focus
+    trigger: after_combat
+    choices: [{id: fighter, owner: controller, visibility: public, optional: false, domain: other_fighters_in_donatello_zone, bind: target}]
+    operations: [{op: MOVE, target: bound.target, max_distance: 3, overrides: [may_move_through_other_fighters]}]
+- {id: heroes-in-a-half-shell, name: Heroes in a Half Shell, quantity: 2, inclusion: fixed, usable_by: [donatello], type: defense, printed_value: 5, boost: 1, tags: [], effects: []}
+- id: bo-staff
+  name: Bo Staff
+  quantity: 2
+  inclusion: fixed
+  usable_by: [donatello]
+  type: defense
+  printed_value: 3
+  boost: 2
+  tags: []
+  effects:
+  - id: bo-staff
+    trigger: after_combat
+    choices: [{id: target, owner: controller, visibility: public, optional: false, domain: opposing_fighters_adjacent_to_donatello, bind: target}]
+    operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 1}, {op: DRAW, count: 1}]
+- id: self-defense-grid
+  name: Self Defense Grid
+  quantity: 1
+  inclusion: fixed
+  usable_by: [donatello]
+  type: defense
+  printed_value: 2
+  boost: 3
+  tags: [invention]
+  effects:
+  - id: grid-recover
+    trigger: after_combat
+    choices: [{id: discard-cards, owner: controller, visibility: public, optional: true, domain: {choose_distinct: {from: own_discard_defense_or_versatile_cards, min: 0, max: 4}}, bind: cards}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: bound.cards}, {op: RECOVER, target: donatello, amount_rule: count_bound_cards}]
+  - {id: grid-static, trigger: static, continuous: true, condition: {this_card_in_zone: inventions}, operations: [{op: ADD_VALUE, target: controller_defense_cards, amount: 1}]}
+- id: party-wagon
+  name: Party Wagon!
+  quantity: 2
+  inclusion: fixed
+  usable_by: [donatello]
+  type: scheme
+  printed_value: null
+  boost: 2
+  tags: []
+  effects:
+  - id: party-wagon
+    trigger: scheme
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-mover
+      choices: [{id: mover, owner: controller, visibility: public, optional: false, domain: friendly_fighters, bind: mover}]
+    - id: move
+      operations: [{op: MOVE, target: bound.mover, max_distance: 5, overrides: [may_move_through_opposing_fighters], bind: movement_result}]
+    - id: choose-crossed-target
+      condition: {bound.movement_result.opposing_fighters_moved_through_count_gt: 0}
+      choices: [{id: target, owner: controller, visibility: public, optional: false, domain: bound.movement_result.opposing_fighters_moved_through, bind: target}]
+    - id: damage
+      condition: {bound.target: present}
+      operations: [{op: DEAL_EFFECT_DAMAGE, target: bound.target, amount: 2}]
+- id: smoke-bomb
+  name: Smoke Bomb
+  quantity: 1
+  inclusion: fixed
+  usable_by: [donatello]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: [invention]
+  effects:
+  - id: smoke-bomb-actions
+    trigger: scheme
+    choices: [{id: scheme-cards, owner: controller, visibility: public, optional: true, domain: {choose_distinct: {from: own_discard_scheme_cards, min: 0, max: 4}}, bind: cards}]
+    operations: [{op: MOVE_CARD, from_zone: discard, to_zone: out-of-play, selector: bound.cards}, {op: GAIN_ACTION, count_rule: count_bound_cards}]
+  - {id: smoke-static, trigger: own_scheme_played, condition: {this_card_in_zone: inventions}, operations: [{op: GAIN_ACTION, count: 1}]}
+- id: donatello-does-machines
+  name: Donatello Does Machines
+  quantity: 2
+  inclusion: fixed
+  usable_by: [donatello]
+  type: scheme
+  printed_value: null
+  boost: 3
+  tags: []
+  effects:
+  - id: machines-recovery
+    trigger: scheme
+    requires: [D-REQ-001]
+    stages:
+    - id: player-order
+      bindings: [{id: eligible_players, from: friendly_players_in_turn_order}]
+    - id: recover-for-each
+      repeat_for_each: bound.eligible_players
+      choices:
+      - {id: recover-card, owner: current_repeat_item, visibility: private, optional: true, domain: {zone: current_repeat_item.discard, filter: {type_in: [attack, versatile, defense]}}, bind: card}
+      operations: [{op: MOVE_CARD, from_zone: current_repeat_item.discard, to_zone: current_repeat_item.hand, selector: bound.card, condition: {bound.card: present}}]
+    - {id: draw, operations: [{op: DRAW, count: 1}]}
+- id: future-of-ninjutsu
+  name: The Future of Ninjutsu
+  quantity: 2
+  inclusion: fixed
+  usable_by: [metalhead]
+  type: scheme
+  printed_value: null
+  boost: 1
+  tags: []
+  effects:
+  - id: future
+    trigger: scheme
+    requires: [D-REQ-001]
+    stages:
+    - id: choose-deck
+      choices: [{id: deck, owner: controller, visibility: public, optional: false, domain: all_player_decks, bind: deck}]
+    - id: look
+      operations: [{op: LOOK_AT, source: bound.deck.top, selector: 1, viewer: controller, bind: viewed_card}]
+    - id: disposition
+      choices: [{id: disposition, owner: controller, visibility: private, optional: false, domain: [leave_on_top, move_to_bottom], bind: disposition}]
+    - id: finish
+      operations:
+      - {op: MOVE_CARD, from_zone: bound.deck.top, to_zone: bound.deck, selector: bound.viewed_card, position: bottom, condition: {bound.disposition: move_to_bottom}}
+      - {op: DRAW, count: 1}
+      - {op: GAIN_ACTION, count: 1}
+external_definitions: []
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+sources:
+- {id: tmnt-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [deck_allocation, invention_rules, invention_text], durability: durable}
+- {id: tmnt-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
+- {id: tmnt-physical, authority: physical_component_transcription, url: "https://www.youtube.com/watch?v=fRie8VT5Tp8", checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: donatello-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/donatello, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
+normalization_notes:
+- All 14 definitions reconcile to 30 cards.
+- Party Wagon and Future of Ninjutsu are explicit staged flows; Donatello Does Machines is a reusable repeated per-player choice flow under D-REQ-001.
+- Inventions/out-of-play remain explicit first-class zones.
+- No source_defined or choices_after/followup constructs remain.

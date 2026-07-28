@@ -1,0 +1,73 @@
+schema_version: 1
+id: chupacabra
+display_name: Chupacabra
+set_ids: [battle-of-legends-vol-3]
+status: partial
+verification:
+  evidence: verified
+  semantics: verified
+  integration: requires_shared_extension
+  policy: ready
+requires: [D-REQ-001]
+movement: 3
+topology:
+  type: single_hero
+  loss_rule: primary_hero_defeated
+  fighters:
+  - {id: chupacabra, display_name: Chupacabra, role: hero, count: 1, attack_type: melee, starting_health: 14, starts_on_board: true, summonable: false}
+setup:
+  hooks: []
+  state_initialization: [{key: won_combat_this_turn, value: false}]
+ability:
+  id: the-hunger
+  controller: owner
+  effects:
+  - id: record-combat-win
+    trigger: after_combat
+    condition: {controller_won_combat: true}
+    operations: [{op: SET_STATE, key: won_combat_this_turn, value: true}]
+  - id: hunger-draw
+    trigger: after_attack
+    optional: true
+    operations: [{op: DRAW, count: 1}]
+resources: []
+persistent_state:
+- {key: won_combat_this_turn, type: boolean, reset: turn_start}
+deck:
+  manifest: ../../cards/phase-4b/chupacabra.yaml
+  construction: fixed
+rulings: []
+sources:
+- id: chupacabra-product
+  authority: official_component
+  url: https://restorationgames.com/shop/unmatched-battle-of-legends-vol-3/
+  checked_at: '2026-07-27'
+  supports: [release_membership]
+  durability: durable
+- id: chupacabra-physical-review
+  authority: physical_component_transcription
+  url: https://www.youtube.com/watch?v=6fP2amMnphI
+  checked_at: '2026-07-27'
+  supports: [fighter_and_deck_cross_check]
+  durability: transient
+- id: chupacabra-arena
+  authority: reference
+  url: https://www.unmatchedarena.com/heroes/chupacabra
+  checked_at: '2026-07-27'
+  supports: [fighter_stats, deck_transcription]
+- id: chupacabra-club-tracker
+  authority: reference
+  url: https://www.the-unmatched.club/tools/tracker?h=chupacabra
+  checked_at: '2026-07-27'
+  supports: [card_names, quantities]
+validation:
+  quantity: {result: PASS, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: PASS
+  references: PASS
+  source_coverage: PASS
+  semantic_structure: PASS
+  integration: REQUIRES_SHARED_EXTENSION
+  fan_content: PASS
+normalization_notes:
+- The fighter ability itself uses existing primitives; pair-level partial status comes from the deck's choose-N-distinct/result-binding requirement under D-REQ-001.
+- won_combat_this_turn is persisted historical state for Blood in the Air.

@@ -1,0 +1,248 @@
+schema_version: 1
+fighter_id: luke-cage
+status: verified
+verification: {evidence: verified, semantics: verified, integration: ready, policy: not_applicable}
+requires: []
+construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30}
+
+cards:
+  - {id: sweet-christmas, name: Sweet Christmas!, quantity: 2, inclusion: fixed, usable_by: [luke-cage], type: attack, printed_value: 6, boost: 1, tags: [], effects: []}
+  - id: commanding-impact
+    name: Commanding Impact
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: attack
+    printed_value: 5
+    boost: 1
+    tags: []
+    effects:
+      - id: commanding-impact-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: always, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}]
+  - id: get-paid
+    name: Get Paid
+    quantity: 2
+    inclusion: fixed
+    usable_by: [luke-cage]
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: []
+    effects:
+      - id: get-paid-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: draw, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}]
+  - id: hero-for-hire
+    name: Hero For Hire
+    quantity: 3
+    inclusion: fixed
+    usable_by: [luke-cage]
+    type: attack
+    printed_value: 3
+    boost: 1
+    tags: []
+    effects:
+      - id: hero-for-hire-boost
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_boost, owner: controller, visibility: private, optional: true, domain: {kind: boolean}, bind: use_boost}], costs: [], operations: []}
+          - {id: boost, when: {bound: use_boost, equals: true}, choices: [], costs: [], operations: [{op: BOOST, target: this_card, source: hand, count: 1}]}
+  - id: power-man
+    name: Power Man
+    quantity: 2
+    inclusion: fixed
+    usable_by: [luke-cage]
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: power-man-push
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: move-and-damage
+            when: always
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE, target: opposing_combat_fighter, max_distance: 3, overrides: [may_move_through_other_opposing_fighters], bind: pushed_path}
+              - {op: DEAL_EFFECT_DAMAGE, target: moved_fighter_and_each_opposing_fighter_moved_through, amount: 1, movement_ref: pushed_path}
+  - id: still-standing
+    name: Still Standing
+    quantity: 2
+    inclusion: fixed
+    usable_by: any
+    type: attack
+    printed_value: 4
+    boost: 2
+    tags: []
+    effects:
+      - id: still-standing-recycle
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-cards
+            when: {combat_result: won}
+            choices:
+              - {id: recycle_cards, owner: controller, visibility: public, optional: false, domain: {kind: card_set, zone: own_discard}, min: 2, max: 2, distinct: true, order_matters: false, bind: recycle_cards}
+            costs: []
+            operations: []
+          - id: recycle
+            when: {bound: recycle_cards, count: 2}
+            choices: []
+            costs: []
+            operations:
+              - {op: MOVE_CARD, from_zone: discard, to_zone: deck, selector: {bound: recycle_cards}}
+              - {op: SHUFFLE, zone: deck}
+  - id: pushback
+    name: Pushback
+    quantity: 2
+    inclusion: fixed
+    usable_by: [misty-knight]
+    type: versatile
+    printed_value: 2
+    boost: 3
+    tags: []
+    effects:
+      - id: pushback-move
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: move, when: always, choices: [], costs: [], operations: [{op: MOVE, target: opposing_combat_fighter, max_distance: 3}]}]
+  - id: regroup
+    name: Regroup
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: versatile
+    printed_value: 1
+    boost: 3
+    tags: []
+    effects:
+      - id: regroup-draw
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: won-draw, when: {combat_result: won}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: other-draw, when: {combat_result: not_won}, choices: [], costs: [], operations: [{op: DRAW, count: 1}]}
+  - id: skin-like-titanium
+    name: Skin Like Titanium
+    quantity: 2
+    inclusion: fixed
+    usable_by: [luke-cage]
+    type: defense
+    printed_value: 0
+    boost: 1
+    tags: []
+    effects:
+      - id: skin-like-titanium-damage
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: damage, when: {combat_result: lost}, choices: [], costs: [], operations: [{op: DEAL_EFFECT_DAMAGE, target: opposing_combat_fighter, amount_ref: {combat: current, field: combat_damage_taken_by_luke}}]}]
+  - id: got-my-back
+    name: Got My Back?
+    quantity: 2
+    inclusion: fixed
+    usable_by: [misty-knight]
+    type: defense
+    printed_value: 1
+    boost: 2
+    tags: []
+    effects:
+      - id: got-my-back-swap
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - {id: decide, when: always, choices: [{id: use_swap, owner: controller, visibility: public, optional: true, domain: {kind: boolean}, bind: use_swap}], costs: [], operations: []}
+          - {id: swap, when: {bound: use_swap, equals: true}, choices: [], costs: [], operations: [{op: SWAP, a: misty-knight, b: luke-cage, bind: swap_result}]}
+          - {id: replace-defender, when: {result: swap_result, equals: succeeded}, choices: [], costs: [], operations: [{op: SET_STATE, key_ref: {scope: combat, key: defender}, value: luke-cage}]}
+  - id: trash-talk
+    name: Trash Talk
+    quantity: 3
+    inclusion: fixed
+    usable_by: any
+    type: defense
+    printed_value: 2
+    boost: 1
+    tags: []
+    effects:
+      - id: trash-talk-cancel
+        trigger: immediately
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: cancel, when: always, choices: [], costs: [], operations: [{op: CANCEL_EFFECTS, target_scope: opposing_combat_card}]}]
+      - id: trash-talk-end-turn
+        trigger: after_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: end-turn, when: {combat_result: won}, choices: [], costs: [], operations: [{op: END_TURN}]}]
+  - id: daughter-of-the-dragon
+    name: Daughter of the Dragon
+    quantity: 2
+    inclusion: fixed
+    usable_by: [misty-knight]
+    type: versatile
+    printed_value: 2
+    boost: 2
+    tags: []
+    effects:
+      - id: daughter-of-the-dragon-value
+        trigger: during_combat
+        controller: controller
+        cancellation: cancelable
+        stages: [{id: set-value, when: {misty_adjacent_to_opposing_combat_fighter: true}, choices: [], costs: [], operations: [{op: SET_VALUE, target: this_card, value: 6}]}]
+  - id: wheres-my-money
+    name: Where's My Money?
+    quantity: 2
+    inclusion: fixed
+    usable_by: [luke-cage]
+    type: scheme
+    printed_value: null
+    boost: 1
+    tags: []
+    effects:
+      - id: wheres-my-money-resolve
+        trigger: scheme
+        controller: controller
+        cancellation: cancelable
+        stages:
+          - id: choose-destination
+            when: always
+            choices:
+              - {id: destination, owner: controller, visibility: public, optional: false, domain: {kind: space, selector: space_adjacent_to_nearest_opposing_fighter}, bind: destination}
+            costs: []
+            operations: []
+          - id: place-and-action
+            when: {bound: destination, exists: true}
+            choices: []
+            costs: []
+            operations:
+              - {op: PLACE, target: luke-cage, destination: {bound: destination}}
+              - {op: GAIN_ACTION, count: 1}
+
+external_definitions: []
+interpretations: []
+sources:
+  - {id: luke-cage-umdb, authority: published_umdb, url: https://unmatched.cards/umdb/decks/luke-cage, checked_at: 2026-07-27, supports: [card_metadata, quantities, effects, deck_construction]}
+  - {id: luke-cage-official-product, authority: official, url: https://restorationgames.com/shop/marvel-redemption-row/, checked_at: 2026-07-27, supports: [set_membership]}
+validation:
+  quantity: {result: pass, available_pool_count: 30, game_deck_count: 30, quantity_sum: 30}
+  usable_by: pass
+  references: pass
+  source_coverage: verified
+  semantic_structure: pass
+  integration: ready
+  fan_content: pass
