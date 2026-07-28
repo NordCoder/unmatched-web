@@ -20,18 +20,18 @@ type Command struct {
 }
 
 type DomainEvent struct {
-	SchemaVersion    string                     `json:"event_schema_version"`
-	ID               model.EventID              `json:"event_id"`
-	MatchID          model.MatchID              `json:"match_id"`
-	Sequence         uint64                     `json:"sequence"`
-	Revision         uint64                     `json:"revision"`
-	Type             string                     `json:"event_type"`
-	CausedByCommand  model.CommandID            `json:"caused_by_command_id"`
-	ParentEventID    model.EventID               `json:"parent_event_id,omitempty"`
-	SourceRef        string                      `json:"source_ref,omitempty"`
-	RulesetVersion   string                      `json:"ruleset_version"`
-	PublicPayload    json.RawMessage             `json:"public_payload"`
-	PrivatePayloads  map[model.PlayerID]json.RawMessage `json:"private_payloads_by_player"`
+	SchemaVersion   string                             `json:"event_schema_version"`
+	ID              model.EventID                      `json:"event_id"`
+	MatchID         model.MatchID                      `json:"match_id"`
+	Sequence        uint64                             `json:"sequence"`
+	Revision        uint64                             `json:"revision"`
+	Type            string                             `json:"event_type"`
+	CausedByCommand model.CommandID                    `json:"caused_by_command_id"`
+	ParentEventID   model.EventID                      `json:"parent_event_id,omitempty"`
+	SourceRef       string                             `json:"source_ref,omitempty"`
+	RulesetVersion  string                             `json:"ruleset_version"`
+	PublicPayload   json.RawMessage                    `json:"public_payload"`
+	PrivatePayloads map[model.PlayerID]json.RawMessage `json:"private_payloads_by_player"`
 }
 
 type EventBatch struct {
@@ -42,11 +42,11 @@ type EventBatch struct {
 }
 
 type ResolutionInput struct {
-	CommandID      model.CommandID          `json:"command_id"`
-	Procedure      model.ProcedureRef        `json:"procedure"`
-	InteractionID model.InteractionID       `json:"interaction_id,omitempty"`
-	Choice         json.RawMessage           `json:"choice,omitempty"`
-	Context        map[string]json.RawMessage `json:"context,omitempty"`
+	CommandID     model.CommandID            `json:"command_id"`
+	Procedure     model.ProcedureRef         `json:"procedure"`
+	InteractionID model.InteractionID        `json:"interaction_id,omitempty"`
+	Choice        json.RawMessage            `json:"choice,omitempty"`
+	Context       map[string]json.RawMessage `json:"context,omitempty"`
 }
 
 type ResolutionStatus string
