@@ -143,7 +143,7 @@ func validateEnvelope(principal model.PrincipalID, command contracts.Command) er
 		return opError(CodeInvalidCommand, "command ID, schema version, and type are required")
 	}
 	if len(command.Payload) == 0 || !json.Valid(command.Payload) {
-		return opError(CoeInvalidCommand, "command payload must be valid JSON")
+		return opError(CodeInvalidCommand, "command payload must be valid JSON")
 	}
 	return nil
 }
@@ -162,10 +162,10 @@ func decodePayload(raw json.RawMessage, target any) error {
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(target); err != nil {
-		return opError(CoeInvalidCommand, "command payload does not match its type")
+		return opError(CodeInvalidCommand, "command payload does not match its type")
 	}
 	if err := decoder.Decode(&struct{}{}); err != io.EOF {
-		return opError(CoeInvalidCommand, "command payload contains trailing data")
+		return opError(CodeInvalidCommand, "command payload contains trailing data")
 	}
 	return nil
 }
