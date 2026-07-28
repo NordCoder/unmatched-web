@@ -4,230 +4,156 @@
 
 ```text
 status: normative-foundation
-schema_id: unmatched.engine.fixture/v1
+schema_id: unmatched.engine.fixture/v2
 parent_issue: #19
 correction_round_1: #32
 correction_round_2: #35
+stabilization_round_3: #36
 ```
 
-This document defines the language-neutral fixture contract shared by Core Runtime, Rules Mechanics and Lead integration.
+This contract defines the language-neutral deterministic evidence shared by Core Runtime, Rules Mechanics and Lead integration.
 
-Normative machine-readable artifacts:
+## Normative artifacts
 
 ```text
-docs/engine/fixtures/schema-v1.json
-docs/engine/fixtures/foundation-v1.json
-docs/engine/fixtures/foundation-v1-transition-audit.json
+docs/engine/fixtures/schema-v2.json
+docs/engine/fixtures/foundation-v2.json
+docs/engine/fixtures/foundation-v2-transition-audit.json
+scripts/validate_engine_foundation.py
+tests/architecture/test_engine_foundation.py
 ```
 
-The JSON artifacts are normative. Prose summarizes their execution and canonicalization rules.
+The previous v1 JSON artifacts remain historical correction evidence. They are not the acceptance Candidate after stabilization round 3.
 
-## 1. Suite and case execution
+## 1. Required evidence categories
 
-A suite contains an ordered `cases` array. Order is reporting order only.
+A conforming suite contains exactly one independently executable case for each category:
 
-Every case is isolated:
+```text
+create
+join
+idempotency
+reconnect
+replay
+```
 
-- no inherited deterministic state;
-- no inherited authority records;
-- no inherited idempotency records;
-- no inherited snapshots;
-- no shared ID, RNG or choice cursor;
-- providers reset to the case-declared arrays;
-- provider underflow, unexpected allocation and unused required entries fail validation.
+The committed validator fails when a category is absent, duplicated or replaced by prose-only evidence.
 
-Each case declares its complete initial source, authority/idempotency seeds, providers, steps and expected final evidence.
+The cases prove:
 
-## 2. Strict parsing
+- `CreateMatch` requires no pre-existing match or player runtime identity;
+- `JoinMatch` authenticates a principal and creates a new match-scoped player identity;
+- same key and same fingerprint returns the original durable result without execution;
+- same key and different fingerprint returns derived `DUPLICATE_CONFLICT` without a second command-result record;
+- reconnect changes operational presence but preserves deterministic state hash and pending interaction;
+- snapshot plus contiguous events reaches the exact final state;
+- viewer projections match the final state and forbidden hidden values are absent.
+
+## 2. Closed schema surfaces
+
+Every normative object boundary used by the suite is closed. Unknown fields are rejected in:
+
+- suite, definition, state and case objects;
+- command envelopes and command-kind payloads;
+- normalized request identities and payloads;
+- event envelopes and event-kind payloads;
+- pending interactions and card state;
+- projections, private state and transition audit entries.
+
+JSON Schema supplies structural validation. `scripts/validate_engine_foundation.py` supplies cross-field semantic validation that JSON Schema cannot express reliably, including case-kind requirements, command/payload correlation, definition references, collision behavior and replay transitions.
+
+## 3. Pinned semantic inputs
+
+Every case references a committed `definition_id`.
+
+Each definition entry contains:
+
+```text
+ruleset
+capability registry identity
+setup definition
+synthetic action/effect definitions
+canonical SHA-256 digest
+```
+
+States, events and projections repeat the definition identity. A missing or mismatched definition reference is a validation failure. Required semantics may not exist only in prose or validator source code.
+
+## 4. Strict parsing and canonical bytes
 
 Before semantic validation:
 
-1. decode UTF-8 without BOM;
-2. reject malformed JSON, invalid Unicode and unpaired surrogates;
-3. reject duplicate object keys;
-4. normalize every object key and string value to Unicode NFC;
-5. reject any duplicate key created by NFC normalization;
-6. validate against `fixtures/schema-v1.json`.
+1. decode UTF-8 JSON;
+2. reject duplicate object keys;
+3. normalize all object keys and string values to Unicode NFC;
+4. reject duplicate keys created by NFC normalization;
+5. reject unknown fields through the closed schema;
+6. serialize the supported JSON value subset using NFC-normalized RFC 8785-compatible canonical bytes;
+7. hash the UTF-8 bytes using SHA-256.
 
-Unknown fields in suite, case, initial source, state, event, projection and audit objects are rejected.
+The normative suite contains NFC-equivalence, escaping/non-ASCII and duplicate-key rejection vectors.
 
-Absent optional fields are omitted. JSON `null` is a distinct explicit value and is legal only where the schema permits it. Array order is always significant.
+## 5. Idempotency model
 
-## 3. Canonical bytes and hashes
-
-Canonical bytes are:
-
-```text
-strict parsed JSON
-→ Unicode NFC keys and string values
-→ RFC 8785 JSON Canonicalization Scheme
-→ UTF-8 bytes
-→ SHA-256
-```
-
-Fixture v1 permits only schema-declared integers in the exact safe range. Floating point, NaN and infinity are forbidden.
-
-Worker-local `sort_keys` approximations are not normative. RFC 8785 defines key ordering, escaping and number serialization.
-
-Hash syntax:
+The authoritative store contains one immutable command-result record per:
 
 ```text
-sha256:<64 lowercase hexadecimal digits>
+(principal_id, command_id)
 ```
 
-`foundation-v1.json` includes:
+For the same fingerprint, the original durable result is returned without execution, allocation or new gameplay events.
 
-- NFC-equivalent input vectors with identical bytes/hash;
-- escapable and non-ASCII string bytes/hash;
-- duplicate-key rejection evidence.
+For a different fingerprint:
 
-## 4. Initial sources
+- response class is `derived_collision`;
+- rejection code is `DUPLICATE_CONFLICT`;
+- command-result record delta is zero;
+- gameplay-event delta is zero;
+- the original record remains unchanged and undisclosed.
 
-### 4.1 `new_match`
+## 6. Reconnect boundary
 
-Contains complete lifecycle inputs, authority/idempotency seeds and deterministic providers needed to create the initial state through commands/events.
+Operational presence fields are forbidden in deterministic states and hashes.
 
-### 4.2 `canonical_state`
+The reconnect case binds two different operational client states to one unchanged deterministic state entry. The exact pending interaction ID and state hash must be preserved.
 
-Contains:
+## 7. Exact replay
 
-```text
-state
-state_revision
-last_event_sequence
-state_hash
-authority_records
-idempotency_records
-providers
-```
+The replay case contains a pinned snapshot and contiguous event sequence. Each event has a closed envelope and definition identity.
 
-The declared revision and sequence must equal the corresponding state fields. The recomputed state hash must match.
-
-### 4.3 `snapshot_plus_tail`
-
-Contains:
-
-```text
-snapshot:
-  state
-  revision
-  last_event_sequence
-  state_hash
-ordered_tail_events
-authority_records
-idempotency_records
-providers
-expected_final_state
-expected_final_hash
-```
-
-The first tail sequence must be `snapshot.last_event_sequence + 1`; all following sequences are contiguous.
-
-## 5. Idempotency evidence
-
-The fixture distinguishes:
-
-```text
-durable_result / first
-durable_result / duplicate
-derived_collision / collision
-```
-
-For the same key and fingerprint, the original durable result is returned without execution.
-
-For the same key and a different fingerprint:
-
-- response is derived `DUPLICATE_CONFLICT`;
-- execution count delta is zero;
-- command-result record count delta is zero;
-- gameplay event count delta is zero;
-- original record is unchanged;
-- repeated collision requests remain derived and non-disclosing.
-
-## 6. Exact event mode
-
-Each event contains:
-
-```text
-event_schema_version
-event_id
-match_id
-sequence
-revision
-event_type
-caused_by_command_id
-ruleset_version
-public_payload
-private_payloads_by_player
-```
-
-`parent_event_id` and `source_ref` are omitted when absent and required by event schemas where applicable. Empty payloads are explicit `{}`.
-
-Fixture v1 defines exact payload families for its event types. No field is inferred from prose.
-
-## 7. Snapshot-tail transition semantics
-
-Envelope application updates:
-
-```text
-/revision
-/event_sequence
-/history_cursor/last_event_sequence
-```
-
-Fixture event payloads authorize these additional changes:
-
-| Event | Authorized state changes |
-| --- | --- |
-| `ChoiceSubmitted` | selected values of the identified pending interaction |
-| `CardMoved` | identified card zone, position and resulting face state |
-| `InteractionClosed` | identified pending interaction becomes `null` |
-| `EffectStageChanged` | identified effect stage and status |
-| `EffectDequeued` | identified effect is removed from the queue |
-| `ActionCompleted` | identified action state becomes `null` |
-
-No other state path may change for the normative case.
-
-`foundation-v1-transition-audit.json` records, for every event:
+The committed transition audit records:
 
 ```text
 sequence
-event_type
-pre_state_hash
-changed_json_pointers
-post_state_hash
+event type
+pre-state hash
+exact changed JSON pointers
+post-state hash
 ```
 
-Each `pre_state_hash` equals the previous entry's `post_state_hash`. The final audit hash equals both the suite expected final hash and the uninterrupted execution hash.
+The validator applies every event through the generic fixture reducer, rejects sequence gaps and undeclared mutations, and requires the final state and projection hashes to match.
 
-## 8. Projection evidence
+## 8. Executable conformance gate
 
-Viewer projections are recomputed from the final deterministic state and authority context. Operational presence is excluded.
+Run:
 
-Each expected projection supplies:
+```bash
+python -m unittest discover -s tests/architecture -p "test_engine_foundation.py"
+python scripts/validate_engine_foundation.py
+```
 
-- complete projection object;
-- projection hash;
-- forbidden values for that viewer.
+Regression tests include mutations for:
 
-## 9. Conformance checks
+- missing JoinMatch or reconnect evidence;
+- unknown nested command fields;
+- missing or mismatched definition pins;
+- collision persistence or durable collision response;
+- actor identity supplied to JoinMatch;
+- reconnect hash drift;
+- event sequence gaps;
+- undeclared replay state changes;
+- transition hash corruption;
+- hidden-information exposure;
+- operational presence inside deterministic state;
+- duplicate keys before and after NFC normalization.
 
-A conforming artifact validator rejects:
-
-- unknown schema/version or field;
-- duplicate keys before or after NFC normalization;
-- invalid Unicode;
-- non-integer numeric values;
-- canonicalization/hash mismatch;
-- case state/provider leakage;
-- command fingerprint mismatch;
-- duplicate re-execution;
-- collision persistence or original-result disclosure;
-- event envelope omission;
-- sequence gap/reordering;
-- undeclared state mutation;
-- transition-audit discontinuity;
-- final state/projection mismatch;
-- presence data in deterministic evidence.
-
-An executable gameplay runner is not part of this correction Candidate. Static artifact parsing, schema validation, canonical hash recomputation and transition application are the required evidence.
+A handoff claim is not acceptance evidence unless these checks pass in the exact-head `engine-foundation` workflow.
