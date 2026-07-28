@@ -1,0 +1,108 @@
+schema_version: 1
+phase: phase-4c
+status: lead_assigned
+source_alias_count: 52
+primary_ownership_counts:
+  resolution: 10
+  fighter_presence: 9
+  movement_combat: 9
+  damage_modifiers: 8
+  cards_actions: 15
+  central_policy: 1
+cross_domain_rules:
+  - alias: B-REQ-002
+    primary: fighter_presence
+    contributors: [damage_modifiers]
+    note: Primary owner defines small-fighter occupancy and the alias disposition; damage worker defines generic propagated-damage provenance referenced by the final split mapping.
+  - alias: D-REQ-007
+    primary: fighter_presence
+    contributors: [movement_combat]
+    note: Primary owner defines component/path lifecycle; movement worker defines traversed-path result/history consumed by the final split mapping.
+  - alias: D-REQ-008
+    primary: resolution
+    contributors: [fighter_presence]
+    note: Primary owner defines the pre-defense interaction window and staged veto; presence worker supplies the generic attachable component lifecycle contract.
+assignments:
+  resolution:
+    issue: 13
+    branch: phase-4c-worker-1-resolution
+    aliases:
+      - B-REQ-007
+      - B-REQ-010
+      - C-REQ-010
+      - C-REQ-013
+      - D-REQ-001
+      - D-REQ-002
+      - D-REQ-008
+      - D-REQ-009
+      - D-REQ-014
+      - D-REQ-015
+  fighter_presence:
+    issue: 14
+    branch: phase-4c-worker-2-presence
+    aliases:
+      - A-REQ-003
+      - A-REQ-005
+      - A-REQ-014
+      - B-REQ-001
+      - B-REQ-002
+      - B-REQ-003
+      - B-REQ-006
+      - C-REQ-007
+      - D-REQ-007
+  movement_combat:
+    issue: 15
+    branch: phase-4c-worker-3-movement-combat
+    aliases:
+      - A-REQ-004
+      - A-REQ-008
+      - A-REQ-011
+      - A-REQ-012
+      - B-REQ-008
+      - C-REQ-003
+      - D-REQ-005
+      - D-REQ-006
+      - D-REQ-011
+  damage_modifiers:
+    issue: 16
+    branch: phase-4c-worker-4-damage-modifiers
+    aliases:
+      - A-REQ-006
+      - A-REQ-007
+      - A-REQ-010
+      - C-REQ-008
+      - C-REQ-011
+      - C-REQ-012
+      - D-REQ-004
+      - D-REQ-010
+  cards_actions:
+    issue: 17
+    branch: phase-4c-worker-5-cards-actions
+    aliases:
+      - A-REQ-009
+      - A-REQ-013
+      - B-REQ-004
+      - B-REQ-005
+      - B-REQ-009
+      - C-REQ-001
+      - C-REQ-002
+      - C-REQ-004
+      - C-REQ-005
+      - C-REQ-006
+      - D-REQ-003
+      - D-REQ-012
+      - D-REQ-013
+      - D-REQ-016
+      - D-REQ-017
+  central_policy:
+    issue: 12
+    branch: phase-4c-runtime-consolidation
+    aliases:
+      - A-REQ-015
+    disposition: blocked
+    note: Deadpool digital adaptation requires an Owner policy decision before runtime primitives can be finalized. Workers must not invent substitutions.
+validation:
+  every_source_alias_assigned_once: pass
+  primary_assignment_count: 52
+  duplicate_primary_assignments: 0
+  unassigned_aliases: []
