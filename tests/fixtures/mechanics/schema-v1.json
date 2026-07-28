@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Unmatched mechanics fixture v2",
+  "description": "Wave 1 single-select fixtures use owner_selector=actor backed only by serialized trusted actor_player_id, with explicit pause/resume and post-resume mutation replay evidence.",
+  "type": "object",
+  "required": ["schema_version", "cases"],
+  "properties": {
+    "schema_version": {"const": "unmatched.mechanics.fixture/v2"},
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": ["name", "definition", "state", "procedure", "expected_first_status", "expected_final_status"],
+      "properties": {
+        "definition": {"$ref": "#/$defs/definition"}
+      },
+      "additionalProperties": true
+    },
+    "definition": {
+      "type": "object",
+      "required": ["id", "kind", "rule_id", "capability_ids", "stages"],
+      "properties": {
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/stage"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "stage": {
+      "type": "object",
+      "properties": {
+        "choice": {"$ref": "#/$defs/choice"}
+      },
+      "additionalProperties": true
+    },
+    "choice": {
+      "type": "object",
+      "required": ["kind", "binding", "visibility", "owner_selector", "domain", "empty_domain"],
+      "properties": {
+        "owner_selector": {"const": "actor"}
+      },
+      "not": {"required": ["owner"]},
+      "additionalProperties": true
+    }
+  }
+}
