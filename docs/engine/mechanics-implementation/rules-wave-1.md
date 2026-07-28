@@ -1,104 +1,130 @@
-# Rules Mechanics Wave 1 — corrected I1 resolver foundation
+# Rules Mechanics Wave 1 — sound I1 resolver foundation
 
-Status: correction Candidate for Issue #29 after the QA verdict on `d8788cc1428431750a87e40d87b25598db44e985`.
+Status: correction Candidate for Issue #46 / PR #40, continuing exact Head `02422fd975195eb099a93ebdfe28fbeaffe883d6`.
 
 Capabilities: `CAP-001`, `CAP-002`, `CAP-003`, `CAP-004`, `CAP-018`.
 
 ## Runtime boundary
 
-The package is a deterministic domain interpreter. It receives immutable `model.GameState` plus a serializable `model.ProcedureRef` and returns explicit `contracts.DomainEvent` values or a pending interaction. It imports no application, runtime, persistence, transport, filesystem, network, SQL, wall clock, or adapter package. Dispatch is by expression, operation, stage, checkpoint, and capability kind; fighter/card identity is data only.
+The Rules package remains a deterministic domain interpreter. It receives immutable `model.GameState` and a serializable `model.ProcedureRef`, then returns explicit events, a pending interaction, or a deterministic rejection. It imports no adapter, storage, transport, clock, network, or fighter/card-specific dispatch.
 
-`RulesEngine.Project` is an explicit allow-list. It never serializes `ProcedureRef`, `ResolverState`, `PendingInteraction`, raw action/combat procedure bindings, or arbitrary `Turn` maps. Core remains responsible for projecting the owner-only pending-interaction DTO.
+`RulesEngine.Project` is an allow-list and never serializes procedure bindings, resolver internals, pending authoritative options, or raw action/combat procedures.
 
-Core authenticates and authorizes `SubmitChoice` before calling Rules. Rules validates the interaction identity and the authoritative opaque handle captured in the serialized procedure; it does not accept caller identity through arbitrary rule `Context`.
+## Authoritative state references
 
-## Serializable program counter
-
-`effects.State` version 2 persists:
+State references are accepted only through the engine-owned `StatePathSchema` registry. Each registered pattern fixes:
 
 ```text
-stage cursor
-phase: enter | costs | choice | operations | checkpoint | complete
-cost index
-operation index
-captured bindings
-operation results
-accepted choices
-pending authoritative option map
-checkpoint frame and ordered queue
+path pattern
+structural ValueSpec
+visibility
+allowed traversal
 ```
 
-A choice resumes at `operations`, not at stage entry. Costs are evaluated transactionally against a clone and committed to the outcome only when the whole cost set succeeds. A pending outcome therefore contains the exact pre-choice events plus a post-cost resume procedure. Core must persist those events atomically with the interaction-pending event; the corresponding shared-contract request is Issue #30 comment `5108015325`.
+Definition-provided `ValueType` and `Visibility` are assertions only. Unknown paths fail definition loading; private paths cannot be downgraded to public; arbitrary traversal through maps or resolver/private-zone state is forbidden. Wave 1 intentionally uses a small allow-list covering the committed fixtures rather than pretending to model the entire future `GameState`.
 
-## Typed definition language
+## Recursive structural typing
 
-Expressions carry closed kinds and statically inferred value/visibility specifications:
+`ValueSpec` carries:
 
 ```text
-any, bool, number, string, player_ref, fighter_ref,
-list<T>, object, operation_result
-
-public, owner_private, opaque
+type
+element
+fields
+visibility
+optional
 ```
 
-Load-time validation enforces:
-
-- operator arity and operand/result types;
-- typed current-state and binding references;
-- operation argument schemas and unknown-argument rejection;
-- cost eligibility;
-- dependency availability and unique result/choice bindings;
-- choice owner/domain types, visibility enum, and explicit empty-domain policy;
-- public-event rejection when an argument carries owner-private or opaque data;
-- declared capability existence and dependency closure;
-- ordered queue entry validity.
-
-Unsupported or untyped definitions fail loading instead of reaching a runtime type assertion.
-
-## Checkpoints, queues, and cancellation
-
-A checkpoint frame stores a stable queue sorted by:
+Nested references traverse the schema one segment at a time. Missing fields and terminal type overrides fail at load time. Operation result bindings expose a common structural record:
 
 ```text
-priority descending
-source order ascending
-stable queue ID ascending
+applied: bool
+disposition: disposition
+code: string?
+value: operation-specific ValueSpec?
 ```
 
-Queue entries contain typed generic operations and survive JSON serialization. Cancellation marks only queued, cancelable entries in the explicit scope. The resolver then executes remaining entries in deterministic order and emits provenance-bearing cancellation and resolution events. Cancellation never rolls back an already applied operation.
+`set_fighter_state`, for example, exposes a typed patch object whose nested `value` type is derived from the operation argument. Runtime trust boundaries verify selected choice values and public event payload structure against validated specs.
 
-## Event and history contract
+## Choice and empty-domain semantics
 
-Every Rules event uses `rules-event/v1`:
+Single-choice value type comes from `domain.Element`; `Choice.ValueType` is assertion-only. Choice visibility is never less restrictive than domain visibility.
 
-```json
-{
-  "schema": "rules-event/v1",
-  "data": {},
-  "provenance": {
-    "operation_instance_id": "...",
-    "source_ref": "...",
-    "cause_kind": "...",
-    "participants": []
-  }
-}
+Supported policies:
+
+```text
+reject
+bind_default
+skip_stage
+complete_without_choice
+bind_empty  # multi-select list values only
 ```
 
-The history ledger indexes the exact envelope produced by the resolver. It no longer assumes arbitrary payloads contain undocumented `cause_kind` or `participants` fields. `Engine.ApplyEvent` is the worker-owned deterministic reducer for currently implemented Rules mutation events; Lead integration must connect the accepted shared replay port.
+`bind_default` requires an exact typed default. `skip_stage` and `complete_without_choice` do not establish a binding; conservative dataflow validation rejects any continuing expression that assumes the binding exists.
 
-## Rule mapping and evidence
+## Serializable procedure and pure replay
 
-| Rule / capability | Evaluation and ordering | Visibility / replay evidence |
-|---|---|---|
-| `FX-010 / CAP-001` | Source-ordered stages with serialized phase/cursors | ordered fixture; JSON restore; deterministic rerun |
-| `FX-020 / CAP-018` | current-state reads happen when reached; captured bindings remain immutable | current-versus-prior-result fixture |
-| `FX-031 / CAP-001` | impossible independent operation is recorded and later independent work continues | partial-resolution fixture |
-| `FX-032 / CAP-001` | costs are transactional; explicit dependency gates only its dependent operation | failed dependency and cost-before-choice tests |
-| `FX-060 / CAP-002` | owner domain captured once; opaque projection exposes handles only | no-context Core-compatible resume and projection leak regression |
-| `CAP-003` | ordered serialized queue with scoped cancellation | checkpoint fixture and encode/decode test |
-| `CAP-004` | source, cause, operation, and participant indexes derive from actual events | resolver-produced provenance regression |
+The stage, phase, cost index, operation index, captured values, result records, accepted choices, pending interaction, and checkpoint queue remain serialized in `ProcedureRef`.
 
-Machine-readable acceptance assets:
+`ApplyEvent` deep-clones the complete input state before applying a rules mutation. No output map, slice, raw message, or nested object aliases the input. Repeated reduction from identical bytes is deterministic.
+
+The fixture runner now proves the complete path:
+
+```text
+pristine initial bytes
+-> initial resolve
+-> reduce every initial event
+-> serialize/restore pending procedure
+-> resume
+-> reduce every resume event
+-> compare direct, serialized, full replay, and repeated final states
+```
+
+It also asserts that the original fixture object remains byte-identical.
+
+## Unified operation dispositions
+
+Ordinary operations, costs, and queued operations use one internal attempt primitive and one result schema. Authoritative dispositions are:
+
+```text
+applied
+not_applied
+skipped_dependency
+rolled_back_cost
+canceled
+partial
+```
+
+Every attempted operation emits one `rules.operation_result` event. Dependencies consume disposition rather than an ad hoc boolean.
+
+Costs execute against an isolated candidate state. When any cost fails, mutation events and patches do not commit; previously successful candidate attempts become `rolled_back_cost`, the failed attempt remains `not_applied`, and the stage emits explicit `cost_unpaid` behavior.
+
+Queue lifecycle is:
+
+```text
+queued -> executing -> applied | partial | not_applied | canceled
+```
+
+`Next()` only marks an entry `executing`. The resolver computes the real outcome after all contained attempts and emits `rules.queued_effect_outcome`; an impossible queue operation can no longer be reported as successfully resolved.
+
+## Event and provenance contract
+
+Rules events use `rules-event/v1` with explicit source, cause, operation instance, participants, and typed data. History indexes are rebuilt from this actual envelope. Mutation events are emitted only for committed state changes; standardized result events remain visible for failed, skipped, rolled-back, canceled, and partial attempts.
+
+## Acceptance evidence
+
+Focused regressions cover:
+
+- unknown/private state path rejection and public-event taint prevention;
+- recursive nested result paths and terminal type assertions;
+- choice domain type, visibility, typed default, scalar empty rejection, and presence dataflow;
+- reducer non-aliasing and repeated deterministic reduction;
+- full initial-plus-resume event replay from pristine bytes;
+- ordinary, cost, and queue disposition equivalence;
+- rolled-back costs, impossible and partial queue effects, and canceled non-execution;
+- existing opaque projection/resume, ordered stages, dependencies, provenance, and checkpoint ordering.
+
+Machine-readable evidence:
 
 ```text
 tests/fixtures/mechanics/schema-v1.json
@@ -106,12 +132,6 @@ tests/fixtures/mechanics/i1.json
 tests/domain/mechanics/fixture_runner_test.go
 ```
 
-The fixture runner proves ordered stages, correct-time conditions, prior-result binding, dependency semantics, independent partial resolution, private pause, procedure JSON restore, exactly-once post-cost resume, checkpoint ordering/cancellation, explicit events, deterministic rerun, event reduction, and final state assertions.
-
 ## Remaining Lead-owned integration item
 
-Worker-owned findings are corrected. Complete cross-line I1 remains gated on the additive Lead/Core change requested in Issue #30 comment `5108015325`:
-
-1. persist `ResolutionOutcome.Events` for pending outcomes in the same atomic batch as `core.interaction.pending`;
-2. connect a deterministic Rules-event reducer to Core replay;
-3. optionally add an explicit authority-bound submitting-player field if future non-actor-owned interactions require Rules-side identity revalidation.
+Issue #30 comment `5108015325` remains separate from this correction: Core must persist Rules events returned with a pending outcome and connect the accepted Rules reducer during Core replay. No Core- or Lead-owned path is changed here.
