@@ -134,15 +134,14 @@ Stress fixtures:
 - Buffy unselected sidekick remains out of play;
 - Yennenga/Krang damage fighters crossed by a bound movement path.
 
-## Wave 4 — Combat legality, damage, modifiers and BOOST
+## Wave 4 — Combat legality, damage and modifiers
 
 Capabilities:
 
 - `CAP-010` combat legality/play modes;
 - `CAP-011` combat participant rebinding;
 - `CAP-012` damage/health transaction;
-- `CAP-013` continuous modifier layer;
-- `CAP-014` BOOST resolution.
+- `CAP-013` continuous modifier layer.
 
 Deliverables:
 
@@ -153,7 +152,7 @@ Deliverables:
 - damage proposal/prevention/allocation/application pipeline;
 - exact health assignment, atomic return health and health floors;
 - contextual modifiers with source lifetime and family-specific composition;
-- ordinary, blind and dynamic BOOST through one pipeline.
+- BOOST result-transform hook above the ordinary Wave 0 BOOST pipeline.
 
 Stress fixtures:
 
@@ -167,13 +166,16 @@ Stress fixtures:
 - Annie health floor where damage still counts as dealt;
 - Arthur/Philippa exact health assignment;
 - Willow exact-health return;
-- Krang dynamic BOOST and Spike resolved blind-BOOST transform.
+- Spike resolved blind-BOOST transform.
 
-## Wave 5 — Randomness, resources, actions and hand policy
+`CAP-014` is not complete in this wave because its dynamic random BOOST source depends on Wave 5 authoritative random procedures.
+
+## Wave 5 — Randomness, BOOST, resources, actions and hand policy
 
 Capabilities:
 
 - `CAP-005` authoritative random procedures;
+- `CAP-014` complete BOOST resolution;
 - `CAP-017` action/resource permissions;
 - `CAP-019` hand policy.
 
@@ -181,6 +183,7 @@ Deliverables:
 
 - random-table definitions and persisted outcomes;
 - paid reroll/replacement loop;
+- ordinary, blind and dynamic BOOST through one persisted source/result pipeline;
 - typed action credits with restrictions, targets and expiry;
 - action permission spending as cost;
 - declared resource tier independent from available quantity;
@@ -191,6 +194,7 @@ Deliverables:
 Stress fixtures:
 
 - Krang independent rolls, X result and repeated machine-paid rerolls;
+- Krang dynamic BOOST and persisted die result;
 - Tesla legal two-coil declaration with insufficient charge and no tier fallback;
 - Ms. Marvel/She-Hulk action permission spending;
 - Stars and Stripes immediate restricted attacks;
