@@ -3,11 +3,11 @@
 ## Validation state
 
 ```text
-status: MACHINE_VALIDATION_PENDING
+status: FINAL_MACHINE_VALIDATION_PENDING
 integration_branch: phase-4-final-integration
-integration_head_before_run: 74251b5063fb50be51b14cd352a621b461a31538
+validated_input_head: f50f3a4a5281c825ec04d119f0c1fc38f9e3fd14
 ```
 
-This file is the canonical human-readable Phase 4 gate record. It is initialized here to trigger the clean integrated validation workflow after correction QA, controlled integration, YAML syntax normalization and requirement-parser finalization.
+Fresh independent correction QA and controlled integration are complete. The integrated card corpus is YAML parse-clean, and every referenced owner requirement now resolves to a definition in the corresponding Worker A/B/C/D report.
 
-The final verdict, exact workflow run, corpus counts, construction exceptions, status matrix and evidence qualifications will replace this pending section only after the machine-readable validator passes on the current integration branch.
+This update triggers the final machine validation run. The canonical PASS/FAIL verdict, exact workflow run, corpus counts, construction exceptions, status matrix and preserved evidence qualifications will replace this pending section only after that run completes.
