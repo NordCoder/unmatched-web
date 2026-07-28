@@ -87,6 +87,21 @@ export const MatchEvent = { kind: "created" } as const;
         self.assertTrue(any("qa-sample-card" in error for error in errors))
         self.assertTrue(all("scripts/example.py" in error for error in errors))
 
+    def test_nested_effect_ids_do_not_expand_the_identity_boundary(self) -> None:
+        self.write(
+            "docs/cards/phase-4b/qa-sample.yaml",
+            "fighter_id: qa-sample-fighter\ncards:\n"
+            "  - id: qa-sample-card\n"
+            "    effects:\n"
+            "      - id: command\n",
+        )
+        self.write("internal/domain/doc.go", "// command orchestration remains deferred\n")
+
+        errors: list[str] = []
+        validator.validate_no_gameplay_ids(self.root, errors)
+
+        self.assertEqual([], errors)
+
 
 if __name__ == "__main__":
     unittest.main()

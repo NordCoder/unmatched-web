@@ -77,12 +77,17 @@ IMPLEMENTATION_EXPLICIT_FILES = {
 IMPORT_RE = re.compile(r'^\s*(?:[._A-Za-z][._A-Za-z0-9]*\s+)?"([^"]+)"\s*$', re.MULTILINE)
 IMPORT_BLOCK_RE = re.compile(r"\bimport\s*\((.*?)\)", re.DOTALL)
 SINGLE_IMPORT_RE = re.compile(r'\bimport\s+(?:[._A-Za-z][._A-Za-z0-9]*\s+)?"([^"]+)"')
-GAMEPLAY_ID_RE = re.compile(
-    r"(?:^|[\s{,\[])"
-    r"(?:id|fighter_id|card_id|battlefield_id):\s*"
-    r"[\"']?([a-z0-9][a-z0-9-]*)",
+SCALAR_GAMEPLAY_ID_RE = re.compile(
+    r"^[\"']?([a-z0-9][a-z0-9-]*)[\"']?\s*$"
+)
+TOP_LEVEL_GAMEPLAY_ID_RE = re.compile(
+    r"^(?:id|fighter_id|card_id|battlefield_id):\s*(.+?)\s*$",
     re.MULTILINE,
 )
+CARD_DEFINITION_ID_RE = re.compile(r"^  - id:\s*(.+?)\s*$", re.MULTILINE)
+FIGHTER_LIST_START_RE = re.compile(r"^  fighters:\s*$")
+FIGHTER_LIST_ID_RE = re.compile(r"^    -\s*(?:\{\s*)?id:\s*([^,}\s]+)")
+
 TYPE_DECLARATION_RE = re.compile(
     r"^\s*(?:export\s+)?(?:declare\s+|abstract\s+)?"
     r"(interface|type|class|enum|namespace)\s+([A-Za-z_$][\w$]*)",
@@ -188,17 +193,70 @@ def validate_contract_boundary(root: Path, errors: list[str]) -> None:
             errors.append(f"{relative} contains a hand-written public export list")
 
 
+def scalar_gameplay_id(raw_value: str) -> str | None:
+    match = SCALAR_GAMEPLAY_ID_RE.match(raw_value.strip())
+    return match.group(1) if match else None
+
+
+def fighter_manifest_identifiers(source: str) -> set[str]:
+    identifiers = {
+        identifier
+        for raw_value in TOP_LEVEL_GAMEPLAY_ID_RE.findall(source)
+        if (identifier := scalar_gameplay_id(raw_value)) is not None
+    }
+
+    in_fighter_list = False
+    for line in source.splitlines():
+        if FIGHTER_LIST_START_RE.match(line):
+            in_fighter_list = True
+            continue
+        if in_fighter_list and line.strip() and len(line) - len(line.lstrip()) <= 2:
+            in_fighter_list = False
+        if not in_fighter_list:
+            continue
+        match = FIGHTER_LIST_ID_RE.match(line)
+        if match and (identifier := scalar_gameplay_id(match.group(1))) is not None:
+            identifiers.add(identifier)
+    return identifiers
+
+
+def card_manifest_identifiers(source: str) -> set[str]:
+    identifiers = {
+        identifier
+        for raw_value in TOP_LEVEL_GAMEPLAY_ID_RE.findall(source)
+        if (identifier := scalar_gameplay_id(raw_value)) is not None
+    }
+    identifiers.update(
+        identifier
+        for raw_value in CARD_DEFINITION_ID_RE.findall(source)
+        if (identifier := scalar_gameplay_id(raw_value)) is not None
+    )
+    return identifiers
+
+
+def battlefield_manifest_identifiers(source: str) -> set[str]:
+    return {
+        identifier
+        for raw_value in TOP_LEVEL_GAMEPLAY_ID_RE.findall(source)
+        if (identifier := scalar_gameplay_id(raw_value)) is not None
+    }
+
+
 def canonical_gameplay_identifiers(root: Path) -> set[str]:
     identifiers: set[str] = set()
-    for relative_root in GAMEPLAY_CORPUS_ROOTS:
+    extractors = {
+        "docs/fighters": fighter_manifest_identifiers,
+        "docs/cards": card_manifest_identifiers,
+        "docs/battlefields": battlefield_manifest_identifiers,
+    }
+    for relative_root, extractor in extractors.items():
         corpus_root = root / relative_root
         if not corpus_root.exists():
             continue
         for path in corpus_root.rglob("*"):
             if not path.is_file() or path.suffix not in {".yaml", ".yml"}:
                 continue
-            source = path.read_text(encoding="utf-8").lower()
-            identifiers.update(GAMEPLAY_ID_RE.findall(source))
+            identifiers.update(extractor(path.read_text(encoding="utf-8").lower()))
     return identifiers
 
 
