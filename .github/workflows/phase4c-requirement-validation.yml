@@ -1,0 +1,46 @@
+name: Phase 4C Requirement Validation
+
+on:
+  push:
+    branches:
+      - phase-4c-runtime-consolidation
+    paths:
+      - "docs/phase-4b/worker-*-report.md"
+      - "docs/mechanics/runtime-requirements/**"
+      - "scripts/validate_phase4c_requirements.py"
+      - ".github/workflows/phase4c-requirement-validation.yml"
+  pull_request:
+    paths:
+      - "docs/phase-4b/worker-*-report.md"
+      - "docs/mechanics/runtime-requirements/**"
+      - "scripts/validate_phase4c_requirements.py"
+      - ".github/workflows/phase4c-requirement-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-requirement-ownership:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install validator dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Validate Phase 4C ownership and registry
+        run: python scripts/validate_phase4c_requirements.py
+
+      - name: Upload validation result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-4c-requirement-validation
+          path: artifacts/phase-4c-requirement-validation.json
+          if-no-files-found: error
