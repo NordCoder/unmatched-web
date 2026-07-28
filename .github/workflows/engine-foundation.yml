@@ -1,0 +1,49 @@
+name: Engine foundation
+
+on:
+  push:
+    branches:
+      - engine-foundation
+    paths:
+      - ".github/workflows/engine-foundation.yml"
+      - "docs/engine/**"
+      - "scripts/validate_engine_foundation.py"
+      - "tests/architecture/test_engine_foundation.py"
+  pull_request:
+    paths:
+      - ".github/workflows/engine-foundation.yml"
+      - "docs/engine/**"
+      - "scripts/validate_engine_foundation.py"
+      - "tests/architecture/test_engine_foundation.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: engine-foundation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Validator regression tests
+        run: python -m unittest discover -s tests/architecture -p "test_engine_foundation.py"
+      - name: Validate exact foundation candidate
+        run: |
+          set -o pipefail
+          python scripts/validate_engine_foundation.py --report engine-foundation-validation.json 2>&1 | tee engine-foundation-validation.log
+      - name: Upload foundation validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-foundation-validation-${{ github.sha }}
+          path: |
+            engine-foundation-validation.json
+            engine-foundation-validation.log
+          if-no-files-found: error
+          retention-days: 14
