@@ -22,15 +22,14 @@ Python: 3.13 for repository validators
 python3 scripts/validate_engine_bootstrap.py
 gofmt -w apps internal
 go test ./...
-npm install --ignore-scripts
+npm ci --ignore-scripts
 npm run check
 npm run build
 docker compose up -d postgres
 ```
 
-`npm install` is intentionally used until the first dependency lockfile is
-committed by the implementation worker. The only current npm dependency is an
-exactly pinned TypeScript compiler.
+The committed npm lockfile pins the compiler artifact and workspace graph used
+by CI. Generated build output and `node_modules` remain untracked.
 
 ## Dependency direction
 

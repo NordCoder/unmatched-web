@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_PATHS = (
     "go.mod",
     "package.json",
+    "package-lock.json",
     "apps/server/main.go",
     "apps/web/package.json",
     "apps/web/tsconfig.json",
@@ -99,12 +101,31 @@ def validate_no_gameplay_ids(errors: list[str]) -> None:
                     errors.append(f"{path.relative_to(ROOT)} contains gameplay identifier {identifier!r}")
 
 
+def validate_node_lock(errors: list[str]) -> None:
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+
+    expected_version = package["devDependencies"]["typescript"]
+    locked_package = lock["packages"].get("node_modules/typescript", {})
+    if locked_package.get("version") != expected_version:
+        errors.append("package-lock TypeScript version does not match package.json")
+    if not locked_package.get("integrity"):
+        errors.append("package-lock TypeScript entry has no integrity digest")
+
+    expected_workspaces = sorted(package["workspaces"])
+    locked_workspaces = sorted(lock["packages"][""]["workspaces"])
+    if locked_workspaces != expected_workspaces:
+        errors.append("package-lock workspace graph does not match package.json")
+
+
 def main() -> int:
     errors: list[str] = []
     validate_required_paths(errors)
-    validate_domain_boundary(errors)
-    validate_contract_boundary(errors)
-    validate_no_gameplay_ids(errors)
+    if not errors:
+        validate_domain_boundary(errors)
+        validate_contract_boundary(errors)
+        validate_no_gameplay_ids(errors)
+        validate_node_lock(errors)
 
     if errors:
         for error in errors:
@@ -116,6 +137,7 @@ def main() -> int:
     print("domain forbidden imports: 0")
     print("hand-written public contracts: 0")
     print("gameplay identifiers in source: 0")
+    print("npm lock consistency: PASS")
     return 0
 
 

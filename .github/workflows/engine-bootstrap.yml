@@ -14,6 +14,7 @@ on:
       - "tests/fixtures/**"
       - "go.mod"
       - "package.json"
+      - "package-lock.json"
       - "compose.yaml"
 
 permissions:
@@ -53,7 +54,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-          package-manager-cache: false
-      - run: npm install --ignore-scripts
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm run build
