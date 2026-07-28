@@ -150,12 +150,12 @@ cards:
                 order_matters: true
             costs: []
             operations: []
-          - {id: first-draw, when: {choice_item: {ref: choice.selected_effects[0]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
-          - {id: first-recover, when: {choice_item: {ref: choice.selected_effects[0]}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
-          - {id: first-place, when: {choice_item: {ref: choice.selected_effects[0]}, equals: place_alice_any_other_space}, choices: [{id: choose-first-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: first_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.first_place_space}}]}
-          - {id: second-draw, when: {choice_item: {ref: choice.selected_effects[1]}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
-          - {id: second-recover, when: {choice_item: {ref: choice.selected_effects[1]}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
-          - {id: second-place, when: {choice_item: {ref: choice.selected_effects[1]}, equals: place_alice_any_other_space}, choices: [{id: choose-second-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: second_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.second_place_space}}]}
+          - {id: first-draw, when: {choice_item: {ref: "choice.selected_effects[0]"}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: first-recover, when: {choice_item: {ref: "choice.selected_effects[0]"}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
+          - {id: first-place, when: {choice_item: {ref: "choice.selected_effects[0]"}, equals: place_alice_any_other_space}, choices: [{id: choose-first-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: first_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.first_place_space}}]}
+          - {id: second-draw, when: {choice_item: {ref: "choice.selected_effects[1]"}, equals: draw_2}, choices: [], costs: [], operations: [{op: DRAW, count: 2}]}
+          - {id: second-recover, when: {choice_item: {ref: "choice.selected_effects[1]"}, equals: recover_alice_3}, choices: [], costs: [], operations: [{op: RECOVER, target: alice, amount: 3}]}
+          - {id: second-place, when: {choice_item: {ref: "choice.selected_effects[1]"}, equals: place_alice_any_other_space}, choices: [{id: choose-second-place-space, owner: controller, visibility: public, optional: false, domain: {kind: space, excludes: [current_alice_space]}, bind: second_place_space}], costs: [], operations: [{op: PLACE, target: alice, destination: {ref: choice.second_place_space}}]}
   - id: snicker-snack
     name: Snicker-Snack
     quantity: 1

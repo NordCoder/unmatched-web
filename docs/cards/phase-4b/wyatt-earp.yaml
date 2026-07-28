@@ -6,7 +6,7 @@ requires: [D-REQ-001, D-REQ-003]
 construction: {kind: fixed, available_pool_count: 30, game_deck_count: 30, rules: []}
 card_zones: [{id: deck, owner: self}, {id: hand, owner: self}, {id: discard, owner: self}]
 cards:
-- {id: you-just-gonna-stand-there-and-bleed, name: You Just Gonna Stand There and Bleed?, quantity: 3, inclusion: fixed, usable_by: [wyatt-earp], type: attack, printed_value: 5, boost: 1, tags: [], effects: []}
+- {id: you-just-gonna-stand-there-and-bleed, name: "You Just Gonna Stand There and Bleed?", quantity: 3, inclusion: fixed, usable_by: [wyatt-earp], type: attack, printed_value: 5, boost: 1, tags: [], effects: []}
 - id: i-have-two-guns-one-for-each-of-you
   name: I Have Two Guns, One for Each of You
   quantity: 3

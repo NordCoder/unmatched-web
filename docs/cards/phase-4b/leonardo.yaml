@@ -27,11 +27,11 @@ cards:
     - id: move-first
       choices:
       - {id: first-distance, owner: controller, visibility: public, optional: true, domain: legal_move_up_to_one_for_bound_move_order_0, bind: first_move}
-      operations: [{op: MOVE, target: bound.move_order[0], distance_from: bound.first_move}]
+      operations: [{op: MOVE, target: "bound.move_order[0]", distance_from: bound.first_move}]
     - id: move-second
       choices:
       - {id: second-distance, owner: controller, visibility: public, optional: true, domain: legal_move_up_to_one_for_bound_move_order_1_after_prior_stage, bind: second_move}
-      operations: [{op: MOVE, target: bound.move_order[1], distance_from: bound.second_move}]
+      operations: [{op: MOVE, target: "bound.move_order[1]", distance_from: bound.second_move}]
   - id: for-sensei-action
     trigger: after_combat
     optional: true
@@ -130,7 +130,7 @@ validation:
 sources:
 - {id: tmnt-rules, authority: official_set_rules, url: https://iellogames.com/wp-content/uploads/2026/01/UMA-TMNT_Set-rules_EN_Light.pdf, checked_at: '2026-07-27', supports: [deck_allocation, for_sensei_text], durability: durable}
 - {id: tmnt-product, authority: official_component, url: https://restorationgames.com/shop/unmatched-adventures-teenage-mutant-ninja-turtles/, checked_at: '2026-07-27', supports: [release_identity], durability: durable}
-- {id: tmnt-physical, authority: physical_component_transcription, url: https://www.youtube.com/watch?v=fRie8VT5Tp8, checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
+- {id: tmnt-physical, authority: physical_component_transcription, url: "https://www.youtube.com/watch?v=fRie8VT5Tp8", checked_at: '2026-07-27', supports: [deck_cross_check], durability: transient}
 - {id: leonardo-arena, authority: reference, url: https://www.unmatchedarena.com/heroes/leonardo, checked_at: '2026-07-27', supports: [complete_deck_transcription]}
 normalization_notes:
 - All 12 definitions reconcile to 30 cards.
