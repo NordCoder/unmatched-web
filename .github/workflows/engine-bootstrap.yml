@@ -10,12 +10,14 @@ on:
       - "apps/**"
       - "internal/**"
       - "packages/**"
-      - "scripts/validate_engine_bootstrap.py"
+      - "scripts/**"
+      - "tests/architecture/**"
       - "tests/fixtures/**"
       - "go.mod"
       - "package.json"
       - "package-lock.json"
       - "compose.yaml"
+      - "docs/engine/bootstrap-development.md"
 
 permissions:
   contents: read
@@ -32,7 +34,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - run: python scripts/validate_engine_bootstrap.py
+      - name: Validator regression tests
+        run: python -m unittest discover -s tests/architecture -p "test_*.py"
+      - name: Validate bootstrap architecture
+        run: python scripts/validate_engine_bootstrap.py
 
   go:
     runs-on: ubuntu-latest
@@ -59,3 +64,11 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm run build
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify health and named-volume persistence
+        run: bash scripts/verify_postgres_persistence.sh
