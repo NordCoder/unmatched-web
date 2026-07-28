@@ -1,0 +1,28 @@
+name: Engine mechanics analysis
+
+on:
+  push:
+    branches:
+      - engine-mechanics-analysis
+  pull_request:
+    paths:
+      - ".github/workflows/engine-mechanics-analysis.yml"
+      - "docs/engine/mechanics-analysis/**"
+      - "scripts/validate_engine_mechanics.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: engine-mechanics-analysis-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capability-map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: python scripts/validate_engine_mechanics.py
