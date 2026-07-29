@@ -48,14 +48,21 @@ boardPoint=function(spaceID){
 renderBoard=function(){
   if(!view)return;
   void stage5EnsureBattlefieldPresentation(view.battlefield_id);
+  const svg=$('board');
+  const presentation=BattlefieldRenderer.presentationFor(view);
   BattlefieldRenderer.render({
-    svg:$('board'),
+    svg,
     view,
     highlights:boardHighlights(),
     viewerID:view.viewing_player_id,
     initials,
     debug:BattlefieldRenderer.debugEnabled(),
   });
+  const image=svg.querySelector?.('.board-art');
+  const fallback=presentation.art?.fallback_src;
+  if(image&&fallback){
+    image.addEventListener?.('error',()=>image.setAttribute('href',fallback),{once:true});
+  }
 };
 
 void stage5EnsureBattlefieldPresentation('sherwood-forest');
