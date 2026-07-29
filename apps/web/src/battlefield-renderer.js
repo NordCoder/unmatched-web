@@ -132,6 +132,23 @@
 
   function get(battlefieldID){return cache.get(battlefieldID)||null}
 
+  async function prepareArt(manifest,fetcher=global.fetch){
+    const art=manifest?.art;
+    if(!art)return null;
+    if(art.resolved_src)return art.resolved_src;
+    if(!Array.isArray(art.base64_parts)||!art.base64_parts.length)return art.src;
+    if(typeof fetcher!=='function')throw new Error('fetch is unavailable');
+    const parts=await Promise.all(art.base64_parts.map(async part=>{
+      const response=await fetcher(part,{cache:'force-cache'});
+      if(!response?.ok)throw new Error(`Battlefield art part ${part} returned HTTP ${response?.status??'unknown'}`);
+      return (await response.text()).trim();
+    }));
+    const encoded=parts.join('');
+    if(encoded.length<1000)throw new Error('Battlefield art parts are unexpectedly empty');
+    art.resolved_src=`data:${art.mime||'image/webp'};base64,${encoded}`;
+    return art.resolved_src;
+  }
+
   async function load(battlefieldID,fetcher=global.fetch){
     if(cache.has(battlefieldID))return cache.get(battlefieldID);
     if(inflight.has(battlefieldID))return inflight.get(battlefieldID);
@@ -141,7 +158,12 @@
       if(!response?.ok)throw new Error(`Battlefield presentation ${battlefieldID} returned HTTP ${response?.status??'unknown'}`);
       const manifest=await response.json();
       if(manifest.battlefield_id!==battlefieldID)throw new Error(`Battlefield presentation identity mismatch: ${manifest.battlefield_id}`);
-      return register(manifest);
+      register(manifest);
+      try{await prepareArt(manifest,fetcher)}catch(error){
+        manifest.art_error=error.message;
+        console.warn(`Using fallback art for ${battlefieldID}:`,error);
+      }
+      return manifest;
     })().finally(()=>inflight.delete(battlefieldID));
     inflight.set(battlefieldID,promise);
     return promise;
@@ -233,7 +255,7 @@
     svg.style.aspectRatio=`${width}/${height}`;
     svg.dataset.presentation=effective.fallback?'fallback':'calibrated';
     svg.innerHTML=`<defs>${clips.join('')}</defs>
-      <image class="board-art" href="${escapeAttr(effective.art.src)}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>
+      <image class="board-art" href="${escapeAttr(effective.art.resolved_src||effective.art.src)}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>
       <g class="debug-edges">${edgeMarkup}</g>
       <polyline id="path-preview" class="path-preview" points=""></polyline>
       <g class="board-overlay">${nodes.join('')}</g>`;
@@ -247,6 +269,7 @@
     register,
     get,
     load,
+    prepareArt,
     presentationFor,
     geometry,
     point,
