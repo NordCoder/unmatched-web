@@ -1,0 +1,9 @@
+{
+  "name": "unmatched-web-playable-slice",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "check": "node --check apps/web/src/main.js && node scripts/build_playable_web.mjs --check",
+    "build": "node scripts/build_playable_web.mjs"
+  }
+}

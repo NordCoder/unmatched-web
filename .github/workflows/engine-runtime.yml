@@ -6,18 +6,35 @@ on:
       - engine-runtime-integration
       - engine-core-runtime
       - engine-rules-mechanics
+      - playable-slice-robin-bigfoot
     paths:
       - "go.mod"
       - "internal/**"
+      - "apps/**"
       - "tests/**"
-      - "docs/engine/implementation-plan.md"
+      - "docs/engine/**"
+      - "docs/battlefields/**"
+      - "docs/cards/phase-4b/**"
+      - "docs/fighters/phase-4b/**"
+      - "scripts/validate_playable_slice.py"
+      - "scripts/build_playable_web.mjs"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/engine-runtime.yml"
   pull_request:
     paths:
       - "go.mod"
       - "internal/**"
+      - "apps/**"
       - "tests/**"
-      - "docs/engine/implementation-plan.md"
+      - "docs/engine/**"
+      - "docs/battlefields/**"
+      - "docs/cards/phase-4b/**"
+      - "docs/fighters/phase-4b/**"
+      - "scripts/validate_playable_slice.py"
+      - "scripts/build_playable_web.mjs"
+      - "package.json"
+      - "package-lock.json"
       - ".github/workflows/engine-runtime.yml"
 
 permissions:
@@ -36,7 +53,32 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - name: Normalize formatting for compile checks
-        run: gofmt -w internal
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Verify Go formatting
+        run: |
+          gofmt -w apps internal docs/cards/phase-4b/embed.go docs/fighters/phase-4b/embed.go tests/integration/playableslice
+          git diff --exit-code
+      - name: Validate playable content and battlefield
+        run: |
+          python scripts/validate_playable_slice.py
+          python -m unittest tests/architecture/test_playable_slice.py
       - run: go vet ./...
       - run: go test -race ./...
+      - name: Verify deterministic complete match
+        run: go test ./internal/playableslice/game -run TestDeterministicCompleteMatch -count=1
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - name: Verify generated frontend is committed
+        run: git diff --exit-code

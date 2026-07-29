@@ -1,0 +1,83 @@
+schema_version: 1
+id: sherwood-forest
+display_name: Sherwood Forest
+zones: [gray, light-gray, green, brown, light-green, orange, yellow]
+spaces:
+  - {id: s01, x: 22, y: 15, zones: [light-green, orange]}
+  - {id: s02, x: 35, y: 8, zones: [orange]}
+  - {id: s03, x: 47, y: 8, zones: [orange, gray]}
+  - {id: s04, x: 60, y: 8, zones: [orange, green]}
+  - {id: s05, x: 72, y: 8, zones: [orange, green]}
+  - {id: s06, x: 85, y: 8, zones: [orange, green, light-gray]}
+  - {id: s07, x: 90, y: 27, zones: [green, light-gray]}
+  - {id: s08, x: 95, y: 47, zones: [green, light-gray]}
+  - {id: s09, x: 94, y: 67, zones: [yellow, light-gray]}
+  - {id: s10, x: 89, y: 90, zones: [yellow, light-gray]}
+  - {id: s11, x: 76, y: 90, zones: [yellow]}
+  - {id: s12, x: 63, y: 93, zones: [yellow]}
+  - {id: s13, x: 51, y: 93, zones: [yellow]}
+  - {id: s14, x: 38, y: 91, zones: [yellow]}
+  - {id: s15, x: 26, y: 85, zones: [light-green, yellow]}
+  - {id: s16, x: 14, y: 78, zones: [light-green]}
+  - {id: s17, x: 7, y: 64, zones: [light-green]}
+  - {id: s18, x: 6, y: 45, zones: [light-green]}
+  - {id: s19, x: 15, y: 29, zones: [light-green, brown], starting_seat: 2}
+  - {id: s20, x: 51, y: 28, zones: [gray], starting_seat: 1}
+  - {id: s21, x: 61, y: 42, zones: [gray]}
+  - {id: s22, x: 71, y: 50, zones: [gray]}
+  - {id: s23, x: 79, y: 26, zones: [green]}
+  - {id: s24, x: 28, y: 48, zones: [brown]}
+  - {id: s25, x: 38, y: 54, zones: [brown]}
+  - {id: s26, x: 50, y: 58, zones: [brown, yellow]}
+  - {id: s27, x: 62, y: 63, zones: [gray, brown, yellow]}
+  - {id: s28, x: 73, y: 68, zones: [gray, brown, yellow]}
+  - {id: s29, x: 48, y: 75, zones: [yellow]}
+  - {id: s30, x: 83, y: 68, zones: [yellow]}
+edges:
+  - {from: s01, to: s02, type: normal}
+  - {from: s02, to: s03, type: normal}
+  - {from: s03, to: s04, type: normal}
+  - {from: s04, to: s05, type: normal}
+  - {from: s05, to: s06, type: normal}
+  - {from: s06, to: s07, type: normal}
+  - {from: s07, to: s08, type: normal}
+  - {from: s08, to: s09, type: normal}
+  - {from: s09, to: s10, type: normal}
+  - {from: s10, to: s11, type: normal}
+  - {from: s11, to: s12, type: normal}
+  - {from: s12, to: s13, type: normal}
+  - {from: s13, to: s14, type: normal}
+  - {from: s14, to: s15, type: normal}
+  - {from: s15, to: s16, type: normal}
+  - {from: s16, to: s17, type: normal}
+  - {from: s17, to: s18, type: normal}
+  - {from: s18, to: s19, type: normal}
+  - {from: s19, to: s01, type: normal}
+  - {from: s03, to: s20, type: normal}
+  - {from: s20, to: s21, type: normal}
+  - {from: s21, to: s22, type: normal}
+  - {from: s21, to: s27, type: normal}
+  - {from: s22, to: s28, type: normal}
+  - {from: s27, to: s28, type: normal}
+  - {from: s19, to: s24, type: normal}
+  - {from: s24, to: s25, type: normal}
+  - {from: s25, to: s26, type: normal}
+  - {from: s26, to: s27, type: normal}
+  - {from: s26, to: s29, type: normal}
+  - {from: s29, to: s14, type: normal}
+  - {from: s29, to: s13, type: normal}
+  - {from: s28, to: s30, type: normal}
+  - {from: s30, to: s09, type: normal}
+  - {from: s30, to: s10, type: normal}
+  - {from: s30, to: s11, type: normal}
+  - {from: s23, to: s05, type: normal}
+  - {from: s23, to: s06, type: normal}
+  - {from: s23, to: s07, type: normal}
+special_connections: []
+components: []
+rules: []
+sources:
+  - {id: unmatched-picks-sherwood, authority: reference_visual, url: https://www.unmatchedpicks.com/random-maps, checked_at: 2026-07-29, supports: [space_inventory, zone_membership, starting_slots, adjacency_transcription]}
+  - {id: unmatched-club-sherwood, authority: reference_cross_check, url: https://www.the-unmatched.club/maps/sherwood-forest, checked_at: 2026-07-29, supports: [space_count, zone_count]}
+  - {id: official-product-rules, authority: official_set_rules, url: https://restorationgames.com/shop/robin-hood-vs-bigfoot-unmatched/, checked_at: 2026-07-29, supports: [starting_player, spaces_zones, movement_and_ranged_rules]}
+validation: {space_count: 30, zone_count: 7, edge_count: 39, unknown_spaces: pass, duplicate_edges: pass, symmetry: pass, connectivity: pass, source_backed_transcription: pass, visual_qa: pending_final_independent_qa}
