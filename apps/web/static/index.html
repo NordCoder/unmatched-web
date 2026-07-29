@@ -23,7 +23,12 @@
       <div id="status" class="panel"></div>
       <div id="error" class="error" hidden></div>
       <div class="layout">
-        <section class="panel board-panel"><svg id="board" viewBox="0 0 100 100" aria-label="Sherwood Forest battlefield"></svg></section>
+        <section class="panel board-panel">
+          <div id="board-interaction" class="board-interaction" aria-live="polite"></div>
+          <div class="board-frame">
+            <svg id="board" viewBox="0 0 100 55.5" role="application" aria-label="Interactive Sherwood Forest battlefield" aria-describedby="board-interaction"></svg>
+          </div>
+        </section>
         <aside>
           <section id="players" class="panel"></section>
           <section id="pending" class="panel" hidden></section>
