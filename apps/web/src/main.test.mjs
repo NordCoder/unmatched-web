@@ -4,6 +4,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const source=await readFile(new URL('./main.js',import.meta.url),'utf8');
+const indexSource=await readFile(new URL('../static/index.html',import.meta.url),'utf8');
+const mapAsset=await readFile(new URL('../static/sherwood-forest.svg',import.meta.url),'utf8');
 const elements=new Map();
 const context={
   console,
@@ -38,28 +40,67 @@ test('dialog interaction survives no-op polling but not a legal-state revision c
   assert.equal(context.interactionCanContinue(state,{...stable,pending:{kind:'defense'}}),false);
 });
 
-test('Jackalope Horns omits target when the selector is empty',()=>{
-  const payload={type:'scheme'};
-  context.addOptionalHornsTarget(payload,null);
-  assert.deepEqual(payload,{type:'scheme'});
+test('map preserves the supplied battlefield aspect ratio',()=>{
+  const dimensions=context.mapDimensions();
+  assert.equal(dimensions.width,100);
+  assert.ok(Math.abs(context.mapY(100)-(742/1337*100))<1e-9);
+  assert.ok(dimensions.height<56);
 });
 
-test('Jackalope Horns includes a selected target and rejects an empty select',()=>{
-  const payload={type:'scheme'};
-  context.addOptionalHornsTarget(payload,{value:'player-2-bigfoot'});
-  assert.equal(payload.target_id,'player-2-bigfoot');
-  assert.throws(()=>context.addOptionalHornsTarget({}, {value:''}),/Choose a living fighter/);
+test('Maneuver pending model separates map destinations from finish choice',()=>{
+  const pending={kind:'maneuver_move',options:[
+    {id:'maneuver:done',label:'Finish maneuver'},
+    {id:'move-rh',fighter_id:'robin',destination:'s21',path:['s21']},
+    {id:'stay-rh',fighter_id:'robin',destination:'s20',path:[]},
+    {id:'move-outlaw',fighter_id:'outlaw',destination:'s14',path:['s14']},
+  ]};
+  const choose=context.pendingMapModel(pending,'');
+  assert.deepEqual(Array.from(choose.fighters),['robin','outlaw']);
+  assert.equal(choose.destinationOptions.length,0);
+  assert.deepEqual(Array.from(choose.specialOptions.map(option=>option.id)),['maneuver:done']);
+  const robin=context.pendingMapModel(pending,'robin');
+  assert.deepEqual(Array.from(robin.destinationOptions.map(option=>option.destination)),['s21','s20']);
+  assert.deepEqual(Array.from(robin.destinationOptions[1].path),[]);
+});
+
+test('attack map model uses server legal fighter and target domains',()=>{
+  const legal={
+    attack_cards_by_fighter:{robin:['card-1'],outlaw:[]},
+    attack_targets_by_fighter:{robin:['bigfoot','jackalope'],outlaw:['bigfoot']},
+  };
+  const initial=context.attackMapModel(legal,'');
+  assert.deepEqual(Array.from(initial.fighters),['robin']);
+  const selected=context.attackMapModel(legal,'robin');
+  assert.deepEqual(Array.from(selected.targetIDs),['bigfoot','jackalope']);
 });
 
 test('scheme movement uses authoritative server path and target domain',()=>{
   const action={fighters:[{
-    fighter_id:'player-2-jackalope',
+    fighter_id:'jackalope',
     destinations:[{id:'stay',destination:'s02',path:[]},{id:'move',destination:'s03',path:['s03']}],
-    targets_by_destination:{s03:['player-2-bigfoot','player-1-robin-hood']},
+    targets_by_destination:{s03:['bigfoot','robin']},
   }]};
-  const fighter=context.schemeFighterAction(action,'player-2-jackalope');
-  const destination=context.schemeDestinationOption(fighter,'s03');
-  assert.deepEqual(Array.from(destination.path),['s03']);
-  assert.deepEqual(Array.from(context.schemeTargetIDs(fighter,'s03')),['player-2-bigfoot','player-1-robin-hood']);
-  assert.equal(context.schemeDestinationOption(fighter,'s99'),undefined);
+  const model=context.schemeMapModel(action,'jackalope','s03');
+  assert.deepEqual(Array.from(model.selectedDestination.path),['s03']);
+  assert.deepEqual(Array.from(model.targetIDs),['bigfoot','robin']);
+  assert.equal(context.schemeDestinationOption(context.schemeFighterAction(action,'jackalope'),'s99'),undefined);
+});
+
+test('Jackalope Horns target helper keeps target optional when server domain is empty',()=>{
+  const payload={type:'scheme'};
+  context.addOptionalHornsTarget(payload,null);
+  assert.deepEqual(payload,{type:'scheme'});
+  context.addOptionalHornsTarget(payload,{value:'bigfoot'});
+  assert.equal(payload.target_id,'bigfoot');
+  assert.throws(()=>context.addOptionalHornsTarget({}, {value:''}),/Choose a living fighter/);
+});
+
+test('graphical battlefield asset and map interaction surface are committed',()=>{
+  assert.match(indexSource,/id="board-interaction"/);
+  assert.match(indexSource,/viewBox="0 0 100 55\.5"/);
+  assert.match(mapAsset,/data:image\/webp;base64,/);
+  assert.match(mapAsset,/Sherwood Forest battlefield/);
+  assert.match(source,/MAP_ASSET = '\/sherwood-forest\.svg'/);
+  assert.doesNotMatch(source,/function shortestPath/);
+  assert.doesNotMatch(source,/function reachable/);
 });
