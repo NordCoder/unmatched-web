@@ -42,7 +42,7 @@ test('dialog interaction survives no-op polling but not a legal-state revision c
   assert.equal(context.interactionCanContinue(state,{...stable,pending:{kind:'defense'}}),false);
 });
 
-test('map preserves the supplied battlefield aspect ratio',()=>{
+test('legacy map fallback preserves the supplied battlefield aspect ratio',()=>{
   const dimensions=context.mapDimensions();
   assert.equal(dimensions.width,100);
   assert.ok(Math.abs(context.mapY(100)-(742/1337*100))<1e-9);
@@ -97,11 +97,14 @@ test('Jackalope Horns target helper keeps target optional when server domain is 
   assert.throws(()=>context.addOptionalHornsTarget({}, {value:''}),/Choose a living fighter/);
 });
 
-test('graphical battlefield asset and map interaction surface are committed',()=>{
+test('graphical battlefield engine and calibrated surface are committed',()=>{
   assert.match(indexSource,/id="board-interaction"/);
-  assert.match(indexSource,/viewBox="0 0 100 55\.5"/);
+  assert.match(indexSource,/viewBox="0 0 1337 742"/);
+  assert.match(indexSource,/battlefield-renderer\.js/);
+  assert.match(indexSource,/stage5-battlefield\.js/);
   assert.match(mapAsset,/data:image\/webp;base64,/);
   assert.match(mapAsset,/Sherwood Forest battlefield/);
+  assert.doesNotMatch(mapAsset,/preserveAspectRatio="none"/);
   assert.match(source,/MAP_ASSET = '\/sherwood-forest\.svg'/);
   assert.doesNotMatch(source,/function shortestPath/);
   assert.doesNotMatch(source,/function reachable/);
