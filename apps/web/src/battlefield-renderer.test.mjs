@@ -92,7 +92,7 @@ test('calibrated renderer keeps art and overlay in one pixel coordinate system',
   assert.equal(svg.attrs.get('viewBox'),'0 0 1337 742');
   assert.equal(svg.attrs.get('preserveAspectRatio'),'xMidYMid meet');
   assert.equal(svg.dataset.presentation,'calibrated');
-  assert.match(svg.innerHTML,/href="\/sherwood-forest\.svg"/);
+  assert.match(svg.innerHTML,/unmatchedpicks\.com\/maps\/sherwoodforest\.webp/);
   assert.match(svg.innerHTML,/cx="292\.2" cy="144\.6" r="71\.8"/);
   assert.match(svg.innerHTML,/class="space-highlight"[^>]*r="56\.8"/);
   assert.match(svg.innerHTML,/class="health-token"/);
