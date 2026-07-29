@@ -33,7 +33,55 @@ function renderActions(){const box=$('actions');const mine=view.current_player_i
 function renderHand(){const mine=view.players.find(p=>p.id===view.viewing_player_id);$('hand').innerHTML=(mine?.hand||[]).map(card=>`<article class="card"><strong>${escapeHTML(card.name)}</strong><small>${card.type.toUpperCase()} ${card.type==='scheme'?'':card.value} · BOOST ${card.boost}</small><small>${escapeHTML(card.effect.replaceAll('_',' '))}</small></article>`).join('')||'<p>No cards in hand.</p>'}
 function renderEvents(){const events=[...view.events].reverse().slice(0,35);$('events').innerHTML=events.map(event=>`<li>${escapeHTML(event.message)}</li>`).join('')}
 
-function openScheme(){const me=view.players.find(p=>p.id===view.viewing_player_id);const cards=me.hand.filter(card=>view.legal.scheme_cards.includes(card.id));openDialog('Play a scheme',cards.map(card=>`<option value="${card.id}">${escapeHTML(card.name)}</option>`).join(''),async(cardID,body)=>{const card=cards.find(c=>c.id===cardID);const payload={type:'scheme',card_id:cardID};if(card.effect==='move_through_five'||card.effect==='horns'){const fighter=ownLivingFighters().find(f=>card.usable_by.includes('any')||card.usable_by.includes(f.definition_id));if(!fighter)throw new Error('No legal fighter can use this scheme.');const destination=body.querySelector('[name=destination]').value;payload.fighter_id=fighter.id;payload.path=shortestPath(fighter.space_id,destination,5,true);if(card.effect==='horns'){const target=body.querySelector('[name=target]')?.value;if(!target)throw new Error('Choose a living fighter adjacent to Jackalope’s destination.');payload.target_id=target}}await command(payload)},(select,body)=>{const update=()=>{const card=cards.find(c=>c.id===select.value);const extras=body.querySelector('.extras');extras.innerHTML='';if(card.effect!=='move_through_five'&&card.effect!=='horns')return;const fighter=ownLivingFighters().find(f=>card.usable_by.includes('any')||card.usable_by.includes(f.definition_id));if(!fighter){extras.innerHTML='<p>No living fighter can use this scheme.</p>';return}const destinations=reachable(fighter.space_id,5,true);extras.innerHTML=`<label>Destination<select name="destination">${destinations.map(id=>`<option value="${id}">${id}</option>`).join('')}</select></label>${card.effect==='horns'?'<label>Adjacent target<select name="target"></select></label>':''}`;if(card.effect==='horns'){const destinationSelect=extras.querySelector('[name=destination]');const targetSelect=extras.querySelector('[name=target]');const updateTargets=()=>{const destination=destinationSelect.value;const candidates=allFighters().filter(candidate=>candidate.id!==fighter.id&&!candidate.defeated&&graph().get(destination).includes(candidate.space_id));targetSelect.innerHTML=candidates.map(candidate=>`<option value="${candidate.id}">${escapeHTML(candidate.name)} at ${candidate.space_id}</option>`).join('');if(!candidates.length)targetSelect.innerHTML='<option value="">No adjacent fighter</option>'};destinationSelect.onchange=updateTargets;updateTargets()}};select.onchange=update;update()})}
+function openScheme(){
+  const me=view.players.find(p=>p.id===view.viewing_player_id);
+  const cards=me.hand.filter(card=>view.legal.scheme_cards.includes(card.id));
+  openDialog(
+    'Play a scheme',
+    cards.map(card=>`<option value="${card.id}">${escapeHTML(card.name)}</option>`).join(''),
+    async(cardID,body)=>{
+      const card=cards.find(c=>c.id===cardID);
+      const payload={type:'scheme',card_id:cardID};
+      if(card.effect==='move_through_five'||card.effect==='horns'){
+        const fighter=ownLivingFighters().find(f=>card.usable_by.includes('any')||card.usable_by.includes(f.definition_id));
+        if(!fighter)throw new Error('No legal fighter can use this scheme.');
+        const destination=body.querySelector('[name=destination]').value;
+        payload.fighter_id=fighter.id;
+        payload.path=shortestPath(fighter.space_id,destination,5,true);
+        if(card.effect==='horns')addOptionalHornsTarget(payload,body.querySelector('[name=target]'));
+      }
+      await command(payload);
+    },
+    (select,body)=>{
+      const update=()=>{
+        const card=cards.find(c=>c.id===select.value);
+        const extras=body.querySelector('.extras');
+        extras.innerHTML='';
+        if(card.effect!=='move_through_five'&&card.effect!=='horns')return;
+        const fighter=ownLivingFighters().find(f=>card.usable_by.includes('any')||card.usable_by.includes(f.definition_id));
+        if(!fighter){extras.innerHTML='<p>No living fighter can use this scheme.</p>';return}
+        const destinations=reachable(fighter.space_id,5,true);
+        extras.innerHTML=`<label>Destination<select name="destination">${destinations.map(id=>`<option value="${id}">${id}</option>`).join('')}</select></label>${card.effect==='horns'?'<div data-horns-target></div>':''}`;
+        if(card.effect==='horns'){
+          const destinationSelect=extras.querySelector('[name=destination]');
+          const targetBox=extras.querySelector('[data-horns-target]');
+          const updateTargets=()=>{
+            const candidates=adjacentHornsTargets(fighter,destinationSelect.value,allFighters(),graph());
+            if(!candidates.length){
+              targetBox.innerHTML='<p>No adjacent fighter; the damage step is skipped.</p>';
+              return;
+            }
+            targetBox.innerHTML=`<label>Adjacent target<select name="target">${candidates.map(candidate=>`<option value="${candidate.id}">${escapeHTML(candidate.name)} at ${candidate.space_id}</option>`).join('')}</select></label>`;
+          };
+          destinationSelect.onchange=updateTargets;
+          updateTargets();
+        }
+      };
+      select.onchange=update;
+      update();
+    }
+  );
+}
 function openAttack(){const attackers=Object.keys(view.legal.attack_cards_by_fighter||{});const options=attackers.map(id=>{const fighter=fighterByID(id);return `<option value="${id}">${escapeHTML(fighter.name)} at ${fighter.space_id}</option>`}).join('');openDialog('Attack',options,async(attackerID,body)=>{await command({type:'attack',fighter_id:attackerID,target_id:body.querySelector('[name=target]').value,card_id:body.querySelector('[name=card]').value})},(select,body)=>{const update=()=>{const attackerID=select.value;const targetOptions=(view.legal.attack_targets_by_fighter[attackerID]||[]).map(id=>{const f=fighterByID(id);return `<option value="${id}">${escapeHTML(f.name)} · ${f.health} HP · ${f.space_id}</option>`}).join('');const cardOptions=(view.legal.attack_cards_by_fighter[attackerID]||[]).map(id=>{const c=cardByID(id);return `<option value="${id}">${escapeHTML(c.name)} (${c.value})</option>`}).join('');body.querySelector('.extras').innerHTML=`<label>Target<select name="target">${targetOptions}</select></label><label>Attack card<select name="card">${cardOptions}</select></label>`};select.onchange=update;update()})}
 function openDialog(title,primaryOptions,submit,configure){const dialog=$('action-dialog'),body=$('dialog-body');$('dialog-title').textContent=title;body.innerHTML=`<label>Selection<select name="primary">${primaryOptions}</select></label><div class="extras"></div>`;const primary=body.querySelector('[name=primary]');configure(primary,body);dialog.showModal();const handler=async(event)=>{event.preventDefault();try{await submit(primary.value,body);dialog.close()}catch(error){showError(error.message)}};$('dialog-submit').onclick=handler}
 
@@ -43,12 +91,14 @@ function opposingLivingFighters(){return allFighters().filter(f=>f.owner_id!==vi
 function fighterByID(id){return allFighters().find(f=>f.id===id)}
 function cardByID(id){return view.players.find(p=>p.id===view.viewing_player_id).hand.find(c=>c.id===id)}
 function graph(){const map=new Map(view.spaces.map(s=>[s.id,[]]));view.edges.forEach(e=>{map.get(e.from).push(e.to);map.get(e.to).push(e.from)});return map}
-function occupied(){return new Map(allFighters().map(f=>[f.space_id,f]))}
+function occupied(){return new Map(allFighters().filter(f=>!f.defeated&&f.space_id).map(f=>[f.space_id,f]))}
 function reachable(start,max,allowOpposing){const g=graph(),occ=occupied(),seen=new Map([[start,0]]),queue=[start],result=[start];while(queue.length){const current=queue.shift(),distance=seen.get(current);if(distance===max)continue;for(const next of g.get(current)){if(seen.has(next))continue;const piece=occ.get(next);if(piece&&piece.owner_id!==view.viewing_player_id&&!allowOpposing)continue;seen.set(next,distance+1);queue.push(next);if(!piece)result.push(next)}}return result}
 function shortestPath(start,end,max,allowOpposing){if(start===end)return[];const g=graph(),occ=occupied(),queue=[start],previous=new Map([[start,null]]);while(queue.length){const current=queue.shift();const depth=pathDepth(previous,current);if(depth>=max)continue;for(const next of g.get(current)){if(previous.has(next))continue;const piece=occ.get(next);if(piece&&piece.owner_id!==view.viewing_player_id&&!allowOpposing)continue;previous.set(next,current);if(next===end){const path=[];let cursor=end;while(cursor!==start){path.unshift(cursor);cursor=previous.get(cursor)}if(occ.get(end))throw new Error('Destination is occupied.');return path}queue.push(next)}}throw new Error('No legal path to that destination.')}
 function pathDepth(previous,node){let depth=0;while(previous.get(node)!==null){depth++;node=previous.get(node)}return depth}
+function adjacentHornsTargets(fighter,destination,fighters,adjacency){const adjacent=adjacency.get(destination)||[];return fighters.filter(candidate=>candidate.id!==fighter.id&&!candidate.defeated&&adjacent.includes(candidate.space_id))}
+function addOptionalHornsTarget(payload,targetSelect){if(!targetSelect)return payload;if(!targetSelect.value)throw new Error('Choose a living fighter adjacent to Jackalope’s destination.');payload.target_id=targetSelect.value;return payload}
 function initials(name){return name.split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase()}
-function escapeHTML(value){return String(value??'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]))}
+function escapeHTML(value){return String(value??'').replace(/[&<>\"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]))}
 function escapeAttr(value){return escapeHTML(value).replace(/'/g,'&#39;')}
 
 $('create').onclick=createMatch;$('join').onclick=joinMatch;$('reset').onclick=leave;

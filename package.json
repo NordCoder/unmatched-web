@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "check": "node --check apps/web/src/main.js && node scripts/build_playable_web.mjs --check",
+    "check": "node --check apps/web/src/main.js && node --test apps/web/src/main.test.mjs && node scripts/build_playable_web.mjs --check",
     "build": "node scripts/build_playable_web.mjs"
   }
 }
