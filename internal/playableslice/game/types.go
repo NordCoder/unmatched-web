@@ -163,14 +163,15 @@ type Match struct {
 }
 
 type CardView struct {
-	ID           string             `json:"id"`
-	DefinitionID string             `json:"definition_id"`
-	Effect       content.EffectKind `json:"effect"`
-	Name         string             `json:"name"`
-	Type         content.CardType   `json:"type"`
-	Value        int                `json:"value"`
-	Boost        int                `json:"boost"`
-	UsableBy     []string           `json:"usable_by"`
+	ID               string             `json:"id"`
+	DefinitionID     string             `json:"definition_id"`
+	DeckDefinitionID string             `json:"deck_definition_id"`
+	Effect           content.EffectKind `json:"effect"`
+	Name             string             `json:"name"`
+	Type             content.CardType   `json:"type"`
+	Value            int                `json:"value"`
+	Boost            int                `json:"boost"`
+	UsableBy         []string           `json:"usable_by"`
 }
 
 type FighterView struct {

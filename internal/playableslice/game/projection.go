@@ -28,7 +28,7 @@ func (m *Match) Project(playerID string) (View, error) {
 		pv := PlayerView{ID: id, Name: player.Name, Seat: player.Seat, DeckDefinitionID: player.DeckDefinitionID, HeroID: player.HeroID, Health: health, DeckCount: len(player.Deck), HandCount: len(player.Hand), DiscardCount: len(player.Discard), ActionsRemaining: player.ActionsRemaining}
 		if id == playerID {
 			for _, card := range player.Hand {
-				pv.Hand = append(pv.Hand, m.cardView(card))
+				pv.Hand = append(pv.Hand, m.cardView(card, player.DeckDefinitionID))
 			}
 			sort.Slice(pv.Hand, func(i, j int) bool {
 				if pv.Hand[i].Type != pv.Hand[j].Type {
@@ -69,11 +69,11 @@ func (m *Match) Project(playerID string) (View, error) {
 	if m.Combat != nil {
 		cv := &CombatView{AttackerID: m.Combat.AttackerID, DefenderID: m.Combat.DefenderID, WaitingForDefense: true}
 		if m.Combat.AttackCardRevealed {
-			card := m.cardView(m.Combat.AttackCard)
+			card := m.cardView(m.Combat.AttackCard, m.Players[m.Combat.AttackerPlayerID].DeckDefinitionID)
 			cv.AttackCard = &card
 		}
 		if m.Combat.DefenseCard != nil && m.Combat.DefenseCardRevealed {
-			card := m.cardView(*m.Combat.DefenseCard)
+			card := m.cardView(*m.Combat.DefenseCard, m.Players[m.Combat.DefenderPlayerID].DeckDefinitionID)
 			cv.DefenseCard = &card
 		}
 		view.Combat = cv
@@ -82,9 +82,9 @@ func (m *Match) Project(playerID string) (View, error) {
 	return view, nil
 }
 
-func (m *Match) cardView(card CardInstance) CardView {
+func (m *Match) cardView(card CardInstance, deckDefinitionID string) CardView {
 	definition := m.cardDefinition(card)
-	return CardView{ID: card.ID, DefinitionID: definition.ID, Effect: definition.Effect, Name: definition.Name, Type: definition.Type, Value: definition.Value, Boost: definition.Boost, UsableBy: append([]string(nil), definition.UsableBy...)}
+	return CardView{ID: card.ID, DefinitionID: definition.ID, DeckDefinitionID: deckDefinitionID, Effect: definition.Effect, Name: definition.Name, Type: definition.Type, Value: definition.Value, Boost: definition.Boost, UsableBy: append([]string(nil), definition.UsableBy...)}
 }
 
 func (m *Match) fighterView(fighter *Fighter) FighterView {

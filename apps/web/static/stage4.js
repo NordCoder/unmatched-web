@@ -42,6 +42,9 @@ function stage4CardStatLine(card){return `${card?.type==='scheme'?'':`VALUE ${ca
 function stage4CardDetailsContent(card){
   return `<div class="card-head"><strong>${escapeHTML(card.name)}</strong><span class="card-type">${escapeHTML(stage4CardTypeLabel(card))}</span></div><div class="card-meta">${escapeHTML(stage4CardStatLine(card))}</div><div class="card-usable">Usable by: ${escapeHTML(stage4UsableByLabel(card))}</div><p class="card-rules">${escapeHTML(stage4CardRulesText(card))}</p>`;
 }
+function stage4CardArtContent(card,options={}){
+  return cardArtMarkup(card,stage4CardDetailsContent(card),options);
+}
 function stage4ManeuverFighterModel(fighterIDs,selectedFighterID=''){
   const fighters=[...new Set(fighterIDs||[])];
   const selected=fighters.includes(selectedFighterID)?selectedFighterID:'';
@@ -84,7 +87,7 @@ renderPlayers=function(){
 function stage4PendingOptionMarkup(option){
   const card=option.card_id?cardByID(option.card_id):null;
   if(!card)return `<button data-choice="${escapeAttr(option.id)}">${escapeHTML(option.label)}</button>`;
-  return `<button class="pending-card-choice" data-choice="${escapeAttr(option.id)}">${stage4CardDetailsContent(card)}</button>`;
+  return `<button class="pending-card-choice" data-choice="${escapeAttr(option.id)}">${stage4CardArtContent(card)}</button>`;
 }
 function stage4ManeuverBoostMarkup(pending){
   const model=stage4ManeuverBoostModel(pending);
@@ -127,8 +130,15 @@ renderActions=function(){
   $('attack').onclick=startAttackInteraction;
 };
 renderHand=function(){
-  const mine=view.players.find(player=>player.id===view.viewing_player_id);
-  $('hand').innerHTML=(mine?.hand||[]).map(card=>`<article class="card">${stage4CardDetailsContent(card)}</article>`).join('')||'<p>No cards in hand.</p>';
+  $('hand').innerHTML=visibleCardArtCards(view).map(card=>`<article class="card hand-card">${stage4CardArtContent(card)}</article>`).join('')||'<p>No cards in hand.</p>';
+};
+renderCombat=function(){
+  const box=$('combat');
+  if(!box)return;
+  if(!view.combat){box.hidden=true;box.innerHTML='';return}
+  box.hidden=false;
+  const cards=[view.combat.attack_card,view.combat.defense_card].filter(Boolean);
+  box.innerHTML=`<h2>Combat</h2><div class="combat-cards">${cards.length?cards.map(card=>`<article class="card combat-card">${stage4CardArtContent(card)}</article>`).join(''):'<p>Combat cards are hidden until the reveal point.</p>'}</div>`;
 };
 renderEvents=function(){
   const events=[...view.events].reverse().slice(0,35);
@@ -173,22 +183,28 @@ function stage4OpenCardPicker(action,title,cards,onPick,options={}){
   beginInteraction('dialog',action,{primary:cards[0].id});
   const dialog=$('action-dialog'),body=$('dialog-body');
   $('dialog-title').textContent=title;
-  body.innerHTML=`<label>Card<select name="primary">${cards.map(card=>`<option value="${card.id}">${escapeHTML(card.name)}${card.type==='scheme'?'':` (${card.value})`}</option>`).join('')}</select></label>${options.note?`<p class="dialog-note">${escapeHTML(options.note)}</p>`:''}<article class="card card-preview" data-card-preview></article>`;
-  const primary=body.querySelector('[name=primary]');
-  const preview=body.querySelector('[data-card-preview]');
-  const updatePreview=()=>{
-    rememberInteraction('primary',primary.value);
-    const card=cards.find(candidate=>candidate.id===primary.value);
-    preview.innerHTML=card?stage4CardDetailsContent(card):'';
+  body.innerHTML=`<div class="card-picker" role="listbox" aria-label="${escapeAttr(title)}">${cards.map((card,index)=>`<button type="button" class="card-picker-option${index===0?' selected':''}" data-card-pick="${escapeAttr(card.id)}" role="option" aria-selected="${index===0?'true':'false'}">${stage4CardArtContent(card,{selected:index===0})}</button>`).join('')}</div>${options.note?`<p class="dialog-note">${escapeHTML(options.note)}</p>`:''}`;
+  let primary=cards[0].id;
+  const updatePreview=(cardID)=>{
+    primary=cardID;
+    rememberInteraction('primary',primary);
+    body.querySelectorAll('[data-card-pick]').forEach(button=>{
+      const selected=button.dataset.cardPick===primary;
+      button.classList.toggle('selected',selected);
+      button.setAttribute('aria-selected',String(selected));
+    });
   };
-  primary.onchange=updatePreview;
-  updatePreview();
+  body.onclick=event=>{
+    const cardID=cardArtSelectionID(event.target);
+    if(cardID)updatePreview(cardID);
+  };
+  updatePreview(primary);
   $('dialog-submit').textContent=options.submitLabel||'Use card';
   dialog.showModal();
   $('dialog-submit').onclick=async event=>{
     event.preventDefault();
     try{
-      const accepted=await onPick(primary.value);
+      const accepted=await onPick(primary);
       if(accepted!==false){
         if(dialog.open)dialog.close();
         if(interaction.mode==='dialog')resetInteraction();

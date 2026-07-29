@@ -4,6 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 
 const source=await readFile(new URL('./main.js',import.meta.url),'utf8');
+const artSource=await readFile(new URL('./card-art.js',import.meta.url),'utf8');
 const indexSource=await readFile(new URL('../static/index.html',import.meta.url),'utf8');
 const mapAsset=await readFile(new URL('../static/sherwood-forest.svg',import.meta.url),'utf8');
 const elements=new Map();
@@ -15,6 +16,7 @@ const context={
   clearInterval(){},
 };
 vm.createContext(context);
+vm.runInContext(artSource,context);
 vm.runInContext(source,context);
 
 test('command gate rejects duplicate in-flight submissions and resets',()=>{

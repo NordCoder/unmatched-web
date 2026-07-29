@@ -150,6 +150,7 @@ function render(){
   renderPlayers();
   renderPending();
   renderActions();
+  renderCombat();
   renderHand();
   renderEvents();
 }
@@ -419,6 +420,13 @@ function renderPending(){
     ?`${isMapPendingKind(view.pending.kind)?'<p class="map-choice-note">Use the highlighted fighters and spaces on the map.</p>':''}<div class="prompt-options">${options.map(option=>`<button data-choice="${escapeAttr(option.id)}">${escapeHTML(option.label)}</button>`).join('')}</div>`
     :`<p>Waiting for ${escapeHTML(view.pending.owner_name)}.</p>`}`;
 }
+function renderCombat(){
+  const box=$('combat');
+  if(!box)return;
+  if(!view.combat){box.hidden=true;box.innerHTML='';return}
+  box.hidden=false;
+  box.innerHTML=`<h2>Combat</h2><p>${view.combat.waiting_for_defense?'Defense choice is hidden until reveal.':'Combat cards revealed.'}</p>`;
+}
 function selectedOwnFighterID(){
   const id=interactionValue('fighter_id');
   const fighter=fighterByID(id);
@@ -442,7 +450,7 @@ function renderActions(){
 }
 function renderHand(){
   const mine=view.players.find(player=>player.id===view.viewing_player_id);
-  $('hand').innerHTML=(mine?.hand||[]).map(card=>`<article class="card"><strong>${escapeHTML(card.name)}</strong><small>${card.type.toUpperCase()} ${card.type==='scheme'?'':card.value} · BOOST ${card.boost}</small><small>${escapeHTML(card.effect.replaceAll('_',' '))}</small></article>`).join('')||'<p>No cards in hand.</p>';
+  $('hand').innerHTML=visibleCardArtCards(view).map(card=>`<article class="card hand-card">${cardArtMarkup(card,`<strong>${escapeHTML(card.name)}</strong><small>${card.type.toUpperCase()} ${card.type==='scheme'?'':card.value} · BOOST ${card.boost}</small><small>${escapeHTML(card.effect.replaceAll('_',' '))}</small>`)}</article>`).join('')||'<p>No cards in hand.</p>';
 }
 function renderEvents(){
   const events=[...view.events].reverse().slice(0,35);

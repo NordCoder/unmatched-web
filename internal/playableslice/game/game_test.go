@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/NordCoder/unmatched-web/internal/playableslice/content"
@@ -39,6 +40,15 @@ func TestProjectionHidesHandsAndDefense(t *testing.T) {
 	if len(p1View.Players[1].Hand) != 0 {
 		t.Fatal("opponent hand leaked to attacker")
 	}
+	encoded, err := json.Marshal(p1View)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, card := range match.Players[p2].Hand {
+		if !containsDefinition(p1View.Players[0].Hand, card.DefinitionID) && strings.Contains(string(encoded), `"`+card.DefinitionID+`"`) {
+			t.Fatalf("opponent card identity leaked: %s", card.DefinitionID)
+		}
+	}
 	if p1View.Pending == nil || len(p1View.Pending.Options) != 0 {
 		t.Fatal("defense domain leaked to attacker")
 	}
@@ -67,6 +77,31 @@ func TestProjectionHidesHandsAndDefense(t *testing.T) {
 	if err := match.Apply(p1, Command{Type: CommandManeuver, ExpectedRevision: revision}); ErrorCode(err) != "stale_revision" {
 		t.Fatalf("stale error=%v", err)
 	}
+}
+
+func TestVisibleCardProjectionIncludesDeckIdentity(t *testing.T) {
+	match, p1, _ := activeMatch(t, "card-art-projection")
+	view, err := match.Project(p1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(view.Players[0].Hand) == 0 {
+		t.Fatal("expected Robin Hood hand")
+	}
+	for _, card := range view.Players[0].Hand {
+		if card.DefinitionID == "" || card.DeckDefinitionID != "robin-hood" {
+			t.Fatalf("visible card lacks correct identity: %+v", card)
+		}
+	}
+}
+
+func containsDefinition(cards []CardView, definitionID string) bool {
+	for _, card := range cards {
+		if card.DefinitionID == definitionID {
+			return true
+		}
+	}
+	return false
 }
 
 func TestRejectedMovementAttackAndAuthorityAreAtomic(t *testing.T) {

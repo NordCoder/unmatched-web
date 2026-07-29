@@ -1,5 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 const generated=[
+  ['apps/web/src/card-art.js','apps/web/static/card-art.js'],
   ['apps/web/src/main.js','apps/web/static/app.js'],
   ['apps/web/src/stage4.js','apps/web/static/stage4.js'],
 ];
