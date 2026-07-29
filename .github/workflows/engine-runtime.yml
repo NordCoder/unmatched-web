@@ -56,9 +56,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: Verify Go formatting
+      - name: Verify playable-slice Go formatting
         run: |
-          gofmt -w apps internal docs/cards/phase-4b/embed.go docs/fighters/phase-4b/embed.go tests/integration/playableslice
+          gofmt -w apps/server/main.go apps/web/embed.go internal/playableslice docs/cards/phase-4b/embed.go docs/fighters/phase-4b/embed.go tests/integration/playableslice
           git diff --exit-code
       - name: Validate playable content and battlefield
         run: |
