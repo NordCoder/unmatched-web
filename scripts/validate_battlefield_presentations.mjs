@@ -20,7 +20,9 @@ async function walkManifests(directory){
 }
 
 function yamlSpaceIDs(source){
-  return [...source.matchAll(/-\s*\{id:\s*([a-z0-9-]+),/g)].map(match=>match[1]);
+  const spacesSection=source.match(/^spaces:\s*\n([\s\S]*?)^edges:\s*$/m)?.[1];
+  if(!spacesSection)throw new Error('battlefield YAML is missing spaces/edges sections');
+  return [...spacesSection.matchAll(/^\s*-\s*\{id:\s*([a-z0-9-]+),/gm)].map(match=>match[1]);
 }
 
 function localArtPath(src){
