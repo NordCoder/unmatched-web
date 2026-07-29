@@ -40,21 +40,28 @@ for(const manifestPath of manifests){
   const validation=renderer.validateManifest(manifest,runtimeIDs);
   if(!validation.ok)throw new Error(`${manifest.battlefield_id}: ${validation.errors.join('; ')}`);
 
-  const artPath=localArtPath(manifest.art.src);
-  const artInfo=await stat(artPath);
-  if(!artInfo.isFile()||artInfo.size<10_000)throw new Error(`${manifest.battlefield_id}: art asset is missing or unexpectedly small`);
+  const externalPrimary=/^https:\/\//.test(manifest.art.src);
+  const fallbackPath=localArtPath(manifest.art.fallback_src||manifest.art.src);
+  const fallbackInfo=await stat(fallbackPath);
+  if(!fallbackInfo.isFile())throw new Error(`${manifest.battlefield_id}: fallback art asset is missing`);
 
-  const art=await readFile(artPath,'utf8');
-  const width=Number(art.match(/\bwidth="([0-9.]+)"/)?.[1]);
-  const height=Number(art.match(/\bheight="([0-9.]+)"/)?.[1]);
+  const fallback=await readFile(fallbackPath,'utf8');
+  const width=Number(fallback.match(/\bwidth="([0-9.]+)"/)?.[1]);
+  const height=Number(fallback.match(/\bheight="([0-9.]+)"/)?.[1]);
   if(width!==Number(manifest.coordinate_space.width)||height!==Number(manifest.coordinate_space.height)){
-    throw new Error(`${manifest.battlefield_id}: art dimensions ${width}x${height} do not match coordinate space`);
+    throw new Error(`${manifest.battlefield_id}: fallback dimensions ${width}x${height} do not match coordinate space`);
   }
-  if(/preserveAspectRatio="none"/.test(art)){
-    throw new Error(`${manifest.battlefield_id}: art must not use preserveAspectRatio=none`);
+  if(externalPrimary){
+    if(!/\.webp(?:$|\?)/.test(manifest.art.src))throw new Error(`${manifest.battlefield_id}: primary remote art must be WebP`);
+    if(Number(manifest.art.pixel_width)<Number(manifest.coordinate_space.width)||Number(manifest.art.pixel_height)<Number(manifest.coordinate_space.height)){
+      throw new Error(`${manifest.battlefield_id}: primary art pixel dimensions are too small`);
+    }
+  }else{
+    const artInfo=await stat(localArtPath(manifest.art.src));
+    if(artInfo.size<100_000)throw new Error(`${manifest.battlefield_id}: local primary art is too aggressively compressed`);
   }
 
-  console.log(`${manifest.battlefield_id}: ${runtimeIDs.length} calibrated spaces, ${artInfo.size} byte art asset`);
+  console.log(`${manifest.battlefield_id}: ${runtimeIDs.length} calibrated spaces, ${externalPrimary?'remote WebP primary':'local primary'} with local fallback`);
 }
 
 console.log('battlefield presentations: PASS');
