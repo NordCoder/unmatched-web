@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Battlefield calibration editor</title>
+  <link rel="stylesheet" href="/tools/battlefield-editor.css">
+</head>
+<body>
+  <aside>
+    <h1>Battlefield calibration</h1>
+    <p>Drag the selected space to align its center. Use the wheel over the board or the radius field to adjust its size.</p>
+
+    <label>Battlefield
+      <input id="battlefield-id" value="sherwood-forest">
+    </label>
+    <div class="row">
+      <button id="load">Load</button>
+      <label class="file-button">Import JSON<input id="import" type="file" accept="application/json"></label>
+    </div>
+
+    <label>Space
+      <select id="space-select"></select>
+    </label>
+    <div class="coordinates">
+      <label>X<input id="space-x" type="number" step="0.1"></label>
+      <label>Y<input id="space-y" type="number" step="0.1"></label>
+      <label>Radius<input id="space-r" type="number" step="0.1" min="1"></label>
+    </div>
+    <label>Zoom
+      <input id="zoom" type="range" min="50" max="400" value="100">
+    </label>
+    <label><input id="show-ids" type="checkbox" checked> Show space IDs</label>
+    <label><input id="show-hitboxes" type="checkbox"> Show expanded hitboxes</label>
+
+    <div class="row">
+      <button id="previous">Previous</button>
+      <button id="next">Next</button>
+    </div>
+    <button id="export">Export manifest.json</button>
+    <output id="status"></output>
+  </aside>
+
+  <main>
+    <div id="viewport">
+      <svg id="editor-board" role="application" aria-label="Battlefield geometry editor"></svg>
+    </div>
+  </main>
+
+  <script src="/battlefield-renderer.js"></script>
+  <script src="/tools/battlefield-editor.js"></script>
+</body>
+</html>
