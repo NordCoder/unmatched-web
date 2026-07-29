@@ -93,15 +93,22 @@ func (m *Match) fighterView(fighter *Fighter) FighterView {
 }
 
 func (m *Match) legalView(player *Player) LegalView {
-	result := LegalView{AttackCards: map[string][]string{}, AttackTargets: map[string][]string{}}
+	result := LegalView{
+		SchemeActions: map[string]SchemeActionView{},
+		AttackCards:   map[string][]string{},
+		AttackTargets: map[string][]string{},
+	}
 	if m.Phase != PhaseActive || len(m.Pending) > 0 || m.CurrentPlayer != player.ID || player.ActionsRemaining <= 0 {
 		return result
 	}
 	result.CanManeuver = true
 	for _, card := range player.Hand {
-		if m.cardDefinition(card).Type == content.CardScheme {
-			result.SchemeCards = append(result.SchemeCards, card.ID)
+		definition := m.cardDefinition(card)
+		if definition.Type != content.CardScheme {
+			continue
 		}
+		result.SchemeCards = append(result.SchemeCards, card.ID)
+		result.SchemeActions[card.ID] = m.schemeActionView(player, definition)
 	}
 	for _, fighterID := range player.FighterIDs {
 		fighter := m.Fighters[fighterID]
@@ -123,5 +130,39 @@ func (m *Match) legalView(player *Player) LegalView {
 		}
 	}
 	sort.Strings(result.SchemeCards)
+	return result
+}
+
+func (m *Match) schemeActionView(player *Player, card content.CardDefinition) SchemeActionView {
+	result := SchemeActionView{}
+	if card.Effect != content.EffectMoveThroughFive && card.Effect != content.EffectHorns {
+		return result
+	}
+	for _, fighterID := range player.FighterIDs {
+		fighter := m.Fighters[fighterID]
+		if fighter == nil || fighter.Defeated || !usableBy(card, fighter) {
+			continue
+		}
+		candidate := SchemeFighterActionView{FighterID: fighter.ID}
+		for _, destination := range m.destinations(fighter, 5, true, false) {
+			destination.Path = append([]string(nil), destination.Path...)
+			candidate.Destinations = append(candidate.Destinations, destination)
+			if card.Effect != content.EffectHorns {
+				continue
+			}
+			targets := m.adjacentLivingFighters(destination.Destination, fighter.ID)
+			if len(targets) == 0 {
+				continue
+			}
+			if candidate.TargetsByDestination == nil {
+				candidate.TargetsByDestination = map[string][]string{}
+			}
+			for _, target := range targets {
+				candidate.TargetsByDestination[destination.Destination] = append(candidate.TargetsByDestination[destination.Destination], target.ID)
+			}
+		}
+		result.Fighters = append(result.Fighters, candidate)
+	}
+	sort.Slice(result.Fighters, func(i, j int) bool { return result.Fighters[i].FighterID < result.Fighters[j].FighterID })
 	return result
 }
