@@ -99,8 +99,14 @@ def validate_battlefield(data: dict) -> None:
 
 def top_level_card_ids(text: str) -> set[str]:
     ids = set()
+    in_cards = False
     for line in text.splitlines():
-        if not line.startswith("  - "):
+        if line == "cards:":
+            in_cards = True
+            continue
+        if in_cards and line and not line.startswith(" "):
+            break
+        if not in_cards or not line.startswith("  - "):
             continue
         match = re.match(r"\s*-\s*(?:\{\s*)?id:\s*([^,}\s]+)", line)
         if match:

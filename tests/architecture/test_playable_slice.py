@@ -16,6 +16,16 @@ class PlayableSliceValidatorTest(unittest.TestCase):
     def test_repository_contract(self):
         MODULE.validate()
 
+    def test_card_id_extraction_stops_before_sources(self):
+        text = """cards:
+  - {id: card-one, quantity: 1}
+  - id: card-two
+    quantity: 1
+sources:
+  - {id: source-record}
+"""
+        self.assertEqual(MODULE.top_level_card_ids(text), {"card-one", "card-two"})
+
     def test_rejects_unknown_endpoint(self):
         changed = copy.deepcopy(self.data)
         changed["edges"][0]["to"] = "missing"
