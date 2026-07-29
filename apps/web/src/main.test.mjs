@@ -15,6 +15,14 @@ const context={
 vm.createContext(context);
 vm.runInContext(source,context);
 
+test('command gate rejects duplicate in-flight submissions and resets',()=>{
+  assert.equal(context.beginCommand(),true);
+  assert.equal(context.beginCommand(),false);
+  context.endCommand();
+  assert.equal(context.beginCommand(),true);
+  context.endCommand();
+});
+
 test('Jackalope Horns omits target when the selector is empty',()=>{
   const payload={type:'scheme'};
   context.addOptionalHornsTarget(payload,null);
