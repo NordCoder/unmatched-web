@@ -10,6 +10,13 @@
   <link rel="stylesheet" href="/stage5-battlefield.css">
 </head>
 <body>
+  <div id="battlefield-loading" class="battlefield-loading" role="status" aria-live="polite" hidden>
+    <div class="battlefield-loading-card">
+      <span class="battlefield-spinner" aria-hidden="true"></span>
+      <strong id="battlefield-loading-label">Preparing battlefield…</strong>
+      <small>Loading map, geometry and fighter tokens</small>
+    </div>
+  </div>
   <header>
     <div><strong>UNMATCHED</strong><span>Robin Hood vs Bigfoot · Sherwood Forest</span></div>
     <button id="reset" class="ghost" hidden>Leave</button>

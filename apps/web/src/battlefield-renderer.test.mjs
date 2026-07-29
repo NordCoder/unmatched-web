@@ -56,7 +56,17 @@ test('highlight geometry is inset while hit geometry expands',()=>{
   assert.equal(renderer.adjustShape(circle,9).r,69);
 });
 
-test('calibrated renderer keeps art and overlay in one pixel coordinate system',()=>{
+test('art variants select the smallest source that satisfies display density',()=>{
+  const sample={art:{variants:[
+    {id:'1x',src:'/board-1x.webp',pixel_width:1337,pixel_height:742},
+    {id:'2x',src:'/board-2x.webp',pixel_width:2674,pixel_height:1484},
+  ]}};
+  assert.equal(renderer.selectArtVariant(sample,{displayWidth:900,devicePixelRatio:1}).id,'1x');
+  assert.equal(renderer.selectArtVariant(sample,{displayWidth:900,devicePixelRatio:2}).id,'2x');
+  assert.equal(renderer.selectArtVariant(sample,{displayWidth:1800,devicePixelRatio:2}).id,'2x');
+});
+
+test('calibrated renderer keeps art, large fighter art and overlay in one coordinate system',()=>{
   renderer.register(manifest);
   const svg={
     attrs:new Map(),
@@ -68,10 +78,12 @@ test('calibrated renderer keeps art and overlay in one pixel coordinate system',
   const view={
     battlefield_id:'sherwood-forest',
     viewing_player_id:'p1',
+    players:[{id:'p1',hero_id:'rh'},{id:'p2',hero_id:'bf'}],
     spaces:spaceIDs.map(id=>({
       id,
       zones:['orange'],
-      ...(id==='s01'?{fighter:{id:'rh',name:'Robin Hood',health:13,owner_id:'p1',defeated:false}}:{}),
+      ...(id==='s01'?{fighter:{id:'rh',definition_id:'robin-hood',name:'Robin Hood',health:13,owner_id:'p1',defeated:false}}:{}),
+      ...(id==='s02'?{fighter:{id:'outlaw',definition_id:'outlaw',name:'Outlaw',health:1,owner_id:'p1',defeated:false}}:{}),
     })),
     edges:[{from:'s01',to:'s02'}],
   };
@@ -95,9 +107,23 @@ test('calibrated renderer keeps art and overlay in one pixel coordinate system',
   assert.match(svg.innerHTML,/unmatchedpicks\.com\/maps\/sherwoodforest\.webp/);
   assert.match(svg.innerHTML,/cx="292\.2" cy="144\.6" r="71\.8"/);
   assert.match(svg.innerHTML,/class="space-highlight"[^>]*r="56\.8"/);
+  assert.match(svg.innerHTML,/class="fighter-piece hero-piece"/);
+  assert.match(svg.innerHTML,/class="fighter-piece sidekick-piece"/);
+  assert.match(svg.innerHTML,/href="\/fighters\/tokens\/robin-hood\.svg"/);
+  assert.match(svg.innerHTML,/href="\/fighters\/tokens\/outlaw\.svg"/);
+  assert.match(svg.innerHTML,/class="fighter-art"[^>]*width="102\./);
+  assert.match(svg.innerHTML,/class="fighter-art"[^>]*width="97\./);
   assert.match(svg.innerHTML,/class="health-token"/);
   assert.match(svg.innerHTML,/class="debug-edge"/);
   assert.doesNotMatch(svg.innerHTML,/preserveAspectRatio="none"/);
+});
+
+test('fighter token paths are derived only from safe stable definitions',()=>{
+  for(const definitionID of ['robin-hood','outlaw','bigfoot','jackalope']){
+    assert.equal(renderer.fighterTokenHref({definition_id:definitionID}),`/fighters/tokens/${definitionID}.svg`);
+  }
+  assert.equal(renderer.fighterTokenHref({definition_id:'../robin-hood'}),'');
+  assert.equal(renderer.fighterTokenHref({definition_id:'Robin Hood'}),'');
 });
 
 test('fallback presentation preserves legacy maps without a graphical manifest',()=>{
