@@ -4,6 +4,7 @@ const zoneColors = {gray:'#a9aaa5','light-gray':'#d7d6c9',green:'#598b5b',brown:
 let session = JSON.parse(sessionStorage.getItem('unmatched-session') || 'null');
 let view = null;
 let pollHandle = null;
+let commandInFlight = false;
 
 function saveSession(next){session=next; if(next)sessionStorage.setItem('unmatched-session',JSON.stringify(next));else sessionStorage.removeItem('unmatched-session');}
 function showError(message){errorBox.textContent=message;errorBox.hidden=false;}
@@ -20,7 +21,9 @@ async function request(path,options={}){
 async function createMatch(){try{const body=await request('/api/matches',{method:'POST',body:'{}'});saveSession({matchID:body.match_id,token:body.token,playerID:body.player_id});view=body.view;enterGame();render();}catch(error){showError(error.message)}}
 async function joinMatch(){const code=$('join-code').value.trim();if(!code)return showError('Enter a match code.');try{const body=await request(`/api/matches/${encodeURIComponent(code)}/join`,{method:'POST',body:'{}'});saveSession({matchID:body.match_id,token:body.token,playerID:body.player_id});view=body.view;enterGame();render();}catch(error){showError(error.message)}}
 async function refresh(){if(!session)return;try{const body=await request(`/api/matches/${encodeURIComponent(session.matchID)}`);view=body.view;render();}catch(error){showError(error.message)}}
-async function command(payload){try{const body=await request(`/api/matches/${encodeURIComponent(session.matchID)}/commands`,{method:'POST',body:JSON.stringify({...payload,expected_revision:view.revision})});view=body.view;render();}catch(error){showError(error.message);await refresh();}}
+function beginCommand(){if(commandInFlight)return false;commandInFlight=true;return true}
+function endCommand(){commandInFlight=false}
+async function command(payload){if(!beginCommand())return;try{const body=await request(`/api/matches/${encodeURIComponent(session.matchID)}/commands`,{method:'POST',body:JSON.stringify({...payload,expected_revision:view.revision})});view=body.view;render();}catch(error){showError(error.message);await refresh();}finally{endCommand()}}
 function enterGame(){lobby.hidden=true;game.hidden=false;$('reset').hidden=false;if(pollHandle)clearInterval(pollHandle);pollHandle=setInterval(refresh,1200)}
 function leave(){if(pollHandle)clearInterval(pollHandle);saveSession(null);view=null;game.hidden=true;lobby.hidden=false;$('reset').hidden=true;clearError()}
 
