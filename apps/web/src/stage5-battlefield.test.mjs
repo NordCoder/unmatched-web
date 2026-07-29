@@ -54,3 +54,27 @@ test('Stage 5 renderer uses calibrated geometry',()=>{
   assert.match(svg.innerHTML,/data-space="s01"/);
   assert.match(svg.innerHTML,/cx="292\.2" cy="144\.6" r="71\.8"/);
 });
+
+test('fighter token assets are selected from stable fighter definition identities',()=>{
+  for(const definitionID of ['robin-hood','outlaw','bigfoot','jackalope']){
+    assert.equal(
+      context.stage5FighterTokenHref({definition_id:definitionID}),
+      `/fighters/tokens/${definitionID}.svg`,
+    );
+  }
+  assert.equal(context.stage5FighterTokenHref({definition_id:'../robin-hood'}),'');
+  assert.equal(context.stage5FighterTokenHref({definition_id:'Robin Hood'}),'');
+  assert.equal(context.stage5FighterTokenHref({}),'');
+});
+
+test('all four bundled fighter token SVGs contain valid embedded WebP payloads',async()=>{
+  for(const definitionID of ['robin-hood','outlaw','bigfoot','jackalope']){
+    const source=await readFile(new URL(`../static/fighters/tokens/${definitionID}.svg`,import.meta.url),'utf8');
+    assert.match(source,/^<svg /);
+    const encoded=source.match(/data:image\/webp;base64,([^"']+)/)?.[1];
+    assert.ok(encoded,`${definitionID} must contain embedded WebP art`);
+    const bytes=Buffer.from(encoded,'base64');
+    assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF');
+    assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP');
+  }
+});
