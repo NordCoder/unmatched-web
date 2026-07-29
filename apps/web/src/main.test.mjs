@@ -7,6 +7,7 @@ const source=await readFile(new URL('./main.js',import.meta.url),'utf8');
 const artSource=await readFile(new URL('./card-art.js',import.meta.url),'utf8');
 const indexSource=await readFile(new URL('../static/index.html',import.meta.url),'utf8');
 const mapAsset=await readFile(new URL('../static/sherwood-forest.svg',import.meta.url),'utf8');
+const battlefieldManifest=JSON.parse(await readFile(new URL('../static/battlefields/sherwood-forest/manifest.json',import.meta.url),'utf8'));
 const elements=new Map();
 const context={
   console,
@@ -102,9 +103,10 @@ test('graphical battlefield engine and calibrated surface are committed',()=>{
   assert.match(indexSource,/viewBox="0 0 1337 742"/);
   assert.match(indexSource,/battlefield-renderer\.js/);
   assert.match(indexSource,/stage5-battlefield\.js/);
-  assert.match(mapAsset,/data:image\/webp;base64,/);
+  assert.match(indexSource,/stage5-battlefield\.css/);
   assert.match(mapAsset,/Sherwood Forest battlefield/);
-  assert.doesNotMatch(mapAsset,/preserveAspectRatio="none"/);
+  assert.equal(battlefieldManifest.art.src,'https://www.unmatchedpicks.com/maps/sherwoodforest.webp');
+  assert.equal(battlefieldManifest.art.fallback_src,'/sherwood-forest.svg');
   assert.match(source,/MAP_ASSET = '\/sherwood-forest\.svg'/);
   assert.doesNotMatch(source,/function shortestPath/);
   assert.doesNotMatch(source,/function reachable/);
