@@ -40,98 +40,13 @@ on:
       - ".github/workflows/engine-runtime.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: engine-runtime-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  vendor-sherwood-assets:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: playable-slice-robin-bigfoot
-          fetch-depth: 0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-      - name: Vendor uploaded battlefield source through one-time image transport
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check "Pillow==11.3.0"
-          destination=apps/web/static/battlefields/sherwood-forest
-          mkdir -p "$destination"
-          export destination
-          python - <<'PY'
-          from pathlib import Path
-          from urllib.parse import quote
-          from urllib.request import Request, urlopen
-          from PIL import Image, ImageFilter
-          import io
-          import os
-
-          root = Path(os.environ["destination"])
-          origin = "https://www.unmatchedpicks.com/maps/sherwoodforest.webp"
-          candidates = [
-              "https://api.allorigins.win/raw?url=" + quote(origin, safe=""),
-              "https://corsproxy.io/?url=" + quote(origin, safe=""),
-              "https://cors.isomorphic-git.org/" + origin,
-              "https://images.weserv.nl/?url=ssl:www.unmatchedpicks.com/maps/sherwoodforest.webp&output=webp&q=100",
-              "https://wsrv.nl/?url=ssl:www.unmatchedpicks.com/maps/sherwoodforest.webp&output=webp&q=100",
-          ]
-          source = None
-          failures = []
-          for candidate in candidates:
-              try:
-                  request = Request(candidate, headers={"User-Agent": "unmatched-web-asset-vendor/1.0"})
-                  with urlopen(request, timeout=30) as response:
-                      data = response.read()
-                  if len(data) < 200_000:
-                      raise ValueError(f"response too small: {len(data)} bytes")
-                  image = Image.open(io.BytesIO(data)).convert("RGBA")
-                  expected_ratio = 1337 / 742
-                  if abs(image.width / image.height - expected_ratio) > 0.002:
-                      raise ValueError(f"unexpected dimensions {image.size}")
-                  source = image
-                  print(f"accepted one-time transport {candidate}: {len(data)} bytes, {image.size}")
-                  break
-              except Exception as error:
-                  failures.append(f"{candidate}: {error}")
-          if source is None:
-              raise SystemExit("No one-time image transport succeeded:\n" + "\n".join(failures))
-
-          one_x = source.resize((1337, 742), Image.Resampling.LANCZOS)
-          one_x.save(root / "board-1x.webp", "WEBP", quality=100, method=6)
-
-          two_x = source.resize((2674, 1484), Image.Resampling.LANCZOS)
-          two_x = two_x.filter(ImageFilter.UnsharpMask(radius=1.0, percent=90, threshold=2))
-          two_x.save(root / "board-2x.webp", "WEBP", quality=92, method=6)
-
-          for name, dimensions, minimum in [
-              ("board-1x.webp", (1337, 742), 300_000),
-              ("board-2x.webp", (2674, 1484), 700_000),
-          ]:
-              path = root / name
-              check = Image.open(path)
-              if check.size != dimensions:
-                  raise SystemExit(f"unexpected {name} dimensions: {check.size}")
-              if path.stat().st_size < minimum:
-                  raise SystemExit(f"{name} is unexpectedly compressed: {path.stat().st_size} bytes")
-              print(f"{name}: {path.stat().st_size} bytes")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$destination/board-1x.webp" "$destination/board-2x.webp"
-          if git diff --cached --quiet; then
-            echo "Sherwood assets already match the local copies."
-            exit 0
-          fi
-          git commit -m "Vendor local Sherwood Forest assets"
-          git push origin HEAD:playable-slice-robin-bigfoot
-
   go:
     runs-on: ubuntu-latest
     steps:
