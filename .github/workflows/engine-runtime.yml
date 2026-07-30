@@ -72,6 +72,7 @@ jobs:
             exit 0
           fi
           mkdir -p "$root"
+          wc -c "$transport"/part-*.b64
           {
             head -c 16000 "$transport/part-000.b64"
             head -c 16000 "$transport/part-001.b64"
@@ -82,6 +83,7 @@ jobs:
             head -c 19999 "$transport/part-006.b64"
             head -c 4708 "$transport/part-007.b64"
           } > /tmp/sherwood-source.b64
+          wc -c /tmp/sherwood-source.b64
           test "$(wc -c < /tmp/sherwood-source.b64)" -eq 532708
           echo "c2e86450defcb402baf39198b4f688148be2f84c05e059f761d49075cafee33d  /tmp/sherwood-source.b64" | sha256sum --check --strict
           base64 --decode /tmp/sherwood-source.b64 > "$root/board-1x.webp"
