@@ -63,6 +63,7 @@ test('art variants select the smallest source that satisfies display density',()
   ]}};
   assert.equal(renderer.selectArtVariant(sample,{displayWidth:900,devicePixelRatio:1}).id,'1x');
   assert.equal(renderer.selectArtVariant(sample,{displayWidth:900,devicePixelRatio:2}).id,'2x');
+  assert.equal(renderer.selectArtVariant(sample,{displayWidth:400,devicePixelRatio:2}).id,'2x');
   assert.equal(renderer.selectArtVariant(sample,{displayWidth:1800,devicePixelRatio:2}).id,'2x');
 });
 
@@ -104,7 +105,7 @@ test('calibrated renderer keeps art, large fighter art and overlay in one coordi
   assert.equal(svg.attrs.get('viewBox'),'0 0 1337 742');
   assert.equal(svg.attrs.get('preserveAspectRatio'),'xMidYMid meet');
   assert.equal(svg.dataset.presentation,'calibrated');
-  assert.match(svg.innerHTML,/unmatchedpicks\.com\/maps\/sherwoodforest\.webp/);
+  assert.match(svg.innerHTML,/href="\/battlefields\/sherwood-forest\/board-1x\.webp"/);
   assert.match(svg.innerHTML,/cx="292\.2" cy="144\.6" r="71\.8"/);
   assert.match(svg.innerHTML,/class="space-highlight"[^>]*r="56\.8"/);
   assert.match(svg.innerHTML,/class="fighter-piece hero-piece"/);

@@ -102,12 +102,12 @@ test('Stage 6 keeps calibrated map dimensions and direct graphical tokens',()=>{
 test('Stage 6 configures only local density variants and role-based token ratios',()=>{
   const configured=context.stage5ConfigurePresentation(context.BattlefieldRenderer.get('sherwood-forest'));
   assert.equal(configured.art.variants.length,2);
-  assert.deepEqual(
-    configured.art.variants.map(variant=>[variant.id,variant.src,variant.pixel_width,variant.pixel_height]),
-    [
+  assert.equal(
+    JSON.stringify(configured.art.variants.map(variant=>[variant.id,variant.src,variant.pixel_width,variant.pixel_height])),
+    JSON.stringify([
       ['1x','/battlefields/sherwood-forest/board-1x.webp',1337,742],
       ['2x','/battlefields/sherwood-forest/board-2x.webp',2674,1484],
-    ],
+    ]),
   );
   assert.equal(configured.art.variants.some(variant=>/^https?:/.test(variant.src)),false);
   assert.equal(configured.defaults.hero_token_diameter_ratio,.82);

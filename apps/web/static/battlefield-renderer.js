@@ -80,10 +80,10 @@
   }
 
   function artVariants(art){
-    const variants=Array.isArray(art?.variants)?art.variants.filter(variant=>variant?.src||variant?.base64_parts?.length):[];
+    const variants=Array.isArray(art?.variants)?art.variants.filter(variant=>typeof variant?.src==='string'&&variant.src):[];
     if(variants.length)return variants;
-    return art?.src||art?.base64_parts?.length?[{
-      id:'default',src:art.src,base64_parts:art.base64_parts,mime:art.mime,
+    return art?.src?[{
+      id:'default',src:art.src,
       pixel_width:art.pixel_width||art.width,pixel_height:art.pixel_height||art.height,
     }]:[];
   }
@@ -142,32 +142,22 @@
     const dpr=Math.max(1,number(options.devicePixelRatio)||number(global.devicePixelRatio)||1);
     const required=displayWidth*dpr;
     const sorted=[...variants].sort((left,right)=>(number(left.pixel_width)||0)-(number(right.pixel_width)||0));
+    if(dpr>=1.5)return sorted[sorted.length-1];
     return sorted.find(variant=>(number(variant.pixel_width)||0)>=required)||sorted[sorted.length-1];
   }
 
-  async function resolveArtVariant(variant,fetcher=global.fetch){
+  async function resolveArtVariant(variant){
     if(!variant)return null;
-    if(variant.resolved_src)return variant.resolved_src;
-    if(!Array.isArray(variant.base64_parts)||!variant.base64_parts.length)return variant.src;
-    if(typeof fetcher!=='function')throw new Error('fetch is unavailable');
-    const parts=await Promise.all(variant.base64_parts.map(async part=>{
-      const response=await fetcher(part,{cache:'force-cache'});
-      if(!response?.ok)throw new Error(`Battlefield art part ${part} returned HTTP ${response?.status??'unknown'}`);
-      return (await response.text()).trim();
-    }));
-    const encoded=parts.join('');
-    if(encoded.length<1000)throw new Error('Battlefield art parts are unexpectedly empty');
-    variant.resolved_src=`data:${variant.mime||'image/webp'};base64,${encoded}`;
-    return variant.resolved_src;
+    return variant.resolved_src||variant.src;
   }
 
-  async function prepareArt(manifest,fetcher=global.fetch,options={}){
+  async function prepareArt(manifest,options={}){
     const art=manifest?.art;
     if(!art)return null;
     const selected=selectArtVariant(manifest,options);
     if(!selected)return null;
     art.active_variant=selected;
-    art.resolved_src=await resolveArtVariant(selected,fetcher);
+    art.resolved_src=await resolveArtVariant(selected);
     return art.resolved_src;
   }
 
@@ -191,7 +181,6 @@
   }
 
   async function preloadArt(manifest,options={}){
-    const fetcher=options.fetcher||global.fetch;
     const imageFactory=options.imageFactory||(()=>typeof global.Image==='function'?new global.Image():null);
     const selected=selectArtVariant(manifest,options);
     const variants=artVariants(manifest?.art);
@@ -203,7 +192,7 @@
     let lastError=null;
     for(const variant of ordered){
       try{
-        const src=await resolveArtVariant(variant,fetcher);
+        const src=await resolveArtVariant(variant);
         await imageReady(src,imageFactory);
         manifest.art.active_variant=variant;
         manifest.art.resolved_src=src;

@@ -105,7 +105,11 @@ test('graphical battlefield engine and calibrated surface are committed',()=>{
   assert.match(indexSource,/stage5-battlefield\.js/);
   assert.match(indexSource,/stage5-battlefield\.css/);
   assert.match(mapAsset,/Sherwood Forest battlefield/);
-  assert.equal(battlefieldManifest.art.src,'https://www.unmatchedpicks.com/maps/sherwoodforest.webp');
+  assert.equal(battlefieldManifest.art.src,'/battlefields/sherwood-forest/board-1x.webp');
+  assert.deepEqual(battlefieldManifest.art.variants.map(variant=>[variant.id,variant.src,variant.pixel_width,variant.pixel_height]),[
+    ['1x','/battlefields/sherwood-forest/board-1x.webp',1337,742],
+    ['2x','/battlefields/sherwood-forest/board-2x.webp',2674,1484],
+  ]);
   assert.equal(battlefieldManifest.art.fallback_src,'/sherwood-forest.svg');
   assert.match(source,/MAP_ASSET = '\/sherwood-forest\.svg'/);
   assert.doesNotMatch(source,/function shortestPath/);

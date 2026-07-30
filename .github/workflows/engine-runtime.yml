@@ -40,95 +40,13 @@ on:
       - ".github/workflows/engine-runtime.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: engine-runtime-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  vendor-sherwood-assets:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: playable-slice-robin-bigfoot
-          fetch-depth: 0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-      - name: Install deterministic image tooling
-        run: python -m pip install --disable-pip-version-check "Pillow==11.3.0"
-      - name: Decode uploaded source and build density assets
-        id: assets
-        run: |
-          set -euo pipefail
-          root=apps/web/static/battlefields/sherwood-forest
-          transport=.github/asset-transport/sherwood-forest
-          if [ ! -d "$transport" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "One-time transport already consumed."
-            exit 0
-          fi
-          mkdir -p "$root"
-          wc -c "$transport"/part-*.b64
-          {
-            head -c 16000 "$transport/part-000.b64"
-            head -c 16000 "$transport/part-001.b64"
-            head -c 56001 "$transport/part-002.b64"
-            head -c 100000 "$transport/part-003.b64"
-            head -c 160000 "$transport/part-004.b64"
-            head -c 160000 "$transport/part-005.b64"
-            head -c 19999 "$transport/part-006.b64"
-            head -c 4708 "$transport/part-007.b64"
-          } > /tmp/sherwood-source.b64
-          wc -c /tmp/sherwood-source.b64
-          test "$(wc -c < /tmp/sherwood-source.b64)" -eq 532708
-          echo "c2e86450defcb402baf39198b4f688148be2f84c05e059f761d49075cafee33d  /tmp/sherwood-source.b64" | sha256sum --check --strict
-          base64 --decode /tmp/sherwood-source.b64 > "$root/board-1x.webp"
-          echo "24f84b2dc91eee28a942f568be8e24a14b479bdaac51c11a2fc3dc9382b51162  $root/board-1x.webp" | sha256sum --check --strict
-          python - <<'PY'
-          from pathlib import Path
-          from PIL import Image, ImageFilter
-
-          root = Path("apps/web/static/battlefields/sherwood-forest")
-          source_path = root / "board-1x.webp"
-          high_path = root / "board-2x.webp"
-
-          with Image.open(source_path) as source_image:
-              source = source_image.convert("RGBA")
-          if source.size != (1337, 742):
-              raise SystemExit(f"unexpected source dimensions: {source.size}")
-
-          high = source.resize((2674, 1484), Image.Resampling.LANCZOS)
-          high = high.filter(ImageFilter.UnsharpMask(radius=1.0, percent=90, threshold=2))
-          high.save(high_path, "WEBP", quality=82, method=6)
-
-          with Image.open(high_path) as high_image:
-              if high_image.size != (2674, 1484):
-                  raise SystemExit(f"unexpected 2x dimensions: {high_image.size}")
-
-          if source_path.stat().st_size < 300_000:
-              raise SystemExit("1x asset is unexpectedly small")
-          if high_path.stat().st_size < 500_000:
-              raise SystemExit("2x asset is unexpectedly small")
-          print(source_path, source_path.stat().st_size)
-          print(high_path, high_path.stat().st_size)
-          PY
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-      - name: Commit local assets and remove one-time transport
-        if: steps.assets.outputs.changed == 'true'
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/web/static/battlefields/sherwood-forest/board-1x.webp
-          git add apps/web/static/battlefields/sherwood-forest/board-2x.webp
-          git rm -r .github/asset-transport/sherwood-forest
-          git commit -m "Vendor local Sherwood Forest assets"
-          git push origin HEAD:playable-slice-robin-bigfoot
-
   go:
     runs-on: ubuntu-latest
     steps:
