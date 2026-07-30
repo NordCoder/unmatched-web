@@ -48,7 +48,7 @@ concurrency:
 
 jobs:
   vendor-sherwood-assets:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/playable-slice-robin-bigfoot'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
