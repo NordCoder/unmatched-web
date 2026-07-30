@@ -17,6 +17,7 @@ on:
       - "docs/cards/phase-4b/**"
       - "docs/fighters/phase-4b/**"
       - "scripts/validate_playable_slice.py"
+      - "scripts/validate_battlefield_presentations.mjs"
       - "scripts/build_playable_web.mjs"
       - "package.json"
       - "package-lock.json"
@@ -32,6 +33,7 @@ on:
       - "docs/cards/phase-4b/**"
       - "docs/fighters/phase-4b/**"
       - "scripts/validate_playable_slice.py"
+      - "scripts/validate_battlefield_presentations.mjs"
       - "scripts/build_playable_web.mjs"
       - "package.json"
       - "package-lock.json"
@@ -68,6 +70,27 @@ jobs:
       - run: go test -race ./...
       - name: Verify deterministic complete match
         run: go test ./internal/playableslice/game -run TestDeterministicCompleteMatch -count=1
+      - name: Build runnable QA server
+        run: |
+          mkdir -p dist
+          go build -trimpath -o dist/unmatched-web ./apps/server
+          cat > dist/README.txt <<'EOF'
+          Exact-Head runnable QA server for the Robin Hood vs Bigfoot playable slice.
+
+          Run:
+            chmod +x unmatched-web
+            ./unmatched-web
+
+          Then open http://localhost:8080 in two browser tabs.
+          Override the port with PORT, for example PORT=8090 ./unmatched-web.
+          EOF
+      - name: Upload exact-Head runnable QA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unmatched-web-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 14
 
   frontend:
     runs-on: ubuntu-latest
