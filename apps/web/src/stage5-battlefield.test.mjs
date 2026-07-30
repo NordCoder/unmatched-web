@@ -27,7 +27,7 @@ class FakeImage{
   set src(value){
     this._src=value;
     this.complete=true;
-    this.naturalWidth=2048;
+    this.naturalWidth=2674;
     queueMicrotask(()=>this.onload?.());
   }
   get src(){return this._src}
@@ -99,11 +99,17 @@ test('Stage 6 keeps calibrated map dimensions and direct graphical tokens',()=>{
   assert.match(svg.innerHTML,/class="fighter-piece hero-piece"/);
 });
 
-test('Stage 6 configures density variants and role-based token ratios',()=>{
+test('Stage 6 configures only local density variants and role-based token ratios',()=>{
   const configured=context.stage5ConfigurePresentation(context.BattlefieldRenderer.get('sherwood-forest'));
   assert.equal(configured.art.variants.length,2);
-  assert.equal(configured.art.variants[0].id,'1x');
-  assert.equal(configured.art.variants[1].id,'2x');
+  assert.deepEqual(
+    configured.art.variants.map(variant=>[variant.id,variant.src,variant.pixel_width,variant.pixel_height]),
+    [
+      ['1x','/battlefields/sherwood-forest/board-1x.webp',1337,742],
+      ['2x','/battlefields/sherwood-forest/board-2x.webp',2674,1484],
+    ],
+  );
+  assert.equal(configured.art.variants.some(variant=>/^https?:/.test(variant.src)),false);
   assert.equal(configured.defaults.hero_token_diameter_ratio,.82);
   assert.equal(configured.defaults.sidekick_token_diameter_ratio,.77);
   assert.equal(
@@ -123,6 +129,7 @@ test('Stage 6 loading overlay covers preload and clears after decoded assets are
   assert.equal(game.attributes.has('aria-busy'),false);
   const active=context.BattlefieldRenderer.get('sherwood-forest').art.active_variant;
   assert.equal(active.id,'2x');
+  assert.equal(active.src,'/battlefields/sherwood-forest/board-2x.webp');
   assert.ok(localRenderCount>=1);
 });
 
