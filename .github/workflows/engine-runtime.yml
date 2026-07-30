@@ -60,7 +60,7 @@ jobs:
           python-version: "3.13"
       - name: Vendor uploaded battlefield source through one-time image transport
         env:
-          SOURCE_URL: https://wsrv.nl/?url=https%3A%2F%2Fwww.unmatchedpicks.com%2Fmaps%2Fsherwoodforest.webp&output=webp&q=100
+          SOURCE_URL: https://wsrv.nl/?url=www.unmatchedpicks.com/maps/sherwoodforest.webp&output=webp&q=100
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check "Pillow==11.3.0"
