@@ -54,13 +54,14 @@ function stage5WithTimeout(promise,milliseconds,label){
 }
 function stage5ConfigurePresentation(manifest){
   if(!manifest||manifest.battlefield_id!=='sherwood-forest')return manifest;
-  const source=manifest.art?.src||'https://www.unmatchedpicks.com/maps/sherwoodforest.webp';
+  const variants=[
+    {id:'1x',src:'/battlefields/sherwood-forest/board-1x.webp',pixel_width:1337,pixel_height:742},
+    {id:'2x',src:'/battlefields/sherwood-forest/board-2x.webp',pixel_width:2674,pixel_height:1484},
+  ];
   manifest.art={
     ...manifest.art,
-    variants:[
-      {id:'1x',src:source,pixel_width:1337,pixel_height:742},
-      {id:'2x',src:'https://www.unmatchedpicks.com/_next/image?url=%2Fmaps%2Fsherwoodforest.webp&w=2048&q=90',pixel_width:2048,pixel_height:1137},
-    ],
+    src:variants[0].src,
+    variants,
   };
   manifest.defaults={
     ...manifest.defaults,
