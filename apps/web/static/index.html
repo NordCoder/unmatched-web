@@ -8,6 +8,7 @@
   <link rel="preload" href="/battlefields/sherwood-forest/manifest.json" as="fetch" crossorigin="anonymous">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/stage5-battlefield.css">
+  <link rel="stylesheet" href="/stage6.css">
 </head>
 <body>
   <div id="battlefield-loading" class="battlefield-loading" role="status" aria-live="polite" hidden>
@@ -45,7 +46,7 @@
         </aside>
       </div>
       <section id="combat" class="panel" hidden></section>
-      <section class="panel"><h2>Your hand</h2><div id="hand" class="hand"></div></section>
+      <section class="panel hand-panel"><h2>Your hand</h2><div id="hand" class="hand"></div><div id="card-confirmation" class="card-confirmation" hidden></div></section>
       <section class="panel"><h2>Public event log</h2><ol id="events" class="events"></ol></section>
     </section>
   </main>
@@ -55,5 +56,6 @@
   <script src="/app.js"></script>
   <script src="/stage4.js"></script>
   <script src="/stage5-battlefield.js"></script>
+  <script src="/stage6.js"></script>
 </body>
 </html>
