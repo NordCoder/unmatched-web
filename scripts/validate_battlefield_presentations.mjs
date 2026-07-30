@@ -26,7 +26,7 @@ function yamlSpaceIDs(source){
 }
 
 function localArtPath(src){
-  if(!src.startsWith('/'))throw new Error(`art.src must be an absolute local path: ${src}`);
+  if(!src.startsWith('/'))throw new Error(`battlefield art must be an absolute local path: ${src}`);
   return path.join(repositoryRoot,'apps/web/static',src.slice(1));
 }
 
@@ -42,28 +42,39 @@ for(const manifestPath of manifests){
   const validation=renderer.validateManifest(manifest,runtimeIDs);
   if(!validation.ok)throw new Error(`${manifest.battlefield_id}: ${validation.errors.join('; ')}`);
 
-  const externalPrimary=/^https:\/\//.test(manifest.art.src);
+  const variants=renderer.artVariants(manifest.art);
+  if(variants.length<2)throw new Error(`${manifest.battlefield_id}: local 1x and 2x art variants are required`);
+  let previousWidth=0;
+  for(const variant of variants){
+    if(/^https?:\/\//.test(variant.src||''))throw new Error(`${manifest.battlefield_id}: runtime art variant ${variant.id||'unknown'} must not be remote`);
+    const width=Number(variant.pixel_width);
+    const height=Number(variant.pixel_height);
+    if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0){
+      throw new Error(`${manifest.battlefield_id}: variant ${variant.id||'unknown'} has invalid pixel dimensions`);
+    }
+    if(width<previousWidth)throw new Error(`${manifest.battlefield_id}: art variants must be ordered by density`);
+    previousWidth=width;
+    const artInfo=await stat(localArtPath(variant.src));
+    if(!artInfo.isFile()||artInfo.size<100_000){
+      throw new Error(`${manifest.battlefield_id}: local variant ${variant.id||'unknown'} is missing or too aggressively compressed`);
+    }
+  }
+  const highest=variants[variants.length-1];
+  if(Number(highest.pixel_width)<Number(manifest.coordinate_space.width)*2||Number(highest.pixel_height)<Number(manifest.coordinate_space.height)*2){
+    throw new Error(`${manifest.battlefield_id}: highest-density variant must provide at least 2x coordinate-space pixels`);
+  }
+
   const fallbackPath=localArtPath(manifest.art.fallback_src||manifest.art.src);
   const fallbackInfo=await stat(fallbackPath);
   if(!fallbackInfo.isFile())throw new Error(`${manifest.battlefield_id}: fallback art asset is missing`);
-
   const fallback=await readFile(fallbackPath,'utf8');
   const width=Number(fallback.match(/\bwidth="([0-9.]+)"/)?.[1]);
   const height=Number(fallback.match(/\bheight="([0-9.]+)"/)?.[1]);
   if(width!==Number(manifest.coordinate_space.width)||height!==Number(manifest.coordinate_space.height)){
     throw new Error(`${manifest.battlefield_id}: fallback dimensions ${width}x${height} do not match coordinate space`);
   }
-  if(externalPrimary){
-    if(!/\.webp(?:$|\?)/.test(manifest.art.src))throw new Error(`${manifest.battlefield_id}: primary remote art must be WebP`);
-    if(Number(manifest.art.pixel_width)<Number(manifest.coordinate_space.width)||Number(manifest.art.pixel_height)<Number(manifest.coordinate_space.height)){
-      throw new Error(`${manifest.battlefield_id}: primary art pixel dimensions are too small`);
-    }
-  }else{
-    const artInfo=await stat(localArtPath(manifest.art.src));
-    if(artInfo.size<100_000)throw new Error(`${manifest.battlefield_id}: local primary art is too aggressively compressed`);
-  }
 
-  console.log(`${manifest.battlefield_id}: ${runtimeIDs.length} calibrated spaces, ${externalPrimary?'remote WebP primary':'local primary'} with local fallback`);
+  console.log(`${manifest.battlefield_id}: ${runtimeIDs.length} calibrated spaces, ${variants.length} local density variants, local fallback`);
 }
 
 console.log('battlefield presentations: PASS');
