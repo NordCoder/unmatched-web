@@ -31,6 +31,11 @@
     if(currentInteraction?.mode==='attack_card'){
       return new Set(currentView.legal?.attack_cards_by_fighter?.[currentInteraction.values?.fighter_id]||[]);
     }
+    if(['scheme_fighter','scheme_destination','scheme_target','action_confirm'].includes(currentInteraction?.mode)){
+      const cardID=currentInteraction?.values?.card_id;
+      return cardID?new Set([cardID]):new Set();
+    }
+    if(currentInteraction&&!['idle','fighter_selected'].includes(currentInteraction.mode))return new Set();
     if(ownTurn(currentView))return new Set(currentView.legal?.scheme_cards||[]);
     return new Set();
   }
@@ -192,6 +197,11 @@
       const selected=selectedOwnFighterID();
       if(!mine){box.innerHTML='<h2>Actions</h2><p>Waiting for the active player.</p>';return}
       if(!selected){box.innerHTML='<h2>Actions</h2><p>Select one of your fighters on the battlefield.</p>';return}
+      if(!['idle','fighter_selected'].includes(interaction.mode)){
+        box.innerHTML=`<h2>Current action</h2><p>${escapeHTML(interactionInstruction())}</p><button id="stage6-action-cancel" class="ghost">Cancel</button>`;
+        $('stage6-action-cancel').onclick=cancelInteraction;
+        return;
+      }
       const fighter=fighterByID(selected);
       const attack=attackMapModel(view.legal,selected);
       const canAttack=attack.selectedFighterID===selected;
@@ -257,7 +267,9 @@
         ?'defense'
         :(view.pending?.kind==='maneuver_boost'&&state.boostOpen)
           ?'boost'
-          :interaction.mode==='attack_card'?'attack':'';
+          :interaction.mode==='attack_card'
+            ?'attack'
+            :['scheme_fighter','scheme_destination','scheme_target','action_confirm'].includes(interaction.mode)?'action':'';
       const html=cards.map(card=>{
         const role=cardRole(card,view,interaction,state);
         const selectable=legal.has(card.id);
@@ -301,7 +313,7 @@
       if(view.pending?.owner_id===view.viewing_player_id&&view.pending.kind==='defense')return selectDefenseCard(card);
       if(view.pending?.owner_id===view.viewing_player_id&&view.pending.kind==='maneuver_boost'&&state.boostOpen)return selectBoostCard(card);
       if(interaction.mode==='attack_card')return selectAttackCard(card);
-      if(ownTurn(view)&&view.legal?.scheme_cards?.includes(card.id))return beginActionFromHand(card);
+      if(ownTurn(view)&&['idle','fighter_selected'].includes(interaction.mode)&&view.legal?.scheme_cards?.includes(card.id))return beginActionFromHand(card);
     };
 
     const pendingBox=$('pending');
