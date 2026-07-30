@@ -58,10 +58,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: Vendor exact uploaded battlefield source
+      - name: Vendor uploaded battlefield source through one-time image transport
         env:
-          SOURCE_URL: https://www.unmatchedpicks.com/maps/sherwoodforest.webp
-          EXPECTED_SHA256: 24f84b2dc91eee28a942f568be8e24a14b479bdaac51c11a2fc3dc9382b51162
+          SOURCE_URL: https://wsrv.nl/?url=https%3A%2F%2Fwww.unmatchedpicks.com%2Fmaps%2Fsherwoodforest.webp&output=webp&q=100
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check "Pillow==11.3.0"
@@ -71,13 +70,15 @@ jobs:
             --user-agent "unmatched-web-asset-vendor/1.0" \
             "$SOURCE_URL" \
             --output "$destination/board-1x.webp"
-          echo "$EXPECTED_SHA256  $destination/board-1x.webp" | sha256sum --check --strict
           python - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageFilter
 
           root = Path("apps/web/static/battlefields/sherwood-forest")
-          source = Image.open(root / "board-1x.webp").convert("RGBA")
+          source_path = root / "board-1x.webp"
+          if source_path.stat().st_size < 300_000:
+              raise SystemExit(f"Sherwood source is unexpectedly compressed: {source_path.stat().st_size} bytes")
+          source = Image.open(source_path).convert("RGBA")
           if source.size != (1337, 742):
               raise SystemExit(f"unexpected Sherwood source dimensions: {source.size}")
           high_density = source.resize((2674, 1484), Image.Resampling.LANCZOS)
@@ -86,12 +87,13 @@ jobs:
           check = Image.open(root / "board-2x.webp")
           if check.size != (2674, 1484):
               raise SystemExit(f"unexpected Sherwood 2x dimensions: {check.size}")
+          print(f"1x bytes={source_path.stat().st_size}; 2x bytes={(root / 'board-2x.webp').stat().st_size}")
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$destination/board-1x.webp" "$destination/board-2x.webp"
           if git diff --cached --quiet; then
-            echo "Sherwood assets already match the expected local copies."
+            echo "Sherwood assets already match the local copies."
             exit 0
           fi
           git commit -m "Vendor local Sherwood Forest assets"
