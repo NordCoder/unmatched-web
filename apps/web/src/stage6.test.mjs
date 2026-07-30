@@ -57,6 +57,8 @@ test('legal cards come from server-projected attack, defense, boost, and action 
 
   view.pending=null;
   assert.deepEqual([...ux.legalCardIDs(view,{mode:'idle',values:{}},{boostOpen:false})],['action-1']);
+  assert.deepEqual([...ux.legalCardIDs(view,{mode:'attack_target',values:{fighter_id:'rh'}},{boostOpen:false})],[]);
+  assert.deepEqual([...ux.legalCardIDs(view,{mode:'scheme_destination',values:{card_id:'action-1'}},{boostOpen:false})],['action-1']);
 });
 
 test('action plan uses projected fighter and destination domains',()=>{
