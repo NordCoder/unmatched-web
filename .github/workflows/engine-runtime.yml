@@ -40,13 +40,63 @@ on:
       - ".github/workflows/engine-runtime.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: engine-runtime-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  vendor-sherwood-assets:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/playable-slice-robin-bigfoot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: playable-slice-robin-bigfoot
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Vendor exact uploaded battlefield source
+        env:
+          SOURCE_URL: https://www.unmatchedpicks.com/maps/sherwoodforest.webp
+          EXPECTED_SHA256: 24f84b2dc91eee28a942f568be8e24a14b479bdaac51c11a2fc3dc9382b51162
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "Pillow==11.3.0"
+          destination=apps/web/static/battlefields/sherwood-forest
+          mkdir -p "$destination"
+          curl --fail --location --retry 4 --retry-delay 2 \
+            --user-agent "unmatched-web-asset-vendor/1.0" \
+            "$SOURCE_URL" \
+            --output "$destination/board-1x.webp"
+          echo "$EXPECTED_SHA256  $destination/board-1x.webp" | sha256sum --check --strict
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageFilter
+
+          root = Path("apps/web/static/battlefields/sherwood-forest")
+          source = Image.open(root / "board-1x.webp").convert("RGBA")
+          if source.size != (1337, 742):
+              raise SystemExit(f"unexpected Sherwood source dimensions: {source.size}")
+          high_density = source.resize((2674, 1484), Image.Resampling.LANCZOS)
+          high_density = high_density.filter(ImageFilter.UnsharpMask(radius=1.1, percent=105, threshold=2))
+          high_density.save(root / "board-2x.webp", "WEBP", quality=82, method=6)
+          check = Image.open(root / "board-2x.webp")
+          if check.size != (2674, 1484):
+              raise SystemExit(f"unexpected Sherwood 2x dimensions: {check.size}")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$destination/board-1x.webp" "$destination/board-2x.webp"
+          if git diff --cached --quiet; then
+            echo "Sherwood assets already match the expected local copies."
+            exit 0
+          fi
+          git commit -m "Vendor local Sherwood Forest assets"
+          git push origin HEAD:playable-slice-robin-bigfoot
+
   go:
     runs-on: ubuntu-latest
     steps:
