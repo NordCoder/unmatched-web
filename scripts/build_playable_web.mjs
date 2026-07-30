@@ -7,6 +7,7 @@ const generated=[
   ['apps/web/src/main.js','apps/web/static/app.js'],
   ['apps/web/src/stage4.js','apps/web/static/stage4.js'],
   ['apps/web/src/stage5-battlefield.js','apps/web/static/stage5-battlefield.js'],
+  ['apps/web/src/stage6.js','apps/web/static/stage6.js'],
   ['apps/web/src/tools/battlefield-editor.js','apps/web/static/tools/battlefield-editor.js'],
 ];
 
@@ -25,6 +26,7 @@ for(const filePath of [
   'apps/web/static/index.html',
   'apps/web/static/styles.css',
   'apps/web/static/stage5-battlefield.css',
+  'apps/web/static/stage6.css',
   'apps/web/static/tools/battlefield-editor.html',
   'apps/web/static/tools/battlefield-editor.css',
 ]){
