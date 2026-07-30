@@ -59,29 +59,49 @@ jobs:
         with:
           python-version: "3.13"
       - name: Vendor uploaded battlefield source through one-time image transport
-        env:
-          SOURCE_URL: https://www.unmatchedpicks.com/_next/image?url=%2Fmaps%2Fsherwoodforest.webp&w=2048&q=100
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check "Pillow==11.3.0"
           destination=apps/web/static/battlefields/sherwood-forest
           mkdir -p "$destination"
-          curl --fail --location --retry 4 --retry-delay 2 \
-            --user-agent "unmatched-web-asset-vendor/1.0" \
-            "$SOURCE_URL" \
-            --output "$destination/source-download.webp"
+          export destination
           python - <<'PY'
           from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
           from PIL import Image, ImageFilter
+          import io
+          import os
 
-          root = Path("apps/web/static/battlefields/sherwood-forest")
-          downloaded = root / "source-download.webp"
-          if downloaded.stat().st_size < 250_000:
-              raise SystemExit(f"Sherwood transport image is unexpectedly compressed: {downloaded.stat().st_size} bytes")
-          source = Image.open(downloaded).convert("RGBA")
-          expected_ratio = 1337 / 742
-          if abs(source.width / source.height - expected_ratio) > 0.002:
-              raise SystemExit(f"unexpected Sherwood transport aspect ratio: {source.size}")
+          root = Path(os.environ["destination"])
+          origin = "https://www.unmatchedpicks.com/maps/sherwoodforest.webp"
+          candidates = [
+              "https://api.allorigins.win/raw?url=" + quote(origin, safe=""),
+              "https://corsproxy.io/?url=" + quote(origin, safe=""),
+              "https://cors.isomorphic-git.org/" + origin,
+              "https://images.weserv.nl/?url=ssl:www.unmatchedpicks.com/maps/sherwoodforest.webp&output=webp&q=100",
+              "https://wsrv.nl/?url=ssl:www.unmatchedpicks.com/maps/sherwoodforest.webp&output=webp&q=100",
+          ]
+          source = None
+          failures = []
+          for candidate in candidates:
+              try:
+                  request = Request(candidate, headers={"User-Agent": "unmatched-web-asset-vendor/1.0"})
+                  with urlopen(request, timeout=30) as response:
+                      data = response.read()
+                  if len(data) < 200_000:
+                      raise ValueError(f"response too small: {len(data)} bytes")
+                  image = Image.open(io.BytesIO(data)).convert("RGBA")
+                  expected_ratio = 1337 / 742
+                  if abs(image.width / image.height - expected_ratio) > 0.002:
+                      raise ValueError(f"unexpected dimensions {image.size}")
+                  source = image
+                  print(f"accepted one-time transport {candidate}: {len(data)} bytes, {image.size}")
+                  break
+              except Exception as error:
+                  failures.append(f"{candidate}: {error}")
+          if source is None:
+              raise SystemExit("No one-time image transport succeeded:\n" + "\n".join(failures))
 
           one_x = source.resize((1337, 742), Image.Resampling.LANCZOS)
           one_x.save(root / "board-1x.webp", "WEBP", quality=100, method=6)
@@ -89,7 +109,6 @@ jobs:
           two_x = source.resize((2674, 1484), Image.Resampling.LANCZOS)
           two_x = two_x.filter(ImageFilter.UnsharpMask(radius=1.0, percent=90, threshold=2))
           two_x.save(root / "board-2x.webp", "WEBP", quality=92, method=6)
-          downloaded.unlink()
 
           for name, dimensions, minimum in [
               ("board-1x.webp", (1337, 742), 300_000),
