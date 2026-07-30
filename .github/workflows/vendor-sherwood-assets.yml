@@ -28,45 +28,49 @@ jobs:
           python-version: "3.13"
       - name: Install deterministic image tooling
         run: python -m pip install --disable-pip-version-check "Pillow==11.3.0"
-      - name: Vendor exact 1x source and local 2x derivative
-        env:
-          SOURCE_URL: https://www.unmatchedpicks.com/maps/sherwoodforest.webp
-          EXPECTED_SHA256: 24f84b2dc91eee28a942f568be8e24a14b479bdaac51c11a2fc3dc9382b51162
+      - name: Decode uploaded source and build density assets
         run: |
           set -euo pipefail
-          destination=apps/web/static/battlefields/sherwood-forest
-          mkdir -p "$destination"
-          curl --fail --location --retry 4 --retry-delay 2 \
-            --user-agent "unmatched-web-asset-vendor/1.0" \
-            "$SOURCE_URL" \
-            --output "$destination/board-1x.webp"
-          echo "$EXPECTED_SHA256  $destination/board-1x.webp" | sha256sum --check --strict
+          root=apps/web/static/battlefields/sherwood-forest
+          transport=.github/asset-transport/sherwood-forest
+          mkdir -p "$root"
+          cat "$transport"/part-*.b64 | base64 --decode > "$root/board-1x.webp"
+          echo "24f84b2dc91eee28a942f568be8e24a14b479bdaac51c11a2fc3dc9382b51162  $root/board-1x.webp" | sha256sum --check --strict
           python - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageFilter
 
           root = Path("apps/web/static/battlefields/sherwood-forest")
-          source = Image.open(root / "board-1x.webp").convert("RGBA")
+          source_path = root / "board-1x.webp"
+          high_path = root / "board-2x.webp"
+
+          with Image.open(source_path) as source_image:
+              source = source_image.convert("RGBA")
           if source.size != (1337, 742):
-              raise SystemExit(f"unexpected Sherwood source dimensions: {source.size}")
-          high_density = source.resize((2674, 1484), Image.Resampling.LANCZOS)
-          high_density = high_density.filter(ImageFilter.UnsharpMask(radius=1.1, percent=105, threshold=2))
-          high_density.save(root / "board-2x.webp", "WEBP", quality=82, method=6)
-          check = Image.open(root / "board-2x.webp")
-          if check.size != (2674, 1484):
-              raise SystemExit(f"unexpected Sherwood 2x dimensions: {check.size}")
+              raise SystemExit(f"unexpected source dimensions: {source.size}")
+
+          high = source.resize((2674, 1484), Image.Resampling.LANCZOS)
+          high = high.filter(ImageFilter.UnsharpMask(radius=1.0, percent=90, threshold=2))
+          high.save(high_path, "WEBP", quality=82, method=6)
+
+          with Image.open(high_path) as high_image:
+              if high_image.size != (2674, 1484):
+                  raise SystemExit(f"unexpected 2x dimensions: {high_image.size}")
+
+          if source_path.stat().st_size < 300_000:
+              raise SystemExit("1x asset is unexpectedly small")
+          if high_path.stat().st_size < 500_000:
+              raise SystemExit("2x asset is unexpectedly small")
+          print(source_path, source_path.stat().st_size)
+          print(high_path, high_path.stat().st_size)
           PY
-      - name: Commit vendored assets to the Candidate branch
+      - name: Commit local assets and remove one-time transport
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            apps/web/static/battlefields/sherwood-forest/board-1x.webp \
-            apps/web/static/battlefields/sherwood-forest/board-2x.webp
-          if git diff --cached --quiet; then
-            echo "Sherwood assets already match the expected local copies."
-            exit 0
-          fi
+          git add apps/web/static/battlefields/sherwood-forest/board-1x.webp
+          git add apps/web/static/battlefields/sherwood-forest/board-2x.webp
+          git rm -r .github/asset-transport/sherwood-forest
           git commit -m "Vendor local Sherwood Forest assets"
           git push origin HEAD:playable-slice-robin-bigfoot
