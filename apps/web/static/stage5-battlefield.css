@@ -1,0 +1,185 @@
+#board{
+  aspect-ratio:auto;
+  shape-rendering:geometricPrecision;
+  text-rendering:geometricPrecision;
+}
+.board-art{
+  pointer-events:none;
+  image-rendering:auto;
+}
+.space-hitbox{
+  fill:transparent;
+  pointer-events:all;
+  cursor:default;
+}
+.space-highlight{
+  fill:transparent;
+  stroke:transparent;
+  stroke-width:3;
+  pointer-events:none;
+  vector-effect:non-scaling-stroke;
+}
+.board-space[role=button] .space-hitbox{cursor:pointer}
+.board-space[role=button]:hover .space-highlight,
+.board-space[role=button]:focus-visible .space-highlight{
+  fill:#ffffff20;
+  stroke:#fff;
+  stroke-width:3;
+}
+.board-space.legal-fighter .space-highlight{
+  fill:#4f9cff26;
+  stroke:#80b9ff;
+  stroke-width:4;
+}
+.board-space.legal-destination .space-highlight{
+  fill:#f2c96d38;
+  stroke:var(--destination);
+  stroke-width:4;
+  filter:drop-shadow(0 0 3px #f2c96d);
+}
+.board-space.legal-target .space-highlight{
+  fill:#ff625738;
+  stroke:#ff786f;
+  stroke-width:4;
+  filter:drop-shadow(0 0 3px #ff6257);
+}
+.board-space.selected-fighter .space-highlight{
+  fill:#7db6ff42;
+  stroke:#edf6ff;
+  stroke-width:5;
+}
+.board-space.selected-target .space-highlight{
+  fill:#ff625750;
+  stroke:#fff;
+  stroke-width:5;
+}
+.board-space.preselected-destination .space-highlight{
+  fill:#35d8ff42;
+  stroke:#8deaff;
+  stroke-width:5;
+  filter:drop-shadow(0 0 5px #35d8ff);
+}
+.destination-check{
+  fill:#fff;
+  text-anchor:middle;
+  dominant-baseline:central;
+  font-size:28px;
+  font-weight:900;
+  paint-order:stroke;
+  stroke:#075b73;
+  stroke-width:4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.fighter-piece{pointer-events:none}
+.fighter-token{
+  stroke:#fff;
+  stroke-width:3;
+  pointer-events:none;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 3px 4px #000c);
+}
+.fighter-art{
+  pointer-events:none;
+  filter:drop-shadow(0 3px 4px #000c);
+}
+.hero-piece .fighter-art{filter:drop-shadow(0 4px 5px #000d)}
+.fighter-label{
+  fill:#fff;
+  text-anchor:middle;
+  dominant-baseline:middle;
+  font-weight:900;
+  paint-order:stroke;
+  stroke:#101510;
+  stroke-width:2;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.health-token{
+  fill:#101510;
+  stroke:#fff;
+  stroke-width:2;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+  filter:drop-shadow(0 2px 2px #000c);
+}
+.health-label{
+  fill:#fff;
+  text-anchor:middle;
+  font-weight:900;
+  pointer-events:none;
+}
+.path-preview{
+  fill:none;
+  stroke:#fff2a5;
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:12 8;
+  pointer-events:none;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 0 3px #000);
+}
+.debug-space-boundary{
+  fill:none;
+  stroke:#00f5ff;
+  stroke-width:2;
+  stroke-dasharray:6 4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+.debug-space-id{
+  fill:#fff;
+  font-size:14px;
+  text-anchor:middle;
+  dominant-baseline:middle;
+  font-weight:900;
+  paint-order:stroke;
+  stroke:#000;
+  stroke-width:3;
+  pointer-events:none;
+}
+.debug-edge{
+  stroke:#ff4cd8;
+  stroke-width:2;
+  stroke-dasharray:5 4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+#board[data-presentation="fallback"]{outline:2px dashed #ffb84d}
+
+.battlefield-loading{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:1rem;
+  background:radial-gradient(circle at 50% 38%,#294232f2,#0a0f0cf7 70%);
+  backdrop-filter:blur(8px);
+}
+.battlefield-loading[hidden]{display:none}
+.battlefield-loading-card{
+  width:min(360px,calc(100vw - 2rem));
+  display:grid;
+  justify-items:center;
+  gap:.8rem;
+  padding:1.5rem;
+  border:1px solid #657c69;
+  border-radius:18px;
+  background:#172019f2;
+  box-shadow:0 24px 80px #000a;
+  text-align:center;
+}
+.battlefield-loading-card strong{font-size:1.05rem;color:#f1e2bc}
+.battlefield-loading-card small{color:#b8c8bb}
+.battlefield-spinner{
+  width:46px;
+  height:46px;
+  border:4px solid #ffffff24;
+  border-top-color:#e0b86d;
+  border-radius:50%;
+  animation:battlefield-spin .85s linear infinite;
+}
+@keyframes battlefield-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.battlefield-spinner{animation-duration:1.8s}}

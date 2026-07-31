@@ -1,0 +1,64 @@
+.fighter-actions{display:flex;gap:10px;flex-wrap:wrap}
+.fighter-actions button{min-width:120px}
+.action-card-hint{margin:.75rem 0 0;opacity:.72;font-size:.9rem}
+.hand-panel{position:relative}
+.card-dock{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  scroll-snap-type:x proximity;
+  padding:12px 8px 22px;
+  scrollbar-gutter:stable;
+}
+.card-dock-item{
+  flex:0 0 clamp(132px,18vw,205px);
+  width:clamp(132px,18vw,205px);
+  padding:0;
+  border:3px solid transparent;
+  border-radius:13px;
+  background:transparent;
+  color:inherit;
+  scroll-snap-align:center;
+  transition:transform .16s ease,opacity .16s ease,filter .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.card-dock-item .card-art-image,
+.card-dock-item img{width:100%;height:auto;display:block}
+.card-dock-item.legal-card{cursor:pointer;box-shadow:0 0 0 2px rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.25)}
+.card-dock-item.legal-attack{border-color:#ff786f;box-shadow:0 0 18px rgba(255,98,87,.6)}
+.card-dock-item.legal-defense{border-color:#80b9ff;box-shadow:0 0 18px rgba(79,156,255,.58)}
+.card-dock-item.legal-boost{border-color:#f2c96d;box-shadow:0 0 18px rgba(242,201,109,.62)}
+.card-dock-item.legal-action{border-color:#79d49a;box-shadow:0 0 18px rgba(80,190,120,.5)}
+.card-dock-item.card-disabled{opacity:.34;filter:grayscale(.45) saturate(.55)}
+.card-dock-item.selected{transform:translateY(-10px) scale(1.035);opacity:1;filter:none;box-shadow:0 16px 34px rgba(0,0,0,.45)}
+.card-dock-item:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.card-confirmation{
+  position:sticky;
+  bottom:max(8px,env(safe-area-inset-bottom));
+  z-index:25;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 8px 10px;
+  padding:12px 14px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;
+  background:rgba(18,29,22,.96);
+  box-shadow:0 14px 40px rgba(0,0,0,.42);
+  backdrop-filter:blur(10px);
+}
+.card-confirmation[hidden]{display:none}
+.card-confirmation>div:first-child{display:grid;gap:3px}
+.card-confirmation span{opacity:.72;font-size:.86rem}
+.card-confirmation-actions{display:flex;gap:8px;flex:0 0 auto}
+#hand.card-dock+.card-confirmation{margin-top:-10px}
+.board-space.selected-fighter .fighter-art,
+.board-space.selected-target .fighter-art{filter:drop-shadow(0 0 8px rgba(255,255,255,.88))}
+@media (max-width:760px){
+  .card-dock{gap:9px;padding-inline:2px}
+  .card-dock-item{flex-basis:clamp(118px,40vw,168px);width:clamp(118px,40vw,168px)}
+  .card-confirmation{align-items:stretch;flex-direction:column}
+  .card-confirmation-actions{width:100%}
+  .card-confirmation-actions button{flex:1}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "unmatched-web-playable-slice",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "check": "node --check apps/web/src/main.js && node --check apps/web/src/stage4.js && node --check apps/web/src/battlefield-renderer.js && node --check apps/web/src/stage5-battlefield.js && node --check apps/web/src/stage6.js && node --check apps/web/src/stage7-map-intent.js && node --check apps/web/src/tools/battlefield-editor.js && node --test apps/web/src/*.test.mjs && node scripts/validate_battlefield_presentations.mjs && node scripts/build_playable_web.mjs --check",
+    "build": "node scripts/build_playable_web.mjs"
+  }
+}
