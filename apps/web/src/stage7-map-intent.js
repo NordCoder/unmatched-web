@@ -175,8 +175,12 @@
   }
 
   function activeContinuation(currentView=typeof view==='undefined'?null:view){
+    const hadContinuation=Boolean(maneuverContinuation);
     const result=reconcileManeuverContinuation(maneuverContinuation,currentView);
     maneuverContinuation=result.continuation;
+    if(hadContinuation&&!maneuverContinuation&&typeof preferredManeuverFighterID!=='undefined'){
+      preferredManeuverFighterID=null;
+    }
     return result;
   }
 
@@ -212,8 +216,8 @@
 
     const baseSyncPendingMapInteraction=syncPendingMapInteraction;
     syncPendingMapInteraction=function(){
-      baseSyncPendingMapInteraction();
       const current=activeContinuation(view);
+      baseSyncPendingMapInteraction();
       if(current.state!=='destination'||!current.option)return;
       beginInteraction('pending_destination','pending',{
         pending_identity:pendingIdentity(view.pending),
