@@ -229,6 +229,11 @@ type CombatView struct {
 	WaitingForDefense bool      `json:"waiting_for_defense"`
 }
 
+type ManeuverActionView struct {
+	BaseMovement          int                 `json:"base_movement"`
+	DestinationsByFighter map[string][]Option `json:"destinations_by_fighter"`
+}
+
 type SchemeFighterActionView struct {
 	FighterID            string              `json:"fighter_id"`
 	Destinations         []Option            `json:"destinations,omitempty"`
@@ -240,11 +245,12 @@ type SchemeActionView struct {
 }
 
 type LegalView struct {
-	CanManeuver   bool                        `json:"can_maneuver"`
-	SchemeCards   []string                    `json:"scheme_cards,omitempty"`
-	SchemeActions map[string]SchemeActionView `json:"scheme_actions_by_card,omitempty"`
-	AttackCards   map[string][]string         `json:"attack_cards_by_fighter,omitempty"`
-	AttackTargets map[string][]string         `json:"attack_targets_by_fighter,omitempty"`
+	CanManeuver    bool                        `json:"can_maneuver"`
+	ManeuverAction *ManeuverActionView         `json:"maneuver_action,omitempty"`
+	SchemeCards    []string                    `json:"scheme_cards,omitempty"`
+	SchemeActions  map[string]SchemeActionView `json:"scheme_actions_by_card,omitempty"`
+	AttackCards    map[string][]string         `json:"attack_cards_by_fighter,omitempty"`
+	AttackTargets  map[string][]string         `json:"attack_targets_by_fighter,omitempty"`
 }
 
 type View struct {
