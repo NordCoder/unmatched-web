@@ -8,6 +8,7 @@ const generated=[
   ['apps/web/src/stage4.js','apps/web/static/stage4.js'],
   ['apps/web/src/stage5-battlefield.js','apps/web/static/stage5-battlefield.js'],
   ['apps/web/src/stage6.js','apps/web/static/stage6.js'],
+  ['apps/web/src/stage7-map-intent.js','apps/web/static/stage7-map-intent.js'],
   ['apps/web/src/tools/battlefield-editor.js','apps/web/static/tools/battlefield-editor.js'],
 ];
 
