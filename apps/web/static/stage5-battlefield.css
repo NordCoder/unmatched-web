@@ -53,6 +53,24 @@
   stroke:#fff;
   stroke-width:5;
 }
+.board-space.preselected-destination .space-highlight{
+  fill:#35d8ff42;
+  stroke:#8deaff;
+  stroke-width:5;
+  filter:drop-shadow(0 0 5px #35d8ff);
+}
+.destination-check{
+  fill:#fff;
+  text-anchor:middle;
+  dominant-baseline:central;
+  font-size:28px;
+  font-weight:900;
+  paint-order:stroke;
+  stroke:#075b73;
+  stroke-width:4;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
 .fighter-piece{pointer-events:none}
 .fighter-token{
   stroke:#fff;
