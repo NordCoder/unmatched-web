@@ -102,6 +102,7 @@ func (m *Match) legalView(player *Player) LegalView {
 		return result
 	}
 	result.CanManeuver = true
+	result.ManeuverAction = m.maneuverActionView(player)
 	for _, card := range player.Hand {
 		definition := m.cardDefinition(card)
 		if definition.Type != content.CardScheme {
@@ -130,6 +131,30 @@ func (m *Match) legalView(player *Player) LegalView {
 		}
 	}
 	sort.Strings(result.SchemeCards)
+	return result
+}
+
+func (m *Match) maneuverActionView(player *Player) *ManeuverActionView {
+	movement := m.Registry.Decks[player.DeckDefinitionID].Movement
+	result := &ManeuverActionView{
+		BaseMovement:          movement,
+		DestinationsByFighter: map[string][]Option{},
+	}
+	for _, fighterID := range player.FighterIDs {
+		fighter := m.Fighters[fighterID]
+		if fighter == nil || fighter.Defeated {
+			continue
+		}
+		options := []Option{}
+		for _, destination := range m.destinations(fighter, movement, false, false) {
+			if destination.Destination == fighter.SpaceID {
+				continue
+			}
+			destination.Path = append([]string(nil), destination.Path...)
+			options = append(options, destination)
+		}
+		result.DestinationsByFighter[fighter.ID] = options
+	}
 	return result
 }
 
